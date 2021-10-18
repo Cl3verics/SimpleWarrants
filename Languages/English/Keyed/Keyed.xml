@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<SW.PublicWarrants>Public Warrants</SW.PublicWarrants>
+	<SW.RelatedWarrants>Related Warrants</SW.RelatedWarrants>
+	<SW.Age>Age {0}</SW.Age>
+	<SW.Decline>Decline</SW.Decline>
+	<SW.WantedFor>Wanted For {0}, posted by {1}</SW.WantedFor>
+	<SW.PostedBy>Posted by {0}</SW.PostedBy>
+	<SW.CaravanRequestInfo>Warrants issued: {0}</SW.CaravanRequestInfo>
+	<SW.CommandFulfillWarrant>Fulfill warrant</SW.CommandFulfillWarrant>
+	<SW.CommandFulfillWarrantDesc>Fulfill warrant desc</SW.CommandFulfillWarrantDesc>
+	<SW.CaravanRequestInfo>Warrant requested: {0}</SW.CaravanRequestInfo>
+	<SW.NoReward>No reward</SW.NoReward>
+</LanguageData>

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <RulePackDef>
+    <defName>SW_WantedFor</defName>
+    <rulePack>
+      <rulesStrings>
+        <li>r_logentry->Desertion</li>
+        <li>r_logentry->Treason</li>
+        <li>r_logentry->Kidnapping</li>
+        <li>r_logentry->Murder</li>
+      </rulesStrings>
+    </rulePack>
+  </RulePackDef>
+
+</Defs>
