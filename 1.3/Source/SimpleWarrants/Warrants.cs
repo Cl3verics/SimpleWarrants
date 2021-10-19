@@ -12,6 +12,14 @@ using Verse.Sound;
 
 namespace SimpleWarrants
 {
+    public enum WarrantStatus
+    {
+        Accepted,
+        Completed,
+        Failed,
+        Expired
+    }
+
     [HotSwappable]
 
     public abstract class Warrant : IExposable, ILoadReferenceable
@@ -23,7 +31,11 @@ namespace SimpleWarrants
         public int createdTick = -1;
         public Faction issuer;
 
-
+        public WarrantStatus status;
+        public Faction accepteer;
+        public int tickToBeCompleted;
+        public abstract float AcceptChance();
+        public abstract float SuccessChance();
         public abstract bool IsWarrantFulfilled();
         public void DrawAcceptDeclineButtons(Rect rect)
         {
@@ -44,17 +56,29 @@ namespace SimpleWarrants
         {
             WarrantsManager.Instance.availableWarrants.Remove(this);
             WarrantsManager.Instance.acceptedWarrants.Add(this);
-            acceptedTick = Find.TickManager.TicksGame;
+            AcceptBy(Faction.OfPlayer);
         }
-        public virtual void Draw(Rect rect)
+
+        public void AcceptBy(Faction faction)
+        {
+            acceptedTick = Find.TickManager.TicksGame;
+            this.status = WarrantStatus.Accepted;
+            this.accepteer = faction;
+        }
+        public virtual void Draw(Rect rect, bool doAcceptAndDeclineButtons = true)
         {
             Widgets.DrawLine(new Vector2(rect.x, rect.y), new Vector2(rect.xMax, rect.y), Color.gray, 1);
-            DrawAcceptDeclineButtons(rect);
+            if (doAcceptAndDeclineButtons)
+            {
+                DrawAcceptDeclineButtons(rect);
+            }
         }
         public virtual void ExposeData()
         {
             Scribe_Values.Look(ref acceptedTick, "acceptedTick", -1);
             Scribe_References.Look(ref issuer, "issuer");
+            Scribe_References.Look(ref accepteer, "accepteer");
+            Scribe_Values.Look(ref tickToBeCompleted, "tickToBeCompleted");
             Scribe_Values.Look(ref loadID, "loadID");
             if (!spawned)
             {
@@ -71,7 +95,10 @@ namespace SimpleWarrants
             return loadID;
         }
 
-        public abstract void GiveReward(Caravan caravan);
+        public virtual void GiveReward(Caravan caravan)
+        {
+            this.status = WarrantStatus.Completed;
+        }
     }
 
     [HotSwappable]
@@ -86,9 +113,9 @@ namespace SimpleWarrants
         public int rewardForLiving;
 
         public int rewardForDead;
-        public override void Draw(Rect rect)
+        public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true)
         {
-            base.Draw(rect);
+            base.Draw(rect, doAcceptAndDeclineButtons);
             var pawnRect = new Rect(new Vector2(rect.x + 90, rect.y + 10), new Vector2(rect.height * 0.722f, rect.height));
             Vector2 pos = new Vector2(pawnRect.width, pawnRect.height);
             GUI.DrawTexture(pawnRect, PortraitsCache.Get(pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f));
@@ -160,6 +187,7 @@ namespace SimpleWarrants
 
         public override void GiveReward(Caravan caravan)
         {
+            base.GiveReward(caravan);
             var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
             if (rewardForDead > 0 && pawn.Dead)
             {
@@ -172,6 +200,18 @@ namespace SimpleWarrants
                 CaravanInventoryUtility.GiveThing(caravan, silver);
             }
         }
+
+        public override float AcceptChance()
+        {
+            var reward = Mathf.Max(rewardForDead, rewardForLiving);
+            return reward / thing.MarketValue;
+        }
+
+        public override float SuccessChance()
+        {
+            var reward = Mathf.Max(rewardForDead, rewardForLiving);
+            return reward / thing.MarketValue;
+        }
     }
     [HotSwappable]
     [StaticConstructorOnStartup]
@@ -179,9 +219,9 @@ namespace SimpleWarrants
     {
         public static readonly Texture2D IconRetrieve = ContentFinder<Texture2D>.Get("UI/Warrants/IconRetrieve");
         public int reward;
-        public override void Draw(Rect rect)
+        public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true)
         {
-            base.Draw(rect);
+            base.Draw(rect, doAcceptAndDeclineButtons);
             var thingRect = new Rect(new Vector2(rect.x + 90, rect.y + 10), new Vector2(rect.height * 0.722f, rect.height * 0.722f));
             GUI.DrawTexture(thingRect, thing.Graphic.MatSouth.mainTexture);
 
@@ -221,6 +261,7 @@ namespace SimpleWarrants
         }
         public override void GiveReward(Caravan caravan)
         {
+            base.GiveReward(caravan);
             var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
             if (reward > 0)
             {
@@ -235,6 +276,16 @@ namespace SimpleWarrants
                 return false;
             }
             return true;
+        }
+
+        public override float AcceptChance()
+        {
+            return reward / thing.MarketValue;
+        }
+
+        public override float SuccessChance()
+        {
+            return reward / thing.MarketValue;
         }
     }
 }

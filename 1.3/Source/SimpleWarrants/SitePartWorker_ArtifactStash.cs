@@ -21,10 +21,7 @@ namespace SimpleWarrants
 			base.Notify_GeneratedByQuestGen(part, slate, outExtraDescriptionRules, outExtraDescriptionConstants);
 			part.things = new ThingOwner<Thing>(part, oneStackOnly: true);
 			var artifact = slate.Get<Thing>("artifact");
-			Log.Message("TEST: " + part.things.GetCountCanAccept(artifact));
-			var result = part.things.TryAdd(artifact, false);
-
-			Log.Message(result + " - artifact: " + artifact + " - " + part.things.Count + " - " + artifact.holdingOwner);
+			part.things.TryAdd(artifact, false);
 		}
 	}
 
@@ -35,7 +32,6 @@ namespace SimpleWarrants
 			var artifact = parms.sitePart.things[0];
 			var warrant = WarrantsManager.Instance.acceptedWarrants.First(x => x.thing == artifact);
 			warrant.spawned = true;
-			Log.Message("artifact: " + artifact);
 			base.Generate(map, parms);
 		}
 	}

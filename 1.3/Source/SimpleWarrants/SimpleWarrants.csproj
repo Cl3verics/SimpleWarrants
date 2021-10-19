@@ -44,13 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Quests\QuestNode_Rewards.cs" />
-    <Compile Include="Quests\QuestNode_Warrant.cs" />
-    <Compile Include="Quests\RewardNode_ItemsReward.cs" />
-    <Compile Include="Quests\QuestNode_GetPawn.cs" />
-    <Compile Include="Quests\RewardNode.cs" />
+    <Compile Include="QuestNode_WarrantFailed.cs" />
     <Compile Include="HarmonyPatches.cs" />
     <Compile Include="SitePartWorker_ArtifactStash.cs" />
+    <Compile Include="IncidentWorker_Visitors.cs" />
     <Compile Include="WarrantRequestComp.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="SitePartWorker_Camp.cs" />

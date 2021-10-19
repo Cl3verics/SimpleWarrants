@@ -12,4 +12,20 @@
 	<SW.CommandFulfillWarrantDesc>Fulfill warrant desc</SW.CommandFulfillWarrantDesc>
 	<SW.CaravanRequestInfo>Warrant requested: {0}</SW.CaravanRequestInfo>
 	<SW.NoReward>No reward</SW.NoReward>
+	<SW.CreateWarrant>Create Warrant</SW.CreateWarrant>
+	<SW.WarrantSubject>Warrant Subject</SW.WarrantSubject>
+	<SW.Pawn>Human</SW.Pawn>
+	<SW.Artifact>Artifact</SW.Artifact>
+	<SW.Select>Select</SW.Select>
+	<SW.Reason>Reason: {0}</SW.Reason>
+	<SW.CapturePayment>Capture Payment: </SW.CapturePayment>
+	<SW.DeathPayment>Death Payment: </SW.DeathPayment>
+	<SW.RewardPayment>Reward Payment: </SW.RewardPayment>
+	<SW.FactionTookYourWarrant>{FACTION_name} has accepted your warrant on {1}, and is actively completing it.</SW.FactionTookYourWarrant>
+	<SW.FactionCompletedWarrant>{FACTION_name} has completed your warrant.</SW.FactionCompletedWarrant>
+	<SW.FactionCompletedWarrantDesc>Members of {FACTION_name} are outside of your base with your completed warrant on {1}. They are demanding payment of {2} silver before drop off.</SW.FactionCompletedWarrantDesc>
+	<SW.Pay>Pay {0} silver</SW.Pay>
+	<SW.NotEnoughSilver>not enough silver</SW.NotEnoughSilver>
+	<SW.Refuse>Refuse</SW.Refuse>
+	<SW.FactionFailedWarrant>{FACTION_name} has failed to complete your warrant on {1}</SW.FactionFailedWarrant>
 </LanguageData>

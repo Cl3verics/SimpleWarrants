@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj": {}
+    "c:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj": {}
   },
   "projects": {
-    "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj": {
+    "c:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj",
+        "projectUniqueName": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj",
         "projectName": "SimpleWarrants",
-        "projectPath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj",
+        "projectPath": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj",
         "packagesPath": "C:\\Users\\Vova\\.nuget\\packages\\",
-        "outputPath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\obj\\",
+        "outputPath": "c:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\obj\\",
         "projectStyle": "PackageReference",
         "skipContentFileWrite": true,
         "configFilePaths": [

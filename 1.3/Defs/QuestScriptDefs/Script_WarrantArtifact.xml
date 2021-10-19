@@ -19,8 +19,6 @@
 		<root Class="QuestNode_Sequence">
 			<nodes>
 
-				<li Class="SimpleWarrants.QuestNode_Warrant"/>
-
 				<li Class="QuestNode_SubScript">
 					<def>Util_RandomizePointsChallengeRating</def>
 					<parms>
@@ -81,8 +79,9 @@
 						<nodes>
 							<li Class="QuestNode_Letter">
 								<label TKey="LetterLabelQuestExpired">Quest expired: [resolvedQuestName]</label>
-								<text TKey="LetterTextQuestExpired">Intercepted communications indicate the item stash has been claimed by others. The quest [resolvedQuestName] has expired.</text>
+								<text TKey="LetterTextQuestExpired">The warrant was expired. The quest [resolvedQuestName] has expired.</text>
 							</li>
+							<li Class="SimpleWarrants.QuestNode_WarrantFailed"></li>
 							<li Class="QuestNode_End">
 								<outcome>Fail</outcome>
 							</li>
@@ -103,9 +102,20 @@
 					<sendStandardLetter>true</sendStandardLetter>
 				</li>
 
-				<li Class="QuestNode_End">
+				<li Class="QuestNode_Signal">
 					<inSignal>WarrantRequestTimeout</inSignal>
-					<outcome>Fail</outcome>
+					<node Class="QuestNode_Sequence">
+						<nodes>
+							<li Class="SimpleWarrants.QuestNode_WarrantFailed"></li>
+							<li Class="QuestNode_Letter">
+								<label TKey="LetterLabelWarrantExpiredQuestFailed">Quest failed: [resolvedQuestName]</label>
+								<text TKey="LetterTextWarrantExpiredQuestFailed">The warrant was expired. The quest [resolvedQuestName] has ended.</text>
+							</li>
+							<li Class="QuestNode_End">
+								<outcome>Fail</outcome>
+							</li>
+						</nodes>
+					</node>
 				</li>
 			</nodes>
 		</root>
