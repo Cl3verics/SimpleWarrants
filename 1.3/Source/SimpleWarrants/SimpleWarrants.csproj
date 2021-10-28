@@ -45,7 +45,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="QuestNode_WarrantFailed.cs" />
-    <Compile Include="HarmonyPatches.cs" />
     <Compile Include="SitePartWorker_ArtifactStash.cs" />
     <Compile Include="IncidentWorker_Visitors.cs" />
     <Compile Include="WarrantRequestComp.cs" />

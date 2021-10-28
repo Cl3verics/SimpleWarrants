@@ -80,17 +80,29 @@ namespace SimpleWarrants
                     issuer = issuer,
                     createdTick = Find.TickManager.TicksGame
                 };
-                var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike).RandomElement();
-                Faction faction = null;
-                if (randomKind.defaultFactionType != null)
+
+                var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
+                if (Rand.Chance(0.9f) || !pawns.Any())
                 {
-                    faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
+                    var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
+                    Faction faction = null;
+                    if (randomKind.defaultFactionType != null)
+                    {
+                        faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
+                    }
+                    if (faction is null)
+                    {
+                        faction = Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
+                    }
+                    warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
                 }
-                if (faction is null)
+                else
                 {
-                    faction = Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
+                    var colonist = pawns.RandomElement();
+                    warrant.thing = colonist;
+                    Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonist".Translate(colonist.Named("PAWN")), "SW.WarrantOnYourColonistDesc".Translate(colonist.Named("PAWN"))
+                        , LetterDefOf.NegativeEvent, colonist);
                 }
-                warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
                 warrant.rewardForLiving = (int)(warrant.pawn.MarketValue * Rand.Range(0.5f, 2f));
                 if (Rand.Chance(0.3f))
                 {
@@ -141,6 +153,16 @@ namespace SimpleWarrants
             if (Rand.MTBEventOccurs(7, GenDate.TicksPerDay, 1))
             {
                 availableWarrants.Add(GetRandomWarrant());
+            }
+
+            foreach (var warrant in availableWarrants.Where(x => x.IsThreatForPlayer()))
+            {
+                if (Rand.MTBEventOccurs(3, GenDate.TicksPerDay, 1))
+                {
+                    var map = Find.AnyPlayerHomeMap;
+                    var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
+                    IncidentDefOf.RaidEnemy.Worker.TryExecute(parms);
+                }
             }
 
             for (int num = givenWarrants.Count - 1; num >= 0; num--)

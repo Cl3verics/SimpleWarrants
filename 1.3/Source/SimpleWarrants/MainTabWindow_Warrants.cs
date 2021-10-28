@@ -61,7 +61,7 @@ namespace SimpleWarrants
 		private Vector2 scrollPosition;
 		private void DoPublicWarrants(Rect rect)
         {
-			var warrants = WarrantsManager.Instance.availableWarrants.OrderByDescending(x => x.createdTick).ToList();
+			var warrants = WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction != Faction.OfPlayer).OrderByDescending(x => x.createdTick).ToList();
 			var posY = rect.y + 10;
 			var sectionWidth = 750;
 			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
@@ -78,7 +78,8 @@ namespace SimpleWarrants
 
 		private void DoRelatedWarrants(Rect rect)
 		{
-			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.givenWarrants).OrderByDescending(x => x.createdTick).ToList();
+			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.givenWarrants)
+				.Concat(WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction == Faction.OfPlayer)).OrderByDescending(x => x.createdTick).ToList();
 			var posY = rect.y + 10;
 			var sectionWidth = 750;
 			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
@@ -87,7 +88,7 @@ namespace SimpleWarrants
 			for (var i = 0; i < warrants.Count; i++)
 			{
 				var warrantBox = new Rect(rect.x, posY, sectionWidth - 30, 150);
-				warrants[i].Draw(warrantBox, false);
+				warrants[i].Draw(warrantBox, false, true);
 				posY = warrantBox.yMax + 15;
 			}
 			Widgets.EndScrollView();
