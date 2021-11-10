@@ -182,7 +182,7 @@ namespace SimpleWarrants
 				if (Widgets.ButtonTextSubtle(reasonRect, "SW.Reason".Translate(curReason)))
                 {
 					var floatList = new List<FloatMenuOption>();
-					foreach (var value in Utils.GenerateAllTextFromRule(SW_DefOf.SW_WantedFor))
+					foreach (var value in Utils.GenerateAllTextFromRule(SW_DefOf.SW_WantedFor).OrderBy(x => x))
 					{
 						floatList.Add(new FloatMenuOption(value.ToString(), delegate
 						{
