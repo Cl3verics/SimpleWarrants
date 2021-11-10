@@ -12,7 +12,7 @@
         <li>r_logentry->Theft</li>
         <li>r_logentry->Embezzlement</li>
         <li>r_logentry->Blackmail</li>
-        <li>r_logentry->Conspriacy</li>
+        <li>r_logentry->Conspiracy</li>
         <li>r_logentry->Cyber Crimes</li>
         <li>r_logentry->Extortion</li>
         <li>r_logentry->Larceny</li>
@@ -21,6 +21,10 @@
         <li>r_logentry->Assault</li>
         <li>r_logentry->Torture</li>
         <li>r_logentry->Vandalism</li>
+        <li>r_logentry->Poaching</li>
+        <li>r_logentry->Fraud</li>
+        <li>r_logentry->Loitering</li>
+        <li>r_logentry->Arson</li>
       </rulesStrings>
     </rulePack>
   </RulePackDef>
