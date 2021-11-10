@@ -23,7 +23,8 @@ namespace SimpleWarrants
     public static class Utils
     {
         public static IEnumerable<ThingDef> AllArtifactDefs => DefDatabase<ThingDef>.AllDefs.Where(x => (x.tradeTags?.Contains("Artifact") ?? false)
-                    || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false));
+                    || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false)
+                    || (x.tradeTags?.Contains("ExoticMisc") ?? false));
         public static TaggedString GenerateTextFromRule(RulePackDef rule, int seed = -1)
         {
             if (seed != -1)

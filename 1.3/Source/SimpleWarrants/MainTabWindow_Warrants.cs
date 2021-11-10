@@ -134,7 +134,8 @@ namespace SimpleWarrants
             {
 				if (curPawn is null)
                 {
-					if (!Find.WorldPawns.AllPawnsAlive.Where(pawn => !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).TryRandomElement(out curPawn))
+					if (!Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn.RaceProps.Humanlike 
+						&& !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).TryRandomElement(out curPawn))
                     {
 						var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike).RandomElement();
 						Faction faction = null;

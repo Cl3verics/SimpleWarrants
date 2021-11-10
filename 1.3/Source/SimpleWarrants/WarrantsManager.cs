@@ -64,11 +64,11 @@ namespace SimpleWarrants
             var count = Rand.RangeInclusive(3, 5);
             for (var i = 0; i < count; i++)
             {
-                availableWarrants.Add(GetRandomWarrant());
+                availableWarrants.Add(GetRandomWarrant(false));
             }
         }
 
-        private Warrant GetRandomWarrant()
+        private Warrant GetRandomWarrant(bool includeColonists = true)
         {
             var issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer 
             && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).RandomElement();
@@ -82,7 +82,7 @@ namespace SimpleWarrants
                 };
 
                 var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
-                if (Rand.Chance(0.9f) || !pawns.Any())
+                if (Rand.Chance(0.9f) || !pawns.Any() || !includeColonists)
                 {
                     var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
                     Faction faction = null;
@@ -123,7 +123,7 @@ namespace SimpleWarrants
                     issuer = issuer,
                     createdTick = Find.TickManager.TicksGame
                 };
-                var artifacts = DefDatabase<ThingDef>.AllDefs.Where(x => (x.tradeTags?.Contains("Artifact") ?? false) || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false));
+                var artifacts = Utils.AllArtifactDefs;
                 var randomArtifact = artifacts.RandomElement();
                 warrant.thing = ThingMaker.MakeThing(randomArtifact);
                 warrant.reward = (int)(warrant.thing.MarketValue * Rand.Range(0.5f, 2f));
@@ -161,6 +161,7 @@ namespace SimpleWarrants
                 {
                     var map = Find.AnyPlayerHomeMap;
                     var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
+                    parms.faction = Find.FactionManager.AllFactionsVisible.Where(x => x.def.humanlikeFaction && x.HostileTo(Faction.OfPlayer)).RandomElement();
                     IncidentDefOf.RaidEnemy.Worker.TryExecute(parms);
                 }
             }
@@ -168,7 +169,9 @@ namespace SimpleWarrants
             for (int num = givenWarrants.Count - 1; num >= 0; num--)
             {
                 var warrant = givenWarrants[num];
-                if (Rand.Chance(warrant.AcceptChance() / (GenDate.TicksPerDay * 15)))
+                var chance = warrant.AcceptChance() / (GenDate.TicksPerDay * 7);
+                var success = Rand.Chance(chance);
+                if (success)
                 {
                     var accepteer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated 
                     && !faction.Hidden && !faction.IsPlayer && warrant.issuer != faction && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile 
@@ -176,7 +179,7 @@ namespace SimpleWarrants
                     warrant.AcceptBy(accepteer);
                     givenWarrants.RemoveAt(num);
                     takenWarrants.Add(warrant);
-                    warrant.tickToBeCompleted = Find.TickManager.TicksGame + (GenDate.TicksPerDay * Rand.Range(3, 20));
+                    warrant.tickToBeCompleted = Find.TickManager.TicksGame + (GenDate.TicksPerDay * Rand.Range(3, 15));
                     Messages.Message("SW.FactionTookYourWarrant".Translate(accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.PositiveEvent);
                 }
             }
@@ -187,7 +190,10 @@ namespace SimpleWarrants
                 if (Find.TickManager.TicksGame > warrant.tickToBeCompleted)
                 {
                     takenWarrants.RemoveAt(num);
-                    if (Rand.Chance(warrant.SuccessChance()))
+                    var chance = warrant.SuccessChance();
+                    var success = Rand.Chance(chance);
+                    Log.Message("Taken warrant chance: " + chance + " - " + success + " for " + warrant.thing);
+                    if (success)
                     {
                         var reward = 0;
                         bool dead = false;
