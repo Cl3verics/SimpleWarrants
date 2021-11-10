@@ -223,7 +223,7 @@ namespace SimpleWarrants
 				if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
 				{
 					var floatList = new List<FloatMenuOption>();
-					foreach (var value in Utils.AllArtifactDefs)
+					foreach (var value in Utils.AllArtifactDefs.OrderBy(x => x.LabelCap))
 					{
 						floatList.Add(new FloatMenuOption(value.LabelCap.ToString(), delegate
 						{
