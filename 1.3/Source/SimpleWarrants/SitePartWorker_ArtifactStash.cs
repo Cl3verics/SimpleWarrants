@@ -31,7 +31,6 @@ namespace SimpleWarrants
         {
 			var artifact = parms.sitePart.things[0];
 			var warrant = WarrantsManager.Instance.acceptedWarrants.First(x => x.thing == artifact);
-			warrant.spawned = true;
 			base.Generate(map, parms);
 		}
 	}

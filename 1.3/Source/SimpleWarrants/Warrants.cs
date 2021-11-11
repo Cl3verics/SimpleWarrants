@@ -25,7 +25,7 @@ namespace SimpleWarrants
     public abstract class Warrant : IExposable, ILoadReferenceable
     {
         public Thing thing;
-        public bool spawned;
+        private bool savedSomewhere;
         public string loadID;
         public int acceptedTick = -1;
         public int createdTick = -1;
@@ -53,21 +53,29 @@ namespace SimpleWarrants
                 WarrantsManager.Instance.availableWarrants.Remove(this);
             }
         }
-        public void DrawRepayButton(Rect rect)
+        public void DrawCompensateButton(Rect rect)
         {
             var acceptRect = new Rect(rect.x + 5, rect.y + 65, 80, 30);
-            if (Widgets.ButtonText(acceptRect, "SW.Repay".Translate()))
+            if (Widgets.ButtonText(acceptRect, "SW.Compensate".Translate()))
             {
-                DoRepayAction();
+                DoCompensateAction();
             }
         }
 
-        public abstract bool ShouldShowRepayButton();
-        public virtual void DoRepayAction()
+        public void DrawRemoveWarrantButton(Rect rect)
+        {
+            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 80, 30);
+            if (Widgets.ButtonText(acceptRect, "SW.RemoveWarrant".Translate()))
+            {
+                WarrantsManager.Instance.givenWarrants.Remove(this);
+            }
+        }
+        public abstract bool ShouldShowCompensateButton();
+        public virtual void DoCompensateAction()
         {
         }
 
-        public void Repay(List<Thing> silvers, int amountToPay)
+        public void Pay(List<Thing> silvers, int amountToPay)
         {
             while (amountToPay > 0)
             {
@@ -96,26 +104,35 @@ namespace SimpleWarrants
             this.status = WarrantStatus.Accepted;
             this.accepteer = faction;
         }
-        public virtual void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doRepayWarrantButton = false)
+        public virtual void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
             Widgets.DrawLine(new Vector2(rect.x, rect.y), new Vector2(rect.xMax, rect.y), Color.gray, 1);
             if (doAcceptAndDeclineButtons)
             {
                 DrawAcceptDeclineButtons(rect);
             }
-            if (doRepayWarrantButton)
+            if (doCompensateWarrantButton && ShouldShowCompensateButton())
             {
-                DrawRepayButton(rect);
+                DrawCompensateButton(rect);
+            }
+            if (this.issuer == Faction.OfPlayer)
+            {
+                DrawRemoveWarrantButton(rect);
             }
         }
         public virtual void ExposeData()
         {
+            if (Scribe.mode == LoadSaveMode.Saving)
+            {
+                savedSomewhere = IsSavedSomewhereElse(thing);
+            }
+            Scribe_Values.Look(ref savedSomewhere, "savedSomewhere");
             Scribe_Values.Look(ref acceptedTick, "acceptedTick", -1);
             Scribe_References.Look(ref issuer, "issuer");
             Scribe_References.Look(ref accepteer, "accepteer");
             Scribe_Values.Look(ref tickToBeCompleted, "tickToBeCompleted");
             Scribe_Values.Look(ref loadID, "loadID");
-            if (!spawned)
+            if (!savedSomewhere)
             {
                 Scribe_Deep.Look(ref thing, "thing");
             }
@@ -123,6 +140,22 @@ namespace SimpleWarrants
             {
                 Scribe_References.Look(ref thing, "thing");
             }
+        }
+
+        private bool IsSavedSomewhereElse(Thing thing)
+        {
+            if (thing is Pawn pawn)
+            {
+                if (Find.WorldPawns.Contains(pawn))
+                {
+                    return true;
+                }
+            }
+            if (thing.holdingOwner != null)
+            {
+                return true;
+            }
+            return false;
         }
 
         public string GetUniqueLoadID()
@@ -148,9 +181,9 @@ namespace SimpleWarrants
         public int rewardForLiving;
 
         public int rewardForDead;
-        public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doRepayWarrantButton = false)
+        public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
-            base.Draw(rect, doAcceptAndDeclineButtons, doRepayWarrantButton);
+            base.Draw(rect, doAcceptAndDeclineButtons, doCompensateWarrantButton);
             var pawnRect = new Rect(new Vector2(rect.x + 90, rect.y + 10), new Vector2(rect.height * 0.722f, rect.height));
             Vector2 pos = new Vector2(pawnRect.width, pawnRect.height);
             GUI.DrawTexture(pawnRect, PortraitsCache.Get(pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f));
@@ -236,19 +269,19 @@ namespace SimpleWarrants
             }
         }
 
-        public override void DoRepayAction()
+        public override void DoCompensateAction()
         {
             var map = Find.CurrentMap ?? Find.AnyPlayerHomeMap;
             var silvers = map.listerThings.ThingsOfDef(ThingDefOf.Silver).Where((Thing x) => !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage())).ToList();
-            var toRepay = Mathf.Max(rewardForDead, rewardForLiving);
-            if (silvers.Sum(x => x.stackCount) >= toRepay)
+            var toCompensate = Mathf.Max(rewardForDead, rewardForLiving);
+            if (silvers.Sum(x => x.stackCount) >= toCompensate)
             {
-                Repay(silvers, toRepay);
+                Pay(silvers, toCompensate);
                 WarrantsManager.Instance.availableWarrants.Remove(this);
             }
             else
             {
-                Messages.Message("SW.NoEnoughMoneyToRepay".Translate(toRepay), MessageTypeDefOf.CautionInput);
+                Messages.Message("SW.NoEnoughMoneyToCompensate".Translate(toCompensate), MessageTypeDefOf.CautionInput);
             }
         }
         public override float AcceptChance()
@@ -263,9 +296,9 @@ namespace SimpleWarrants
             return reward / thing.MarketValue;
         }
 
-        public override bool ShouldShowRepayButton()
+        public override bool ShouldShowCompensateButton()
         {
-            return this.pawn.Faction == Faction.OfPlayer;
+            return this.issuer != Faction.OfPlayer && this.accepteer != Faction.OfPlayer;
         }
 
         public override bool IsThreatForPlayer()
@@ -279,9 +312,9 @@ namespace SimpleWarrants
     {
         public static readonly Texture2D IconRetrieve = ContentFinder<Texture2D>.Get("UI/Warrants/IconRetrieve");
         public int reward;
-        public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doRepayWarrantButton = false)
+        public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
-            base.Draw(rect, doAcceptAndDeclineButtons, doRepayWarrantButton);
+            base.Draw(rect, doAcceptAndDeclineButtons, doCompensateWarrantButton);
             var thingRect = new Rect(new Vector2(rect.x + 90, rect.y + 10), new Vector2(rect.height * 0.722f, rect.height * 0.722f));
             GUI.DrawTexture(thingRect, thing.Graphic.MatSouth.mainTexture);
 
@@ -348,7 +381,7 @@ namespace SimpleWarrants
             return reward / thing.MarketValue;
         }
 
-        public override bool ShouldShowRepayButton()
+        public override bool ShouldShowCompensateButton()
         {
             return false;
         }

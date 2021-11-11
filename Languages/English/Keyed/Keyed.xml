@@ -30,6 +30,9 @@
 	<SW.FactionFailedWarrant>{FACTION_name} has failed to complete your warrant on {1}</SW.FactionFailedWarrant>
 	<SW.WarrantOnYourColonist>Warrant on a colonist: {PAWN_nameDef}</SW.WarrantOnYourColonist>
 	<SW.WarrantOnYourColonistDesc>A warrant was placed on a colonist which increases raid chance until the warrant is paid off. Player can choose to pay the warrant amount to void the warrant. Or leave the warrant and wait until it expires.</SW.WarrantOnYourColonistDesc>
-	<SW.Repay>Repay</SW.Repay>
-	<SW.NoEnoughMoneyToRepay>You don't have {0} silver to repay this warrant</SW.NoEnoughMoneyToRepay>
+	<SW.Compensate>Compensate</SW.Compensate>
+	<SW.NoEnoughMoneyToCompensate>You don't have {0} silver to compensate this warrant</SW.NoEnoughMoneyToCompensate>
+	<SW.NoPublicWarrantsAvailable>There are no public warrants available. Check again later.</SW.NoPublicWarrantsAvailable>
+	<SW.NoRelatedWarrantsAvailable>There are no related warrants currently posted.</SW.NoRelatedWarrantsAvailable>
+	<SW.RemoveWarrant>Remove</SW.RemoveWarrant>
 </LanguageData>

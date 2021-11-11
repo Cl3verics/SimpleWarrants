@@ -36,7 +36,6 @@ namespace SimpleWarrants
 			var cell = CellFinder.RandomClosewalkCellNear(pawns.RandomElement().Position, map, 5);
 			GenSpawn.Spawn(pawn, cell, map);
 			var warrant = WarrantsManager.Instance.acceptedWarrants.First(x => x.thing == pawn);
-			warrant.spawned = true;
 			pawns.FirstOrDefault().GetLord().AddPawn(pawn);
 		}
     }

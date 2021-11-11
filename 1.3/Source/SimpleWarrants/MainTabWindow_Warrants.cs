@@ -67,11 +67,22 @@ namespace SimpleWarrants
 			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
 			var viewRect = new Rect(outRect.x, posY, sectionWidth - 16, warrants.Count * 165);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
-			for (var i = 0; i < warrants.Count; i++)
+			if (warrants.Count > 0)
             {
-				var warrantBox = new Rect(rect.x, posY, sectionWidth - 30, 150);
-				warrants[i].Draw(warrantBox);
-				posY = warrantBox.yMax + 15;
+				for (var i = 0; i < warrants.Count; i++)
+				{
+					var warrantBox = new Rect(rect.x, posY, sectionWidth - 30, 150);
+					warrants[i].Draw(warrantBox);
+					posY = warrantBox.yMax + 15;
+				}
+			}
+			else
+			{
+				Text.Anchor = TextAnchor.MiddleCenter;
+				Text.Font = GameFont.Medium;
+				Widgets.Label(outRect, "SW.NoPublicWarrantsAvailable".Translate());
+				Text.Anchor = TextAnchor.UpperLeft;
+				Text.Font = GameFont.Small;
 			}
 			Widgets.EndScrollView();
         }
@@ -85,11 +96,22 @@ namespace SimpleWarrants
 			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
 			var viewRect = new Rect(outRect.x, posY, sectionWidth - 16, warrants.Count * 165);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
-			for (var i = 0; i < warrants.Count; i++)
-			{
-				var warrantBox = new Rect(rect.x, posY, sectionWidth - 30, 150);
-				warrants[i].Draw(warrantBox, false, true);
-				posY = warrantBox.yMax + 15;
+			if (warrants.Count > 0)
+            {
+				for (var i = 0; i < warrants.Count; i++)
+				{
+					var warrantBox = new Rect(rect.x, posY, sectionWidth - 30, 150);
+					warrants[i].Draw(warrantBox, false, true);
+					posY = warrantBox.yMax + 15;
+				}
+			}
+			else
+            {
+				Text.Anchor = TextAnchor.MiddleCenter;
+				Text.Font = GameFont.Medium;
+				Widgets.Label(outRect, "SW.NoRelatedWarrantsAvailable".Translate());
+				Text.Anchor = TextAnchor.UpperLeft;
+				Text.Font = GameFont.Small;
 			}
 			Widgets.EndScrollView();
 		}
