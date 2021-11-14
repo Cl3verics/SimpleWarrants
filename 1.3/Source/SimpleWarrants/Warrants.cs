@@ -41,7 +41,7 @@ namespace SimpleWarrants
         public abstract bool IsThreatForPlayer();
         public void DrawAcceptDeclineButtons(Rect rect)
         {
-            var acceptRect = new Rect(rect.x + 5, rect.y + 50, 80, 30);
+            var acceptRect = new Rect(rect.x + 5, rect.y + 50, 95, 30);
             if (Widgets.ButtonText(acceptRect, "Accept".Translate()))
             {
                 DoAcceptAction();
@@ -55,7 +55,7 @@ namespace SimpleWarrants
         }
         public void DrawCompensateButton(Rect rect)
         {
-            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 80, 30);
+            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 95, 30);
             if (Widgets.ButtonText(acceptRect, "SW.Compensate".Translate()))
             {
                 DoCompensateAction();
@@ -64,7 +64,7 @@ namespace SimpleWarrants
 
         public void DrawRemoveWarrantButton(Rect rect)
         {
-            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 80, 30);
+            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 95, 30);
             if (Widgets.ButtonText(acceptRect, "SW.RemoveWarrant".Translate()))
             {
                 WarrantsManager.Instance.givenWarrants.Remove(this);

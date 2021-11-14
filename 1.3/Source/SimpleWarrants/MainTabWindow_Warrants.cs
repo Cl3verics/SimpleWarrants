@@ -185,7 +185,7 @@ namespace SimpleWarrants
 				if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
 				{
 					var floatList = new List<FloatMenuOption>();
-					foreach (var value in Find.WorldPawns.AllPawnsAlive.Where(pawn => !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).OrderBy(x => x.Name.ToStringFull))
+					foreach (var value in Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn?.Name != null && !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).OrderBy(x => x.Name.ToStringFull))
 					{
 						floatList.Add(new FloatMenuOption(value.Name.ToString(), delegate
 						{

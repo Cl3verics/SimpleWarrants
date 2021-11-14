@@ -77,7 +77,6 @@ namespace SimpleWarrants
 				var thing = CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading).FirstOrDefault(x => x == warrant.thing);
 				if (thing != null)
 				{
-					Log.Message("Warrant is done: " + thing);
 					QuestUtility.SendQuestTargetSignals(thing.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
 					WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
 					thing.holdingOwner.Remove(thing);

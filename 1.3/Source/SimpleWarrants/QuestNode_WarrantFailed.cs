@@ -51,6 +51,7 @@ namespace SimpleWarrants
 				return;
 			}
 			warrant.issuer.TryAffectGoodwillWith(Faction.OfPlayer, -30);
+			WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
 		}
 
 		public override void ExposeData()
