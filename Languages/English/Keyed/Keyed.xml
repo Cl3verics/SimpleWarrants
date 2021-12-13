@@ -35,4 +35,5 @@
 	<SW.NoPublicWarrantsAvailable>There are no public warrants available. Check again later.</SW.NoPublicWarrantsAvailable>
 	<SW.NoRelatedWarrantsAvailable>There are no related warrants currently posted.</SW.NoRelatedWarrantsAvailable>
 	<SW.RemoveWarrant>Remove</SW.RemoveWarrant>
+	<SW.CommandFulfillWarrantFailInsufficient>Your caravan must have {0} to finish this warrant.</SW.CommandFulfillWarrantFailInsufficient>
 </LanguageData>

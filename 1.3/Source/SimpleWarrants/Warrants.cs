@@ -36,8 +36,7 @@ namespace SimpleWarrants
         public int tickToBeCompleted;
         public abstract float AcceptChance();
         public abstract float SuccessChance();
-        public abstract bool IsWarrantFulfilled();
-
+        public abstract bool IsWarrantActive();
         public abstract bool IsThreatForPlayer();
         public void DrawAcceptDeclineButtons(Rect rect)
         {
@@ -140,6 +139,17 @@ namespace SimpleWarrants
             {
                 Scribe_References.Look(ref thing, "thing");
             }
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                if (thing is null)
+                {
+                    Log.Error(this + " has null thing, bugged now and won't work.");
+                }
+                else
+                {
+                    Log.Message(this + " loaded with " + thing + ", seems to be ok...");
+                }
+            }
         }
 
         private bool IsSavedSomewhereElse(Thing thing)
@@ -240,7 +250,7 @@ namespace SimpleWarrants
             Scribe_Values.Look(ref rewardForDead, "rewardForDead");
         }
 
-        public override bool IsWarrantFulfilled()
+        public override bool IsWarrantActive()
         {
             if (pawn.Destroyed)
             {
@@ -362,7 +372,7 @@ namespace SimpleWarrants
                 CaravanInventoryUtility.GiveThing(caravan, silver);
             }
         }
-        public override bool IsWarrantFulfilled()
+        public override bool IsWarrantActive()
         {
             if (thing.Destroyed)
             {

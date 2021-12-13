@@ -46,6 +46,7 @@ namespace SimpleWarrants
             if (!initialized && !availableWarrants.Any())
             {
                 PopulateWarrants();
+                initialized = true;
             }
         }
 
@@ -56,6 +57,7 @@ namespace SimpleWarrants
             if (!initialized && !availableWarrants.Any())
             {
                 PopulateWarrants();
+                initialized = true;
             }
         }
 
