@@ -69,18 +69,29 @@ namespace SimpleWarrants
 				var thing = ThingFromCaravan(warrant, caravan);
 				if (thing != null)
 				{
+					warrant.GiveReward(caravan);
 					QuestUtility.SendQuestTargetSignals(thing.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
 					WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
 					thing.holdingOwner.Remove(thing);
 					thing.Destroy();
-					warrant.GiveReward(caravan);
 				}
 			}
 		}
 
 		private Thing ThingFromCaravan(Warrant warrant, Caravan caravan)
         {
-			return CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading).FirstOrDefault(x => x == warrant.thing);
+			foreach (var thing in CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading))
+            {
+				if (warrant.thing is Pawn pawn && pawn.Dead && thing == pawn.Corpse)
+                {
+					return pawn.Corpse;
+				}
+				else if (thing == warrant.thing)
+                {
+					return thing;
+                }
+            }
+			return null;
 		}
 	}
 }

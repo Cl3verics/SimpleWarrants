@@ -31,7 +31,10 @@ namespace SimpleWarrants
             base.Generate(map, parms);
 			var pawn = (Pawn)parms.sitePart.things.Take(parms.sitePart.things[0]);
 			var faction = map.ParentFaction;
-			pawn.SetFaction(faction);
+			if (pawn.Faction != faction)
+            {
+				pawn.SetFaction(faction);
+			}
 			var pawns = map.mapPawns.SpawnedPawnsInFaction(faction);
 			var cell = CellFinder.RandomClosewalkCellNear(pawns.RandomElement().Position, map, 5);
 			GenSpawn.Spawn(pawn, cell, map);

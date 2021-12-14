@@ -30,6 +30,7 @@ namespace SimpleWarrants
         public int acceptedTick = -1;
         public int createdTick = -1;
         public Faction issuer;
+        public Quest relatedQuest;
 
         public WarrantStatus status;
         public Faction accepteer;
@@ -119,8 +120,18 @@ namespace SimpleWarrants
                 DrawRemoveWarrantButton(rect);
             }
         }
+
+        public void End(QuestEndOutcome questEndOutcome = QuestEndOutcome.Fail)
+        {
+            this.relatedQuest?.End(questEndOutcome);
+            this.issuer.TryAffectGoodwillWith(Faction.OfPlayer, -30);
+        }
         public virtual void ExposeData()
         {
+            if (thing is Pawn pawn && pawn.Corpse != null)
+            {
+                thing = pawn.Corpse;
+            }
             if (Scribe.mode == LoadSaveMode.Saving)
             {
                 savedSomewhere = IsSavedSomewhereElse(thing);
@@ -131,6 +142,7 @@ namespace SimpleWarrants
             Scribe_References.Look(ref accepteer, "accepteer");
             Scribe_Values.Look(ref tickToBeCompleted, "tickToBeCompleted");
             Scribe_Values.Look(ref loadID, "loadID");
+            Scribe_References.Look(ref relatedQuest, "relatedQuest");
             if (!savedSomewhere)
             {
                 Scribe_Deep.Look(ref thing, "thing");
@@ -139,15 +151,12 @@ namespace SimpleWarrants
             {
                 Scribe_References.Look(ref thing, "thing");
             }
+
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (thing is null)
                 {
                     Log.Error(this + " has null thing, bugged now and won't work.");
-                }
-                else
-                {
-                    Log.Message(this + " loaded with " + thing + ", seems to be ok...");
                 }
             }
         }
@@ -185,7 +194,17 @@ namespace SimpleWarrants
     {
         public static readonly Texture2D IconCapture = ContentFinder<Texture2D>.Get("UI/Warrants/IconCapture");
         public static readonly Texture2D IconDeath = ContentFinder<Texture2D>.Get("UI/Warrants/IconDeath");
-        public Pawn pawn => thing as Pawn;
+        public Pawn pawn
+        {
+            get
+            {
+                if (thing is Corpse corpse)
+                {
+                    return corpse.InnerPawn;
+                }
+                return thing as Pawn;
+            }
+        }
         public string reason;
 
         public int rewardForLiving;
@@ -252,11 +271,22 @@ namespace SimpleWarrants
 
         public override bool IsWarrantActive()
         {
-            if (pawn.Destroyed)
+            if (rewardForDead == 0 && pawn.Dead)
             {
                 return false;
             }
-            if (rewardForDead == 0 && pawn.Dead)
+            else if (pawn.Corpse is Corpse corpse)
+            {
+                if (thing != corpse)
+                {
+                    thing = corpse;
+                }
+                if (rewardForDead > 0 && corpse.ParentHolder is null && !corpse.Spawned)
+                {
+                    return false;
+                }
+            }
+            else if (pawn.Destroyed)
             {
                 return false;
             }
@@ -267,14 +297,14 @@ namespace SimpleWarrants
         {
             base.GiveReward(caravan);
             var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
-            if (rewardForDead > 0 && pawn.Dead)
+            if (rewardForDead > 0 && (thing is Corpse || pawn.Dead))
             {
                 silver.stackCount = rewardForDead;
                 CaravanInventoryUtility.GiveThing(caravan, silver);
             }
             else if (!pawn.Dead)
             {
-                silver.stackCount = rewardForDead;
+                silver.stackCount = rewardForLiving;
                 CaravanInventoryUtility.GiveThing(caravan, silver);
             }
         }
