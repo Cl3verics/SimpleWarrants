@@ -69,10 +69,10 @@ namespace SimpleWarrants
 				var thing = ThingFromCaravan(warrant, caravan);
 				if (thing != null)
 				{
+					thing.holdingOwner.Remove(thing);
 					warrant.GiveReward(caravan);
 					QuestUtility.SendQuestTargetSignals(thing.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
 					WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
-					thing.holdingOwner.Remove(thing);
 					thing.Destroy();
 				}
 			}

@@ -186,6 +186,27 @@ namespace SimpleWarrants
         {
             this.status = WarrantStatus.Completed;
         }
+        public static void GiveThing(Caravan caravan, Thing thing)
+        {
+            if (CaravanInventoryUtility.AllInventoryItems(caravan).Contains(thing))
+            {
+                Log.Error(string.Concat("Tried to give the same item twice (", thing, ") to a caravan (", caravan, ")."));
+                return;
+            }
+            Pawn pawn = CaravanInventoryUtility.FindPawnToMoveInventoryTo(thing, caravan.PawnsListForReading
+                .Where(x => x.IsColonist && !x.IsPrisoner && !x.Downed && !x.Dead && x != thing).ToList(), null);
+            if (pawn == null)
+            {
+                Log.Error($"Failed to give item {thing} to caravan {caravan}; item was lost");
+                thing.Destroy();
+            }
+            else if (!pawn.inventory.innerContainer.TryAdd(thing))
+            {
+                Log.Error($"Failed to give item {thing} to caravan {caravan}; item was lost");
+                thing.Destroy();
+            }
+            Log.Message("Found pawn to give: " + pawn);
+        }
     }
 
     [HotSwappable]
@@ -296,19 +317,23 @@ namespace SimpleWarrants
         public override void GiveReward(Caravan caravan)
         {
             base.GiveReward(caravan);
-            var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
+            var rewardAmount = 0;
             if (rewardForDead > 0 && (thing is Corpse || pawn.Dead))
             {
-                silver.stackCount = rewardForDead;
-                CaravanInventoryUtility.GiveThing(caravan, silver);
+                rewardAmount = rewardForDead;
             }
             else if (!pawn.Dead)
             {
-                silver.stackCount = rewardForLiving;
-                CaravanInventoryUtility.GiveThing(caravan, silver);
+                rewardAmount = rewardForLiving;
+            }
+            if (rewardAmount > 0)
+            {
+                var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
+                silver.stackCount = rewardAmount;
+                GiveThing(caravan, silver);
+                Log.Message(this + " - Giving reward: " + silver + " - " + silver.stackCount + " for " + thing);
             }
         }
-
         public override void DoCompensateAction()
         {
             var map = Find.CurrentMap ?? Find.AnyPlayerHomeMap;
@@ -395,11 +420,12 @@ namespace SimpleWarrants
         public override void GiveReward(Caravan caravan)
         {
             base.GiveReward(caravan);
-            var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
             if (reward > 0)
             {
+                var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
                 silver.stackCount = reward;
-                CaravanInventoryUtility.GiveThing(caravan, silver);
+                GiveThing(caravan, silver);
+                Log.Message(this + " - Giving reward: " + silver + " - " + silver.stackCount + " for " + thing);
             }
         }
         public override bool IsWarrantActive()
