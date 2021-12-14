@@ -26,7 +26,7 @@ namespace SimpleWarrants
 	public class WarrantRequestComp : WorldObjectComp
 	{
 		private static readonly Texture2D TradeCommandTex = ContentFinder<Texture2D>.Get("UI/Commands/FulfillTradeRequest");
-		public IEnumerable<Warrant> ActiveWarrants => WarrantsManager.Instance.acceptedWarrants.Where(x => x.issuer == this.parent.Faction && x.IsWarrantFulfilled());
+		public IEnumerable<Warrant> ActiveWarrants => WarrantsManager.Instance.acceptedWarrants?.Where(x => x.issuer == this.parent.Faction && x.IsWarrantActive());
 		public bool ActiveRequest => ActiveWarrants.Any();
 		public override string CompInspectStringExtra()
 		{
@@ -37,11 +37,6 @@ namespace SimpleWarrants
 			}
 			return null;
 		}
-
-        public override IEnumerable<FloatMenuOption> GetFloatMenuOptions(Caravan caravan)
-        {
-            return base.GetFloatMenuOptions(caravan);
-        }
         public override IEnumerable<Gizmo> GetCaravanGizmos(Caravan caravan)
 		{
 			if (ActiveRequest && CaravanVisitUtility.SettlementVisitedNow(caravan) == parent)
@@ -58,15 +53,12 @@ namespace SimpleWarrants
 			command_Action.icon = TradeCommandTex;
 			command_Action.action = delegate
 			{
-				if (!ActiveRequest)
-				{
-					Log.Error("Attempted to fulfill an unavailable request");
-				}
-				else
-				{
-					Fulfill(caravan);
-				}
+				Fulfill(caravan);
 			};
+			if (ActiveWarrants.All(x => ThingFromCaravan(x, caravan) == null))
+            {
+				command_Action.Disable("SW.CommandFulfillWarrantFailInsufficient".Translate(ActiveWarrants.Select(x => x.thing).First()));
+			}
 			return command_Action;
 		}
 
@@ -74,7 +66,7 @@ namespace SimpleWarrants
 		{
 			foreach (var warrant in ActiveWarrants.ToList())
             {
-				var thing = CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading).FirstOrDefault(x => x == warrant.thing);
+				var thing = ThingFromCaravan(warrant, caravan);
 				if (thing != null)
 				{
 					QuestUtility.SendQuestTargetSignals(thing.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
@@ -82,9 +74,13 @@ namespace SimpleWarrants
 					thing.holdingOwner.Remove(thing);
 					thing.Destroy();
 					warrant.GiveReward(caravan);
-					Log.Message("Thing is destroyed: " + thing);
 				}
 			}
+		}
+
+		private Thing ThingFromCaravan(Warrant warrant, Caravan caravan)
+        {
+			return CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading).FirstOrDefault(x => x == warrant.thing);
 		}
 	}
 }

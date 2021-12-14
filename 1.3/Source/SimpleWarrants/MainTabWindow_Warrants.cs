@@ -245,9 +245,9 @@ namespace SimpleWarrants
 				if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
 				{
 					var floatList = new List<FloatMenuOption>();
-					foreach (var value in Utils.AllArtifactDefs.OrderBy(x => x.LabelCap))
+					foreach (var value in Utils.AllArtifactDefs.OrderBy(x => x.label))
 					{
-						floatList.Add(new FloatMenuOption(value.LabelCap.ToString(), delegate
+						floatList.Add(new FloatMenuOption(value.label.CapitalizeFirst(), delegate
 						{
 							this.curArtifact = ThingMaker.MakeThing(value);
 						}));

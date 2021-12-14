@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "tEpeHxVZ/xlm9QxhLFVz6J0kVDxCuwP8oChXqiZ9sp76QbUq1b1P5dIRuxT5B+cp5Z1SPgdNeCfBP1mDnbMbnw==",
+  "dgSpecHash": "uuwmThqPFbmvCG+1QcOt7LytAyFUEAxQrwSmhHSUsfnPloxS9vspvZsQpuv1XSOgDz6jYExlBVdrxGvUenCQDg==",
   "success": true,
   "projectFilePath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld\\Mods\\SimpleWarrants\\1.3\\Source\\SimpleWarrants\\SimpleWarrants.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Vova\\.nuget\\packages\\krafs.rimworld.ref\\1.3.3146-beta\\krafs.rimworld.ref.1.3.3146-beta.nupkg.sha512",
+    "C:\\Users\\Vova\\.nuget\\packages\\krafs.rimworld.ref\\1.3.3209-beta\\krafs.rimworld.ref.1.3.3209-beta.nupkg.sha512",
     "C:\\Users\\Vova\\.nuget\\packages\\lib.harmony\\2.1.1\\lib.harmony.2.1.1.nupkg.sha512"
   ],
   "logs": []
