@@ -32,7 +32,7 @@ namespace SimpleWarrants
 		{
 			if (ActiveRequest)
 			{
-				var requestInfo = string.Join(", ", ActiveWarrants.Select(x => x.thing.LabelCap));
+				var requestInfo = string.Join(", ", ActiveWarrants.Select(x => x.thing.LabelCap ?? x.thing.def.label));
 				return "SW.CaravanRequestInfo".Translate(requestInfo);
 			}
 			return null;

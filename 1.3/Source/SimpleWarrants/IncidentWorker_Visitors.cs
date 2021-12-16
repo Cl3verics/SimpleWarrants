@@ -17,6 +17,25 @@ namespace SimpleWarrants
     public class IncidentWorker_Visitors : IncidentWorker_VisitorGroup
     {
 		public static Thing toDeliver;
+
+		protected List<Pawn> SpawnDelivers(IncidentParms parms)
+		{
+			Map map = (Map)parms.target;
+			var pawnCount = Rand.RangeInclusive(2, 5);
+
+			List<Pawn> list = new List<Pawn>();
+			for (var i = 0; i < pawnCount; i++)
+            {
+				list.Add(PawnGenerator.GeneratePawn(parms.faction.RandomPawnKind(), parms.faction));
+            }
+			foreach (Pawn item in list)
+			{
+				IntVec3 loc = CellFinder.RandomClosewalkCellNear(parms.spawnCenter, map, 5);
+				GenSpawn.Spawn(item, loc, map);
+				parms.storeGeneratedNeutralPawns?.Add(item);
+			}
+			return list;
+		}
 		protected override bool TryExecuteWorker(IncidentParms parms)
 		{
 			Map map = (Map)parms.target;
@@ -24,7 +43,7 @@ namespace SimpleWarrants
 			{
 				return false;
 			}
-			List<Pawn> list = SpawnPawns(parms);
+			List<Pawn> list = SpawnDelivers(parms);
 			if (list.Count == 0)
 			{
 				return false;

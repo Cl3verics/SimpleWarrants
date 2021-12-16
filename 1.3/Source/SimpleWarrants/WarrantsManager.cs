@@ -231,7 +231,7 @@ namespace SimpleWarrants
                         bool dead = false;
                         if (warrant is Warrant_Pawn wp)
                         {
-                            if (!Rand.Chance(wp.rewardForLiving / wp.rewardForDead))
+                            if (wp.rewardForDead > 0 && !Rand.Chance(wp.rewardForLiving / wp.rewardForDead))
                             {
                                 dead = true;
                             }
