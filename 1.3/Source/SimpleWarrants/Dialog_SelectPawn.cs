@@ -55,7 +55,9 @@ namespace SimpleWarrants
 					Widgets.InfoCardButton(0, num, pawn);
 					Rect iconRect = new Rect(24, num, 24, 24);
 					Widgets.ThingIcon(iconRect, pawn);
-					Rect rect = new Rect(iconRect.xMax + 5, num, viewRect.width * 0.7f, 32f);
+					iconRect.x += 24;
+					FactionUIUtility.DrawFactionIconWithTooltip(iconRect, pawn.Faction);
+					Rect rect = new Rect(iconRect.xMax + 5, num, viewRect.width * 0.65f, 32f);
 					Text.Anchor = TextAnchor.MiddleLeft;
 					Widgets.Label(rect, pawn.Name.ToStringFull);
 					Text.Anchor = TextAnchor.UpperLeft;
