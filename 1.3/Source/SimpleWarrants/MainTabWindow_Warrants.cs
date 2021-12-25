@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
-using Verse.Sound;
 
 namespace SimpleWarrants
 {
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
 	public class HotSwappableAttribute : Attribute
 	{
 	}
@@ -89,7 +89,7 @@ namespace SimpleWarrants
 
 		private void DoRelatedWarrants(Rect rect)
 		{
-			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.givenWarrants)
+			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.givenWarrants).Concat(WarrantsManager.Instance.takenWarrants)
 				.Concat(WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction == Faction.OfPlayer)).OrderByDescending(x => x.createdTick).ToList();
 			var posY = rect.y + 10;
 			var sectionWidth = 750;
@@ -184,15 +184,8 @@ namespace SimpleWarrants
 				dropdownRect = new Rect(createWarrant.x, nameRect.yMax, createWarrant.width, createWarrant.height);
 				if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
 				{
-					var floatList = new List<FloatMenuOption>();
-					foreach (var value in Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn?.Name != null && !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).OrderBy(x => x.Name.ToStringFull))
-					{
-						floatList.Add(new FloatMenuOption(value.Name.ToString(), delegate
-						{
-							this.curPawn = value;
-						}));
-					}
-					Find.WindowStack.Add(new FloatMenu(floatList));
+					var selectPawn = new Dialog_SelectPawn(this);
+					Find.WindowStack.Add(selectPawn);
 				}
 
 				var reasonRect = new Rect(dropdownRect.x, dropdownRect.yMax + 10, createWarrant.width, createWarrant.height);
@@ -244,15 +237,8 @@ namespace SimpleWarrants
 				dropdownRect = new Rect(createWarrant.x, nameRect.yMax, createWarrant.width, createWarrant.height);
 				if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
 				{
-					var floatList = new List<FloatMenuOption>();
-					foreach (var value in Utils.AllArtifactDefs.OrderBy(x => x.label))
-					{
-						floatList.Add(new FloatMenuOption(value.label.CapitalizeFirst(), delegate
-						{
-							this.curArtifact = ThingMaker.MakeThing(value);
-						}));
-					}
-					Find.WindowStack.Add(new FloatMenu(floatList));
+					var selectArtifact = new Dialog_SelectArtifact(this);
+					Find.WindowStack.Add(selectArtifact);
 				}
 
 				Text.Font = GameFont.Small;

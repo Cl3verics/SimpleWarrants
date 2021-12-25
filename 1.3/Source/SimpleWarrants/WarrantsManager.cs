@@ -66,13 +66,17 @@ namespace SimpleWarrants
             var count = Rand.RangeInclusive(3, 5);
             for (var i = 0; i < count; i++)
             {
-                availableWarrants.Add(GetRandomWarrant(false));
+                var warrant = GetRandomWarrant(false);
+                if (warrant.IsPlayerInterested())
+                {
+                    availableWarrants.Add(warrant);
+                }
             }
         }
 
         private Warrant GetRandomWarrant(bool includeColonists = true)
         {
-            if (Rand.Chance(0.5f))
+            if (Rand.Chance(0.5f) || !SimpleWarrantsSettings.enableWarrantsOnArtifact)
             {
                 var warrant = new Warrant_Pawn
                 {
@@ -81,7 +85,7 @@ namespace SimpleWarrants
                 };
 
                 var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
-                if (Rand.Chance(0.9f) || !pawns.Any() || !includeColonists)
+                if (Rand.Chance(1f - SimpleWarrantsSettings.chanceOfWarrantsMadeOnColonist) || !pawns.Any() || !includeColonists || !SimpleWarrantsSettings.enableWarrantsOnColonists)
                 {
                     var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
                     Faction faction = null;
@@ -167,7 +171,11 @@ namespace SimpleWarrants
 
             if (Rand.MTBEventOccurs(7, GenDate.TicksPerDay, 1))
             {
-                availableWarrants.Add(GetRandomWarrant());
+                var warrant = GetRandomWarrant();
+                if (warrant.IsPlayerInterested())
+                {
+                    availableWarrants.Add(warrant);
+                }
             }
 
             foreach (var warrant in availableWarrants.Where(x => x.IsThreatForPlayer()))
@@ -209,7 +217,7 @@ namespace SimpleWarrants
                     warrant.AcceptBy(accepteer);
                     givenWarrants.RemoveAt(num);
                     takenWarrants.Add(warrant);
-                    warrant.tickToBeCompleted = Find.TickManager.TicksGame + (GenDate.TicksPerDay * Rand.Range(3, 15));
+                    warrant.tickToBeCompleted = Find.TickManager.TicksGame + (GenDate.TicksPerDay * (int)Rand.Range(3f, 15f));
                     Messages.Message("SW.FactionTookYourWarrant".Translate(accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.PositiveEvent);
                 }
             }

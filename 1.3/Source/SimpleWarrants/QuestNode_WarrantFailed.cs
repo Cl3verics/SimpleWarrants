@@ -27,6 +27,7 @@ namespace SimpleWarrants
 			QuestPart_WarrantFailed questPart = new QuestPart_WarrantFailed();
 			questPart.inSignal = QuestGenUtility.HardcodedSignalWithQuestID(inSignal.GetValue(slate)) ?? slate.Get<string>("inSignal");
 			questPart.warrant = slate.Get<Warrant>("warrant");
+			questPart.warrant.relatedQuest = QuestGen.quest;
 			QuestGen.quest.AddPart(questPart);
 		}
 	}

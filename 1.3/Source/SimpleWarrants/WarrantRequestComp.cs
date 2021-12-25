@@ -26,7 +26,7 @@ namespace SimpleWarrants
 	public class WarrantRequestComp : WorldObjectComp
 	{
 		private static readonly Texture2D TradeCommandTex = ContentFinder<Texture2D>.Get("UI/Commands/FulfillTradeRequest");
-		public IEnumerable<Warrant> ActiveWarrants => WarrantsManager.Instance.acceptedWarrants?.Where(x => x.issuer == this.parent.Faction && x.IsWarrantActive());
+		public IEnumerable<Warrant> ActiveWarrants => WarrantsManager.Instance.acceptedWarrants?.Where(x => x.issuer == this.parent?.Faction && x.IsWarrantActive()) ?? new List<Warrant>();
 		public bool ActiveRequest => ActiveWarrants.Any();
 		public override string CompInspectStringExtra()
 		{

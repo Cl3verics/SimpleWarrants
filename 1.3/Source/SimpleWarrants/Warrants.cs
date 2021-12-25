@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 using Verse.Sound;
 
 namespace SimpleWarrants
@@ -90,7 +91,7 @@ namespace SimpleWarrants
                 amountToPay -= num;
             }
         }
-
+        public abstract int MaxReward();
         public virtual void DoAcceptAction()
         {
             WarrantsManager.Instance.availableWarrants.Remove(this);
@@ -104,6 +105,9 @@ namespace SimpleWarrants
             this.status = WarrantStatus.Accepted;
             this.accepteer = faction;
         }
+
+        public int ApproximateAcceptionDate => Mathf.Max((int)(this.createdTick + ((GenDate.TicksPerDay * 7) / this.AcceptChance())), Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
+        public int ApproximateCompletionDate => Mathf.Max(this.tickToBeCompleted, Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
         public virtual void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
             Widgets.DrawLine(new Vector2(rect.x, rect.y), new Vector2(rect.xMax, rect.y), Color.gray, 1);
@@ -115,7 +119,7 @@ namespace SimpleWarrants
             {
                 DrawCompensateButton(rect);
             }
-            if (this.issuer == Faction.OfPlayer)
+            if (this.issuer == Faction.OfPlayer && this.accepteer is null)
             {
                 DrawRemoveWarrantButton(rect);
             }
@@ -205,7 +209,20 @@ namespace SimpleWarrants
                 Log.Error($"Failed to give item {thing} to caravan {caravan}; item was lost");
                 thing.Destroy();
             }
-            Log.Message("Found pawn to give: " + pawn);
+        }
+
+        public bool IsPlayerInterested()
+        {
+            if (SimpleWarrantsSettings.enableWarrantRewardScaling)
+            {
+                var wealth = Find.AnyPlayerHomeMap.wealthWatcher.WealthTotal;
+                if ((wealth * 0.05f) >= MaxReward())
+                {
+                    return true;
+                }
+                return false;
+            }
+            return true;
         }
     }
 
@@ -263,7 +280,25 @@ namespace SimpleWarrants
 
             var rewardsForLivingInfoBox = new Rect(rewardsForLivingIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
             Widgets.Label(rewardsForLivingInfoBox, this.rewardForLiving + " " + ThingDefOf.Silver.LabelCap);
-
+            
+            var infoBox = new Rect(rect.width - 250, rewardsForLivingInfoBox.yMax + 40, 250, 24);
+            Text.Font = GameFont.Tiny;
+            if (this.issuer != Faction.OfPlayer)
+            {
+                var expireDate = (this.relatedQuest != null ? this.acceptedTick : this.createdTick) + (GenDate.TicksPerDay * 15) - Find.TickManager.TicksGame;
+                Widgets.Label(infoBox, "SW.WillExpireIn".Translate(expireDate.ToStringTicksToDays()));
+            }
+            else
+            {
+                if (this.accepteer != null)
+                {
+                    Widgets.Label(infoBox, "SW.ApproximateComplectionDate".Translate(ApproximateCompletionDate.ToStringTicksToDays()));
+                }
+                else
+                {
+                    Widgets.Label(infoBox, "SW.ApproximateAcceptionDate".Translate(ApproximateAcceptionDate.ToStringTicksToDays()));
+                }
+            }
             Text.Font = GameFont.Small;
         }
 
@@ -292,11 +327,11 @@ namespace SimpleWarrants
 
         public override bool IsWarrantActive()
         {
-            if (rewardForDead == 0 && pawn.Dead)
+            if (rewardForDead == 0 && (pawn?.Dead ?? false))
             {
                 return false;
             }
-            else if (pawn.Corpse is Corpse corpse)
+            else if (pawn?.Corpse is Corpse corpse)
             {
                 if (thing != corpse)
                 {
@@ -307,7 +342,7 @@ namespace SimpleWarrants
                     return false;
                 }
             }
-            else if (pawn.Destroyed)
+            else if (pawn is null || pawn.Destroyed)
             {
                 return false;
             }
@@ -331,7 +366,6 @@ namespace SimpleWarrants
                 var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
                 silver.stackCount = rewardAmount;
                 GiveThing(caravan, silver);
-                Log.Message(this + " - Giving reward: " + silver + " - " + silver.stackCount + " for " + thing);
             }
         }
         public override void DoCompensateAction()
@@ -368,7 +402,16 @@ namespace SimpleWarrants
 
         public override bool IsThreatForPlayer()
         {
-            return this.pawn.Faction == Faction.OfPlayer;
+            return this.pawn?.Faction == Faction.OfPlayer;
+        }
+
+        public override int MaxReward()
+        {
+            if (rewardForDead > rewardForLiving)
+            {
+                return rewardForDead;
+            }
+            return rewardForLiving;
         }
     }
     [HotSwappable]
@@ -396,7 +439,26 @@ namespace SimpleWarrants
             var rewardInfoBox = new Rect(rewardIconBox.xMax + 5, postedByInfoBox.yMax, nameInfoBox.width, nameInfoBox.height);
             Widgets.Label(rewardInfoBox, this.reward + " " + ThingDefOf.Silver.LabelCap);
 
+            var infoBox = new Rect(rect.width - 250, rewardInfoBox.yMax + 40, 250, 24);
+            Text.Font = GameFont.Tiny;
+            if (this.issuer != Faction.OfPlayer)
+            {
+                var expireDate = (this.relatedQuest != null ? this.acceptedTick : this.createdTick) + (GenDate.TicksPerDay * 15) - Find.TickManager.TicksGame;
+                Widgets.Label(infoBox, "SW.WillExpireIn".Translate(expireDate.ToStringTicksToDays()));
+            }
+            else
+            {
+                if (this.accepteer != null)
+                {
+                    Widgets.Label(infoBox, "SW.ApproximateComplectionDate".Translate(ApproximateCompletionDate.ToStringTicksToDays()));
+                }
+                else
+                {
+                    Widgets.Label(infoBox, "SW.ApproximateAcceptionDate".Translate(ApproximateAcceptionDate.ToStringTicksToDays()));
+                }
+            }
             Text.Font = GameFont.Small;
+
         }
         public override void ExposeData()
         {
@@ -455,6 +517,11 @@ namespace SimpleWarrants
         public override bool IsThreatForPlayer()
         {
             return false;
+        }
+
+        public override int MaxReward()
+        {
+            return this.reward;
         }
     }
 }

@@ -36,4 +36,14 @@
 	<SW.NoRelatedWarrantsAvailable>There are no related warrants currently posted.</SW.NoRelatedWarrantsAvailable>
 	<SW.RemoveWarrant>Remove</SW.RemoveWarrant>
 	<SW.CommandFulfillWarrantFailInsufficient>Your caravan must have {0} to finish this warrant.</SW.CommandFulfillWarrantFailInsufficient>
+	<SW.WillExpireIn>Will expire in {0}</SW.WillExpireIn>
+	<SW.ApproximateComplectionDate>Approximated completion date: {0}</SW.ApproximateComplectionDate>
+	<SW.ApproximateAcceptionDate>Approximated acception date: {0}</SW.ApproximateAcceptionDate>
+	<SW.ChanceOfWarrantsMadeOnColonist>Chance of warrants being made on colonist: {0}</SW.ChanceOfWarrantsMadeOnColonist>
+	<SW.EnableWarrantsOnColonists>Enable warrants being made on colonists</SW.EnableWarrantsOnColonists>
+	<SW.EnableWarrantsOnArtifact>Enable warrants being made on artifacts</SW.EnableWarrantsOnArtifact>
+	<SW.EnableWarrantsOnAnimals>Enable warrants being made on animals</SW.EnableWarrantsOnAnimals>
+	<SW.Search>Search</SW.Search>
+	<SW.Select>Select</SW.Select>
+	<SW.EnableWarrantRewardScaling>Enable warrant reward threshold (minimum 5% from player's wealth)</SW.EnableWarrantRewardScaling>
 </LanguageData>

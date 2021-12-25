@@ -12,6 +12,7 @@ using Verse.Sound;
 
 namespace SimpleWarrants
 {
+
     [DefOf]
     public static class SW_DefOf
     {
@@ -22,6 +23,12 @@ namespace SimpleWarrants
     }
     public static class Utils
     {
+        [DebugAction("General", "Populate warrants")]
+        private static void PopulateWarrants()
+        {
+            WarrantsManager.Instance.PopulateWarrants();
+        }
+
         public static IEnumerable<ThingDef> AllArtifactDefs => DefDatabase<ThingDef>.AllDefs.Where(x => (x.tradeTags?.Contains("Artifact") ?? false)
                     || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false)
                     || (x.tradeTags?.Contains("ExoticMisc") ?? false));

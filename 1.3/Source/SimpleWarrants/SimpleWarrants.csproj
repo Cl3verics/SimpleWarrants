@@ -44,7 +44,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dialog_SelectArtifact.cs" />
+    <Compile Include="Dialog_SelectPawn.cs" />
     <Compile Include="QuestNode_WarrantFailed.cs" />
+    <Compile Include="SimpleWarrantsMod.cs" />
+    <Compile Include="SimpleWarrantsSettings.cs" />
     <Compile Include="SitePartWorker_ArtifactStash.cs" />
     <Compile Include="IncidentWorker_Visitors.cs" />
     <Compile Include="WarrantRequestComp.cs" />
