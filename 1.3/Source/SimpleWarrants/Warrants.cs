@@ -22,7 +22,7 @@ namespace SimpleWarrants
     }
 
     [HotSwappable]
-
+    [StaticConstructorOnStartup]
     public abstract class Warrant : IExposable, ILoadReferenceable
     {
         public Thing thing;
@@ -36,10 +36,17 @@ namespace SimpleWarrants
         public WarrantStatus status;
         public Faction accepteer;
         public int tickToBeCompleted;
+
+        public static readonly Texture2D InsufficientRewardIcon = ContentFinder<Texture2D>.Get("UI/Warrants/IconWarning");
         public abstract float AcceptChance();
         public abstract float SuccessChance();
         public abstract bool IsWarrantActive();
         public abstract bool IsThreatForPlayer();
+
+        public virtual void OnCreate()
+        {
+
+        }
         public void DrawAcceptDeclineButtons(Rect rect)
         {
             var acceptRect = new Rect(rect.x + 5, rect.y + 50, 95, 30);
@@ -257,9 +264,17 @@ namespace SimpleWarrants
             Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 24, pawn);
 
             Text.Font = GameFont.Medium;
-            var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, rect.width - pawnRect.width, 30);
+            var textSize = Text.CalcSize(pawn.Name.ToString());
+            var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, pawn.Name.ToString());
-            var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, nameInfoBox.width, nameInfoBox.height);
+
+            if (this.MaxReward() < (pawn.MarketValue * 0.75f))
+            {
+                var insufficientRewardBox = new Rect(nameInfoBox.xMax + 5, nameInfoBox.y + 3, 24, 24);
+                GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
+                TooltipHandler.TipRegion(insufficientRewardBox, "SW.InsufficientReward".Translate());
+            }
+            var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, rect.width - pawnRect.width, nameInfoBox.height);
             Widgets.Label(wantedForInfoBox, "SW.WantedFor".Translate(reason.Colorize(Color.yellow), issuer.NameColored));
 
             var rewardsForDeadIconBox = new Rect(wantedForInfoBox.x, wantedForInfoBox.yMax, 24, 24);
@@ -405,6 +420,14 @@ namespace SimpleWarrants
             return this.pawn?.Faction == Faction.OfPlayer;
         }
 
+        public override void OnCreate()
+        {
+            base.OnCreate();
+            if (pawn.Faction != null && !pawn.Faction.HostileTo(Faction.OfPlayer))
+            {
+                pawn.Faction.TryAffectGoodwillWith(Faction.OfPlayer, -80);
+            }
+        }
         public override int MaxReward()
         {
             if (rewardForDead > rewardForLiving)
@@ -428,15 +451,21 @@ namespace SimpleWarrants
 
             Widgets.InfoCardButton(thingRect.xMax - 24, thingRect.yMax + 18, thing);
             Text.Font = GameFont.Medium;
-            var nameInfoBox = new Rect(thingRect.xMax, thingRect.y, 400, 30);
+            var textSize = Text.CalcSize(thing.LabelCap);
+            var nameInfoBox = new Rect(thingRect.xMax, thingRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, thing.LabelCap);
-
-            var postedByInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, nameInfoBox.width, nameInfoBox.height);
+            if (this.MaxReward() < (thing.MarketValue * 0.75f))
+            {
+                var insufficientRewardBox = new Rect(nameInfoBox.xMax + 5, nameInfoBox.y + 3, 24, 24);
+                GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
+                TooltipHandler.TipRegion(insufficientRewardBox, "SW.InsufficientReward".Translate());
+            }
+            var postedByInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, 400, nameInfoBox.height);
             Widgets.Label(postedByInfoBox, "SW.PostedBy".Translate(issuer.NameColored));
 
             var rewardIconBox = new Rect(nameInfoBox.x, postedByInfoBox.yMax, 24, 24);
             GUI.DrawTexture(rewardIconBox, IconRetrieve);
-            var rewardInfoBox = new Rect(rewardIconBox.xMax + 5, postedByInfoBox.yMax, nameInfoBox.width, nameInfoBox.height);
+            var rewardInfoBox = new Rect(rewardIconBox.xMax + 5, postedByInfoBox.yMax, 400, nameInfoBox.height);
             Widgets.Label(rewardInfoBox, this.reward + " " + ThingDefOf.Silver.LabelCap);
 
             var infoBox = new Rect(rect.width - 250, rewardInfoBox.yMax + 40, 250, 24);

@@ -129,7 +129,16 @@ namespace SimpleWarrants
 			var createWarrant = new Rect(790, posY, 160, 30);
 			if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
             {
-				WarrantsManager.Instance.givenWarrants.Add(CreateWarrant());
+				var warrant = CreateWarrant(out string failReason);
+				if (!failReason.NullOrEmpty())
+                {
+					Find.WindowStack.Add(new Dialog_MessageBox(failReason));
+                }
+				else
+                {
+					warrant.OnCreate();
+					WarrantsManager.Instance.givenWarrants.Add(warrant);
+				}
 				curPawn = null;
 				curArtifact = null;
             }
@@ -208,16 +217,24 @@ namespace SimpleWarrants
 				}
 
 				Text.Font = GameFont.Small;
-				var capturePayment = new Rect(reasonRect.x - 30, reasonRect.yMax + 10, 130, 24);
+				var capturePayment = new Rect(reasonRect.x - 30, reasonRect.yMax + 10, 120, 24);
 				Widgets.Label(capturePayment, "SW.CapturePayment".Translate());
 				var capturePaymentInput = new Rect(capturePayment.xMax, capturePayment.y, 60, 24);
-				Widgets.TextFieldNumeric<int>(capturePaymentInput, ref curCapturePayment, ref buffCurCapturePayment);
-
+				if (capturePaymentEnabled)
+                {
+					Widgets.TextFieldNumeric<int>(capturePaymentInput, ref curCapturePayment, ref buffCurCapturePayment);
+				}
+				Widgets.Checkbox(capturePaymentInput.xMax + 5, capturePaymentInput.y, ref capturePaymentEnabled);
 				var deathPayment = new Rect(capturePayment.x, capturePayment.yMax + 5, capturePayment.width, capturePayment.height);
 				Widgets.Label(deathPayment, "SW.DeathPayment".Translate());
-
+				
 				var deathPaymentInput = new Rect(deathPayment.xMax, deathPayment.y, 60, 24);
-				Widgets.TextFieldNumeric<int>(deathPaymentInput, ref curDeathPayment, ref buffCurDeathPayment);
+				if (deathPaymentEnabled)
+                {
+					Widgets.TextFieldNumeric<int>(deathPaymentInput, ref curDeathPayment, ref buffCurDeathPayment);
+				}
+				Widgets.Checkbox(deathPaymentInput.xMax + 5, deathPaymentInput.y, ref deathPaymentEnabled);
+
 			}
 			else
             {
@@ -250,8 +267,18 @@ namespace SimpleWarrants
 			Text.Font = GameFont.Small;
 		}
 
-		private Warrant CreateWarrant()
+		public void AssignPawn(Pawn pawn)
         {
+			curPawn = pawn;
+        }
+
+		public void AssignArtifact(Thing artifact)
+        {
+			curArtifact = artifact;
+		}
+		private Warrant CreateWarrant(out string failReason)
+        {
+			failReason = "";
 			if (curType == TargetType.Pawn)
             {
 				var warrant = new Warrant_Pawn
@@ -264,6 +291,14 @@ namespace SimpleWarrants
 				warrant.rewardForLiving = curCapturePayment;
 				warrant.rewardForDead = curDeathPayment;
 				warrant.reason = curReason;
+				if (deathPaymentEnabled && curDeathPayment <= 0)
+                {
+					failReason = "SW.YouMustFillAmountForDeadReward".Translate();
+				}
+				else if (capturePaymentEnabled && curCapturePayment <= 0)
+                {
+					failReason = "SW.YouMustFillAmountForCaptureReward".Translate();
+				}
 				return warrant;
 			}
 			else
@@ -276,21 +311,27 @@ namespace SimpleWarrants
 				};
 				warrant.thing = curArtifact;
 				warrant.reward = curReward;
+				if (curReward <= 0)
+                {
+					failReason = "SW.YouMustFillAmountForReward".Translate();
+				}
 				return warrant;
 			}
         }
 
-		public Pawn curPawn;
-		public string curReason;
-		public Thing curArtifact;
+		private Pawn curPawn;
+		private string curReason;
+		private Thing curArtifact;
 
-		public int curCapturePayment;
-		public int curDeathPayment;
-		public int curReward;
+		private bool capturePaymentEnabled;
+		private bool deathPaymentEnabled;
+		private int curCapturePayment;
+		private int curDeathPayment;
+		private int curReward;
 
-		public string buffCurCapturePayment;
-		public string buffCurDeathPayment;
-		public string buffCurReward;
+		private string buffCurCapturePayment;
+		private string buffCurDeathPayment;
+		private string buffCurReward;
 		public string GetLabel(TargetType targetType)
         {
 			switch (targetType)

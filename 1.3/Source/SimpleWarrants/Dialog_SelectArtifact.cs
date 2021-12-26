@@ -63,7 +63,7 @@ namespace SimpleWarrants
 					rect.width = 100;
 					if (Widgets.ButtonText(rect, "SW.Select".Translate()))
 					{
-						this.parent.curArtifact = ThingMaker.MakeThing(thingDef, GenStuff.DefaultStuffFor(thingDef));
+						this.parent.AssignArtifact(ThingMaker.MakeThing(thingDef, GenStuff.DefaultStuffFor(thingDef)));
 						SoundDefOf.Click.PlayOneShotOnCamera();
 						this.Close();
 					}

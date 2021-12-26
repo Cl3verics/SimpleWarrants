@@ -56,7 +56,10 @@ namespace SimpleWarrants
 					Rect iconRect = new Rect(24, num, 24, 24);
 					Widgets.ThingIcon(iconRect, pawn);
 					iconRect.x += 24;
-					FactionUIUtility.DrawFactionIconWithTooltip(iconRect, pawn.Faction);
+					if (pawn.Faction != null)
+                    {
+						FactionUIUtility.DrawFactionIconWithTooltip(iconRect, pawn.Faction);
+					}
 					Rect rect = new Rect(iconRect.xMax + 5, num, viewRect.width * 0.65f, 32f);
 					Text.Anchor = TextAnchor.MiddleLeft;
 					Widgets.Label(rect, pawn.Name.ToStringFull);
@@ -65,7 +68,17 @@ namespace SimpleWarrants
 					rect.width = 100;
 					if (Widgets.ButtonText(rect, "SW.Select".Translate()))
 					{
-						this.parent.curPawn = pawn;
+						if (pawn.Faction != null && !pawn.Faction.HostileTo(Faction.OfPlayer))
+                        {
+							Find.WindowStack.Add(new Dialog_MessageBox("SW.WarrantOnNonHostileWarning".Translate(pawn.Faction.Named("FACTION")), "Accept".Translate(), delegate
+							{
+								this.parent.AssignPawn(pawn);
+							}, "Cancel".Translate(), null));
+                        }
+						else
+                        {
+							this.parent.AssignPawn(pawn);
+						}
 						SoundDefOf.Click.PlayOneShotOnCamera();
 						this.Close();
 					}
