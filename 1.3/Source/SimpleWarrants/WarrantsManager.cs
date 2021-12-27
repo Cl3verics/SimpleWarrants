@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
+using static System.Collections.Specialized.BitVector32;
 
 namespace SimpleWarrants
 {
@@ -45,7 +46,7 @@ namespace SimpleWarrants
             base.StartedNewGame();
             if (!initialized && !availableWarrants.Any())
             {
-                PopulateWarrants();
+                PopulateWarrants(Rand.RangeInclusive(3, 5));
                 initialized = true;
             }
         }
@@ -56,20 +57,23 @@ namespace SimpleWarrants
             base.LoadedGame();
             if (!initialized && !availableWarrants.Any())
             {
-                PopulateWarrants();
+                PopulateWarrants(Rand.RangeInclusive(3, 5));
                 initialized = true;
             }
         }
 
-        public void PopulateWarrants()
+        public void PopulateWarrants(int amountToPopulate)
         {
-            var count = Rand.RangeInclusive(3, 5);
-            for (var i = 0; i < count; i++)
+            int num = 0;
+            var count = 0;
+            while (count < amountToPopulate && num < amountToPopulate * 2)
             {
+                num++;
                 var warrant = GetRandomWarrant(false);
                 if (warrant.IsPlayerInterested())
                 {
                     availableWarrants.Add(warrant);
+                    count++;
                 }
             }
         }
@@ -84,44 +88,58 @@ namespace SimpleWarrants
                     createdTick = Find.TickManager.TicksGame
                 };
 
-                var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
-                if (Rand.Chance(1f - SimpleWarrantsSettings.chanceOfWarrantsMadeOnColonist) || !pawns.Any() || !includeColonists || !SimpleWarrantsSettings.enableWarrantsOnColonists)
+                if (Rand.Chance(0.3f))
                 {
-                    var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
-                    Faction faction = null;
-                    if (randomKind.defaultFactionType != null)
-                    {
-                        faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
-                    }
-                    if (faction is null)
-                    {
-                        faction = Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
-                    }
-                    warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
+                    warrant.thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement(), null);
                     warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
                             && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
                             .RandomElement();
                 }
                 else
                 {
-                    var colonist = pawns.RandomElement();
-                    warrant.thing = colonist;
-                    warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
-                        && faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
-                        .RandomElement();
-                    Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonist".Translate(colonist.Named("PAWN")), "SW.WarrantOnYourColonistDesc".Translate(colonist.Named("PAWN"))
-                        , LetterDefOf.NegativeEvent, colonist);
+                    var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
+                    if (Rand.Chance(1f - SimpleWarrantsSettings.chanceOfWarrantsMadeOnColonist) || !pawns.Any() || !includeColonists || !SimpleWarrantsSettings.enableWarrantsOnColonists)
+                    {
+                        var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
+                        Faction faction = null;
+                        if (randomKind.defaultFactionType != null)
+                        {
+                            faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
+                        }
+                        if (faction is null)
+                        {
+                            faction = Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
+                        }
+                        warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
+                        warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
+                                && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
+                                .RandomElement();
+                    }
+                    else
+                    {
+                        var colonist = pawns.RandomElement();
+                        warrant.thing = colonist;
+                        warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
+                            && faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
+                            .RandomElement();
+                        Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonist".Translate(colonist.Named("PAWN")), "SW.WarrantOnYourColonistDesc".Translate(colonist.Named("PAWN"))
+                            , LetterDefOf.NegativeEvent, colonist);
+                    }
+                    warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.pawn.thingIDNumber);
                 }
-                warrant.rewardForLiving = (int)(warrant.pawn.MarketValue * Rand.Range(0.5f, 2f));
-                if (Rand.Chance(0.3f))
+                var baseReward = (int)(warrant.pawn.MarketValue * Rand.Range(0.5f, 2f));
+                if (!warrant.thing.def.race.Animal)
+                {
+                    warrant.rewardForLiving = baseReward;
+                }
+                if (Rand.Chance(0.3f) && !warrant.thing.def.race.Animal)
                 {
                     warrant.rewardForDead = 0;
                 }
                 else
                 {
-                    warrant.rewardForDead = (int)(warrant.rewardForLiving * Rand.Range(0.3f, 0.7f));
+                    warrant.rewardForDead = (int)(baseReward * Rand.Range(0.3f, 0.7f));
                 }
-                warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.pawn.thingIDNumber);
                 return warrant;
             }
             else
@@ -228,6 +246,13 @@ namespace SimpleWarrants
             for (int num = takenWarrants.Count - 1; num >= 0; num--)
             {
                 var warrant = takenWarrants[num];
+                if (warrant.accepteer.HostileTo(Faction.OfPlayer))
+                {
+                    takenWarrants.RemoveAt(num);
+                    givenWarrants.Add(warrant);
+                    Messages.Message("SW.FactionDroppedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.NegativeEvent);
+                    return;
+                }
                 if (Find.TickManager.TicksGame > warrant.tickToBeCompleted)
                 {
                     takenWarrants.RemoveAt(num);
