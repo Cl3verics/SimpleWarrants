@@ -18,7 +18,7 @@ namespace SimpleWarrants
 
 	[HotSwappableAttribute]
 	[StaticConstructorOnStartup]
-	public partial class MainTabWindow_Warrants : MainTabWindow
+	public class MainTabWindow_Warrants : MainTabWindow
 	{
 		private TargetType curType;
 		private WarrantsTab curTab;

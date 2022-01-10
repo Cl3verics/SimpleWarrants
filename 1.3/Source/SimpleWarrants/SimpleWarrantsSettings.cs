@@ -11,7 +11,7 @@ namespace SimpleWarrants
 {
     public class SimpleWarrantsSettings : ModSettings
     {
-        public static float chanceOfWarrantsMadeOnColonist = 0.1f;
+        public static float chanceOfWarrantsMadeOnColonist = 0.05f;
         public static bool enableWarrantsOnColonists = true;
         public static bool enableWarrantsOnArtifact = true;
         public static bool enableWarrantsOnAnimals = true;
@@ -19,7 +19,7 @@ namespace SimpleWarrants
         public override void ExposeData()
         {
             base.ExposeData();
-            Scribe_Values.Look(ref chanceOfWarrantsMadeOnColonist, nameof(chanceOfWarrantsMadeOnColonist), 0.1f);
+            Scribe_Values.Look(ref chanceOfWarrantsMadeOnColonist, nameof(chanceOfWarrantsMadeOnColonist), 0.05f);
             Scribe_Values.Look(ref enableWarrantsOnColonists, nameof(enableWarrantsOnColonists), true);
             Scribe_Values.Look(ref enableWarrantsOnArtifact, nameof(enableWarrantsOnArtifact), true);
             Scribe_Values.Look(ref enableWarrantsOnAnimals, nameof(enableWarrantsOnAnimals), true);

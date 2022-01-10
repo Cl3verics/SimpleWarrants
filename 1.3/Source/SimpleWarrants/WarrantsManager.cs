@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
-using static System.Collections.Specialized.BitVector32;
 
 namespace SimpleWarrants
 {
@@ -70,7 +69,7 @@ namespace SimpleWarrants
             {
                 num++;
                 var warrant = GetRandomWarrant(false);
-                if (warrant.IsPlayerInterested())
+                if (warrant.CanPlayerReceive())
                 {
                     availableWarrants.Add(warrant);
                     count++;
@@ -119,27 +118,13 @@ namespace SimpleWarrants
                     {
                         var colonist = pawns.RandomElement();
                         warrant.thing = colonist;
-                        warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
-                            && faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
-                            .RandomElement();
+                        warrant.issuer = Utils.AnyHostileToPlayerFaction();
                         Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonist".Translate(colonist.Named("PAWN")), "SW.WarrantOnYourColonistDesc".Translate(colonist.Named("PAWN"))
                             , LetterDefOf.NegativeEvent, colonist);
                     }
                     warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.pawn.thingIDNumber);
                 }
-                var baseReward = (int)(warrant.pawn.MarketValue * Rand.Range(0.5f, 2f));
-                if (!warrant.thing.def.race.Animal)
-                {
-                    warrant.rewardForLiving = baseReward;
-                }
-                if (Rand.Chance(0.3f) && !warrant.thing.def.race.Animal)
-                {
-                    warrant.rewardForDead = 0;
-                }
-                else
-                {
-                    warrant.rewardForDead = (int)(baseReward * Rand.Range(0.3f, 0.7f));
-                }
+                AssignRewards(warrant);
                 return warrant;
             }
             else
@@ -160,6 +145,47 @@ namespace SimpleWarrants
             }
         }
 
+        private static void AssignRewards(Warrant_Pawn warrant)
+        {
+            var baseReward = (int)(warrant.pawn.MarketValue * Rand.Range(0.5f, 2f));
+            if (!warrant.thing.def.race.Animal)
+            {
+                warrant.rewardForLiving = baseReward;
+            }
+            if (Rand.Chance(0.3f) && !warrant.thing.def.race.Animal)
+            {
+                warrant.rewardForDead = 0;
+            }
+            else
+            {
+                warrant.rewardForDead = (int)(baseReward * Rand.Range(0.3f, 0.7f));
+            }
+        }
+
+        public void PutWarrantOn(Pawn victim, string reason, Faction issuer = null)
+        {
+            var warrant = new Warrant_Pawn
+            {
+                loadID = GetWarrantID(),
+                createdTick = Find.TickManager.TicksGame
+            };
+            warrant.thing = victim;
+            if (issuer != null)
+            {
+                warrant.issuer = issuer;
+            }
+            else
+            {
+                warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
+                     && faction.RelationKindWith(victim.Faction) == FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
+                     .RandomElement();
+            }
+            warrant.reason = reason;
+            Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonistReason".Translate(victim.Named("PAWN"), reason), 
+                "SW.WarrantOnYourColonistDesc".Translate(victim.Named("PAWN")), LetterDefOf.NegativeEvent, victim);
+            AssignRewards(warrant);
+            availableWarrants.Add(warrant);
+        }
         public string GetWarrantID()
         {
             lastWarrantID++;
@@ -190,7 +216,7 @@ namespace SimpleWarrants
             if (Rand.MTBEventOccurs(7, GenDate.TicksPerDay, 1))
             {
                 var warrant = GetRandomWarrant();
-                if (warrant.IsPlayerInterested())
+                if (warrant.CanPlayerReceive())
                 {
                     availableWarrants.Add(warrant);
                 }
@@ -216,6 +242,14 @@ namespace SimpleWarrants
                 if (!warrant.IsWarrantActive())
                 {
                     warrant.End();
+                    if (Rand.Chance(0.25f))
+                    {
+                        var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists_NoSlaves;
+                        if (pawns.TryRandomElement(out var pawn))
+                        {
+                            PutWarrantOn(pawn, "SW.Fraud".Translate(), warrant.issuer);
+                        }
+                    }
                     acceptedWarrants.RemoveAt(num);
                 }
             }
@@ -251,9 +285,8 @@ namespace SimpleWarrants
                     takenWarrants.RemoveAt(num);
                     givenWarrants.Add(warrant);
                     Messages.Message("SW.FactionDroppedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.NegativeEvent);
-                    return;
                 }
-                if (Find.TickManager.TicksGame > warrant.tickToBeCompleted)
+                else if (Find.TickManager.TicksGame > warrant.tickToBeCompleted)
                 {
                     takenWarrants.RemoveAt(num);
                     var chance = warrant.SuccessChance();

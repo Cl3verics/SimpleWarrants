@@ -30,6 +30,13 @@ namespace SimpleWarrants
             WarrantsManager.Instance.PopulateWarrants(15);
         }
 
+        public static Faction AnyHostileToPlayerFaction()
+        {
+            return Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
+                                        && faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile 
+                                        && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
+                                        .RandomElement();
+        }
         public static IEnumerable<ThingDef> AllArtifactDefs => DefDatabase<ThingDef>.AllDefs.Where(x => (x.tradeTags?.Contains("Artifact") ?? false)
                     || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false)
                     || (x.tradeTags?.Contains("ExoticMisc") ?? false));

@@ -21,7 +21,7 @@ namespace SimpleWarrants
 			doCloseX = true;
 			closeOnClickedOutside = false;
 			absorbInputAroundWindow = false;
-			allPawns = Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn?.Name != null 
+			allPawns = Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn.MapHeld is null && pawn?.story != null && pawn?.Name != null 
 			&& !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).ToList();
 			this.parent = parent;
 		}

@@ -184,16 +184,25 @@ namespace SimpleWarrants
                 Messages.Message("SW.NoEnoughMoneyToCompensate".Translate(toCompensate), MessageTypeDefOf.CautionInput);
             }
         }
+
         public override float AcceptChance()
         {
-            var reward = Mathf.Max(rewardForDead, rewardForLiving);
-            return reward / thing.MarketValue;
+            if (!acceptChanceCached.HasValue)
+            {
+                var reward = Mathf.Max(rewardForDead, rewardForLiving);
+                acceptChanceCached = reward / thing.MarketValue;
+            }
+            return acceptChanceCached.Value;
         }
 
         public override float SuccessChance()
         {
-            var reward = Mathf.Max(rewardForDead, rewardForLiving);
-            return reward / thing.MarketValue;
+            if (!successChanceCached.HasValue)
+            {
+                var reward = Mathf.Max(rewardForDead, rewardForLiving);
+                successChanceCached = reward / thing.MarketValue;
+            }
+            return successChanceCached.Value;
         }
 
         public override bool ShouldShowCompensateButton()

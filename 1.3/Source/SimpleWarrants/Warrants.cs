@@ -37,6 +37,9 @@ namespace SimpleWarrants
         public int tickToBeCompleted;
 
         public static readonly Texture2D InsufficientRewardIcon = ContentFinder<Texture2D>.Get("UI/Warrants/IconWarning");
+
+        public float? acceptChanceCached;
+        public float? successChanceCached;
         public abstract float AcceptChance();
         public abstract float SuccessChance();
         public abstract bool IsWarrantActive();
@@ -131,10 +134,13 @@ namespace SimpleWarrants
             }
         }
 
-        public void End(QuestEndOutcome questEndOutcome = QuestEndOutcome.Fail)
+        public void End(QuestEndOutcome questEndOutcome = QuestEndOutcome.Fail, bool affectGoodwill = true)
         {
             this.relatedQuest?.End(questEndOutcome);
-            this.issuer.TryAffectGoodwillWith(Faction.OfPlayer, -30);
+            if (affectGoodwill)
+            {
+                this.issuer.TryAffectGoodwillWith(Faction.OfPlayer, -30);
+            }
         }
         public virtual void ExposeData()
         {
@@ -166,7 +172,12 @@ namespace SimpleWarrants
             {
                 if (thing is null)
                 {
-                    Log.Error(this + " has null thing, bugged now and won't work.");
+                    Log.Error(this + " has null thing, bugged now and won't work. Clearing it to avoid errors.");
+                    this.End(affectGoodwill: false);
+                    WarrantsManager.Instance.availableWarrants.Remove(this);
+                    WarrantsManager.Instance.acceptedWarrants.Remove(this);
+                    WarrantsManager.Instance.givenWarrants.Remove(this);
+                    WarrantsManager.Instance.takenWarrants.Remove(this);
                 }
             }
         }
@@ -217,8 +228,12 @@ namespace SimpleWarrants
             }
         }
 
-        public bool IsPlayerInterested()
+        public bool CanPlayerReceive()
         {
+            if (thing.Faction == Faction.OfPlayer)
+            {
+                return true;
+            }
             if (SimpleWarrantsSettings.enableWarrantRewardScaling)
             {
                 var wealth = Find.AnyPlayerHomeMap.wealthWatcher.WealthTotal;

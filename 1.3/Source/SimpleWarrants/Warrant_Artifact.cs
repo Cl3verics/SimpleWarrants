@@ -99,12 +99,20 @@ namespace SimpleWarrants
 
         public override float AcceptChance()
         {
-            return reward / thing.MarketValue;
+            if (!acceptChanceCached.HasValue)
+            {
+                acceptChanceCached = reward / thing.MarketValue;
+            }
+            return acceptChanceCached.Value;
         }
 
         public override float SuccessChance()
         {
-            return reward / thing.MarketValue;
+            if (!successChanceCached.HasValue)
+            {
+                successChanceCached = reward / thing.MarketValue;
+            }
+            return successChanceCached.Value;
         }
 
         public override bool ShouldShowCompensateButton()

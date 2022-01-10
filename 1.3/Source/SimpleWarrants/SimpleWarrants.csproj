@@ -47,8 +47,11 @@
     <Compile Include="Dialog_SelectAnimal.cs" />
     <Compile Include="Dialog_SelectArtifact.cs" />
     <Compile Include="Dialog_SelectPawn.cs" />
+    <Compile Include="HarmonyPatches\Faction_Notify_MemberTookDamage_Patch.cs" />
     <Compile Include="GenStep_Animal.cs" />
     <Compile Include="GenStep_Camp.cs" />
+    <Compile Include="HarmonyPatches\FormCaravanComp_CompTick_Patch.cs" />
+    <Compile Include="HarmonyPatches\Pawn_Kill_Patch.cs" />
     <Compile Include="QuestNode_WarrantFailed.cs" />
     <Compile Include="SimpleWarrantsMod.cs" />
     <Compile Include="SimpleWarrantsSettings.cs" />
@@ -74,5 +77,6 @@
       <Version>2.1.1</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

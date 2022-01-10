@@ -1,12 +1,9 @@
 ﻿namespace SimpleWarrants
 {
-    public partial class MainTabWindow_Warrants
+    public enum TargetType
     {
-        public enum TargetType
-        {
-			Human,
-			Animal,
-			Artifact
-        }
-	}
+        Human,
+        Animal,
+        Artifact
+    }
 }
