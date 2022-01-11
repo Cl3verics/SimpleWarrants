@@ -48,13 +48,13 @@
 	<SW.Select>Select</SW.Select>
 	<SW.EnableWarrantRewardScaling>Enable warrant reward threshold (minimum 5% from player's wealth)</SW.EnableWarrantRewardScaling>
 	<SW.WarrantOnNonHostileWarning>You have selected a non-hostile pawn for your warrant. Are you sure you would like to continue? This will damage relations with {FACTION_name}.</SW.WarrantOnNonHostileWarning>
-	<SW.YouMustFillAmountForDeadReward>You must to fill in the amount for the dead reward.</SW.YouMustFillAmountForDeadReward>
-	<SW.YouMustFillAmountForCaptureReward>You must to fill in the amount for the capture reward.</SW.YouMustFillAmountForCaptureReward>
-	<SW.YouMustFillAmountForReward>You must to fill in the amount for the reward.</SW.YouMustFillAmountForReward>
+	<SW.YouMustFillAmountForDeadReward>You must fill in the amount for the dead reward.</SW.YouMustFillAmountForDeadReward>
+	<SW.YouMustFillAmountForCaptureReward>You must fill in the amount for the capture reward.</SW.YouMustFillAmountForCaptureReward>
+	<SW.YouMustFillAmountForReward>You must fill in the amount for the reward.</SW.YouMustFillAmountForReward>
 	<SW.InsufficientReward>This warrant has automatically been flagged for insufficient rewards. This will increase chances of failure and extend the time until completion. Consider raising your reward in a new warrant to increase the chances of success.</SW.InsufficientReward>
 	<SW.Animal>Animal</SW.Animal>
 	<SW.FactionDroppedWarrant>{FACTION_name} has dropped your warrant on {1} because they are enemies now.</SW.FactionDroppedWarrant>
-	
+
 	<SW.Torture>Torture</SW.Torture>
 	<SW.Poaching>Poaching</SW.Poaching>
 	<SW.Assault>Assault</SW.Assault>
