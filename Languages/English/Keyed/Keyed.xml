@@ -29,6 +29,7 @@
 	<SW.Refuse>Refuse</SW.Refuse>
 	<SW.FactionFailedWarrant>{FACTION_name} has failed to complete your warrant on {1}</SW.FactionFailedWarrant>
 	<SW.WarrantOnYourColonist>Warrant on a colonist: {PAWN_nameDef}</SW.WarrantOnYourColonist>
+	<SW.WarrantOnYourColonistReason>Warrant on a colonist: {PAWN_nameDef}. Reason: {1}</SW.WarrantOnYourColonistReason>
 	<SW.WarrantOnYourColonistDesc>A warrant was placed on a colonist which increases raid chance until the warrant is paid off. Player can choose to pay the warrant amount to void the warrant. Or leave the warrant and wait until it expires.</SW.WarrantOnYourColonistDesc>
 	<SW.Compensate>Compensate</SW.Compensate>
 	<SW.NoEnoughMoneyToCompensate>You don't have {0} silver to compensate this warrant</SW.NoEnoughMoneyToCompensate>
@@ -51,4 +52,14 @@
 	<SW.YouMustFillAmountForCaptureReward>You must to fill in the amount for the capture reward.</SW.YouMustFillAmountForCaptureReward>
 	<SW.YouMustFillAmountForReward>You must to fill in the amount for the reward.</SW.YouMustFillAmountForReward>
 	<SW.InsufficientReward>This warrant has automatically been flagged for insufficient rewards. This will increase chances of failure and extend the time until completion. Consider raising your reward in a new warrant to increase the chances of success.</SW.InsufficientReward>
+	<SW.Animal>Animal</SW.Animal>
+	<SW.FactionDroppedWarrant>{FACTION_name} has dropped your warrant on {1} because they are enemies now.</SW.FactionDroppedWarrant>
+	
+	<SW.Torture>Torture</SW.Torture>
+	<SW.Poaching>Poaching</SW.Poaching>
+	<SW.Assault>Assault</SW.Assault>
+	<SW.Fraud>Fraud</SW.Fraud>
+	<SW.RaidReasonKillCapture>They are looking to kill or capture {PAWN_nameDef} due to {1}.</SW.RaidReasonKillCapture>
+	<SW.RaidReasonCapture>They are looking to capture {PAWN_nameDef} due to {1}.</SW.RaidReasonCapture>
+	<SW.RaidReasonKill>They are looking to kill {PAWN_nameDef} due to {1}.</SW.RaidReasonKill>
 </LanguageData>

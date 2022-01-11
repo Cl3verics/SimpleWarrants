@@ -71,7 +71,8 @@ namespace SimpleWarrants
 				{
 					thing.holdingOwner.Remove(thing);
 					warrant.GiveReward(caravan);
-					QuestUtility.SendQuestTargetSignals(thing.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
+					var questTarget = thing is Corpse corpse ? corpse.InnerPawn : thing;
+					QuestUtility.SendQuestTargetSignals(questTarget.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
 					WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
 					thing.Destroy();
 				}

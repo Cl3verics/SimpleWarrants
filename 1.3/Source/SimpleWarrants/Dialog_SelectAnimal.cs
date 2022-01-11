@@ -8,21 +8,20 @@ using Verse.Sound;
 namespace SimpleWarrants
 {
     [HotSwappableAttribute]
-	public class Dialog_SelectPawn : Window
+	public class Dialog_SelectAnimal : Window
 	{
 		private MainTabWindow_Warrants parent;
 		private Vector2 scrollPosition;
 		public override Vector2 InitialSize => new Vector2(620f, 500f);
 
-		public List<Pawn> allPawns;
-		public Dialog_SelectPawn(MainTabWindow_Warrants parent)
+		public List<PawnKindDef> allAnimalDefs;
+		public Dialog_SelectAnimal(MainTabWindow_Warrants parent)
 		{
 			doCloseButton = true;
 			doCloseX = true;
 			closeOnClickedOutside = false;
 			absorbInputAroundWindow = false;
-			allPawns = Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn.MapHeld is null && pawn?.story != null && pawn?.Name != null 
-			&& !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).ToList();
+			allAnimalDefs = Utils.AllWorthAnimalDefs.ToList();
 			this.parent = parent;
 		}
 
@@ -30,7 +29,6 @@ namespace SimpleWarrants
 		public override void DoWindowContents(Rect inRect)
 		{
 			Text.Font = GameFont.Small;
-
 			Text.Anchor = TextAnchor.MiddleLeft;
 			var searchLabel = new Rect(inRect.x, inRect.y, 60, 24);
 			Widgets.Label(searchLabel, "SW.Search".Translate());
@@ -43,42 +41,28 @@ namespace SimpleWarrants
 			outRect.yMax -= 70f;
 			outRect.width -= 16f;
 
-			var pawns = searchKey.NullOrEmpty() ? allPawns : allPawns.Where(x => x.Name.ToStringFull.ToLower().Contains(searchKey.ToLower())).ToList();
+			var thingDefs = searchKey.NullOrEmpty() ? allAnimalDefs : allAnimalDefs.Where(x => x.label.ToLower().Contains(searchKey.ToLower())).ToList();
 
-			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, (float)pawns.Count() * 35f);
+			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, (float)thingDefs.Count() * 35f);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
 			try
 			{
 				float num = 0f;
-				foreach (Pawn pawn in pawns.OrderBy(x => x.Name.ToStringFull))
+				foreach (PawnKindDef pawnkindDef in thingDefs.OrderBy(x => x.label))
 				{
-					Widgets.InfoCardButton(0, num, pawn);
-					Rect iconRect = new Rect(24, num, 24, 24);
-					Widgets.ThingIcon(iconRect, pawn);
+					Rect iconRect = new Rect(0f, num, 24, 32);
+					Widgets.InfoCardButton(iconRect, pawnkindDef);
 					iconRect.x += 24;
-					if (pawn.Faction != null)
-                    {
-						FactionUIUtility.DrawFactionIconWithTooltip(iconRect, pawn.Faction);
-					}
-					Rect rect = new Rect(iconRect.xMax + 5, num, viewRect.width * 0.65f, 32f);
+					Widgets.ThingIcon(iconRect, pawnkindDef.race);
+					Rect rect = new Rect(iconRect.xMax + 5, num, viewRect.width * 0.7f, 32f);
 					Text.Anchor = TextAnchor.MiddleLeft;
-					Widgets.Label(rect, pawn.Name.ToStringFull);
+					Widgets.Label(rect, pawnkindDef.LabelCap);
 					Text.Anchor = TextAnchor.UpperLeft;
 					rect.x = rect.xMax + 10;
 					rect.width = 100;
 					if (Widgets.ButtonText(rect, "SW.Select".Translate()))
 					{
-						if (pawn.Faction != null && !pawn.Faction.HostileTo(Faction.OfPlayer))
-                        {
-							Find.WindowStack.Add(new Dialog_MessageBox("SW.WarrantOnNonHostileWarning".Translate(pawn.Faction.Named("FACTION")), "Accept".Translate(), delegate
-							{
-								this.parent.AssignPawn(pawn);
-							}, "Cancel".Translate(), null));
-                        }
-						else
-                        {
-							this.parent.AssignPawn(pawn);
-						}
+						this.parent.AssignAnimal(PawnGenerator.GeneratePawn(pawnkindDef, null));
 						SoundDefOf.Click.PlayOneShotOnCamera();
 						this.Close();
 					}

@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using RimWorld;
 using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
@@ -17,6 +16,7 @@ namespace SimpleWarrants
         public SimpleWarrantsMod(ModContentPack mod) : base(mod)
         {
             settings = GetSettings<SimpleWarrantsSettings>();
+            new Harmony("SimpleWarrants.Mod").PatchAll();
         }
 
         public override void DoSettingsWindowContents(Rect inRect)
