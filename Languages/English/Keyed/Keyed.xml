@@ -59,4 +59,7 @@
 	<SW.Poaching>Poaching</SW.Poaching>
 	<SW.Assault>Assault</SW.Assault>
 	<SW.Fraud>Fraud</SW.Fraud>
+	<SW.RaidReasonKillCapture>They are looking to kill or capture {PAWN_nameDef} due to {1}.</SW.RaidReasonKillCapture>
+	<SW.RaidReasonCapture>They are looking to capture {PAWN_nameDef} due to {1}.</SW.RaidReasonCapture>
+	<SW.RaidReasonKill>They are looking to kill {PAWN_nameDef} due to {1}.</SW.RaidReasonKill>
 </LanguageData>

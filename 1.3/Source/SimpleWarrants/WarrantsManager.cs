@@ -7,10 +7,19 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Verse;
+using Verse.AI.Group;
 using Verse.Sound;
 
 namespace SimpleWarrants
 {
+    public class LordCollection : IExposable
+    {
+        public List<Lord> lords;
+        public void ExposeData()
+        {
+            Scribe_Collections.Look(ref lords, "lords", LookMode.Reference);
+        }
+    }
     public class WarrantsManager : GameComponent
     {
         public static WarrantsManager Instance;
@@ -18,6 +27,7 @@ namespace SimpleWarrants
         public List<Warrant> acceptedWarrants;
         public List<Warrant> takenWarrants;
         public List<Warrant> givenWarrants;
+        public Dictionary<Warrant_Pawn, LordCollection> raidLords;
         public bool initialized;
         public int lastWarrantID;
         public WarrantsManager()
@@ -37,6 +47,7 @@ namespace SimpleWarrants
             acceptedWarrants ??= new List<Warrant>();
             givenWarrants ??= new List<Warrant>();
             takenWarrants ??= new List<Warrant>();
+            raidLords ??= new Dictionary<Warrant_Pawn, LordCollection>();
         }
 
         public override void StartedNewGame()
@@ -229,7 +240,9 @@ namespace SimpleWarrants
                     var map = Find.AnyPlayerHomeMap;
                     var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
                     parms.faction = Find.FactionManager.AllFactionsVisible.Where(x => x.def.humanlikeFaction && x.HostileTo(Faction.OfPlayer)).RandomElement();
+                    IncidentWorker_Raid_TryGenerateRaidInfo_Patch.huntForWarrant = true;
                     IncidentDefOf.RaidEnemy.Worker.TryExecute(parms);
+                    IncidentWorker_Raid_TryGenerateRaidInfo_Patch.huntForWarrant = false;
                 }
             }
         }
@@ -385,7 +398,11 @@ namespace SimpleWarrants
             Scribe_Collections.Look(ref takenWarrants, "takenWarrants", LookMode.Deep);
             Scribe_Values.Look(ref initialized, "initialized");
             Scribe_Values.Look(ref lastWarrantID, "lastWarrantID");
+            Scribe_Collections.Look(ref raidLords, "raidLords", LookMode.Reference, LookMode.Deep, ref warrantKeys, ref lordValues);
             PreInit();
         }
+
+        private List<Warrant_Pawn> warrantKeys;
+        private List<LordCollection> lordValues;
     }
 }
