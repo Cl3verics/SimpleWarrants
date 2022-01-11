@@ -30,6 +30,25 @@ namespace SimpleWarrants
             WarrantsManager.Instance.PopulateWarrants(15);
         }
 
+        [DebugAction("General", "Put warrant on pawn", false, false, actionType = DebugActionType.ToolMapForPawns, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+        private static void PutWarrantOn(Pawn p)
+        {
+            Find.WindowStack.Add(new Dialog_DebugOptionListLister(PutWarrant(p)));
+        }
+
+        public static List<DebugMenuOption> PutWarrant(Pawn pawn)
+        {
+            List<DebugMenuOption> list = new List<DebugMenuOption>();
+            foreach (var issuer in Find.FactionManager.AllFactions)
+            {
+                list.Add(new DebugMenuOption(issuer.Name, DebugMenuOptionMode.Action, delegate
+                {
+                    WarrantsManager.Instance.PutWarrantOn(pawn, "DEBUG", issuer);
+                }));
+            }
+            return list;
+        }
+
         public static Faction AnyHostileToPlayerFaction()
         {
             return Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
