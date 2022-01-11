@@ -28,7 +28,7 @@ namespace SimpleWarrants
 
         public static void RegisterAssault(FormCaravanComp __instance)
         {
-            if (__instance.parent is MapParent mapParent && mapParent.Faction != null && mapParent.Faction.def.humanlikeFaction && Rand.Chance(0.1f))
+            if (__instance.parent is MapParent mapParent && mapParent.Faction != null && mapParent.Faction.def.humanlikeFaction && Rand.Chance(0.25f))
             {
                 var pawns = mapParent.Map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer);
                 if (pawns.Any())
@@ -60,7 +60,7 @@ namespace SimpleWarrants
 
         public static void RegisterAssault(Map map)
         {
-            if (map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && Rand.Chance(0.1f))
+            if (map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && Rand.Chance(0.25f))
             {
                 var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer);
                 if (pawns.Any())
