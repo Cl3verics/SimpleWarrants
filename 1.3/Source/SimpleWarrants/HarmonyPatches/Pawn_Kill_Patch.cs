@@ -12,7 +12,7 @@ namespace SimpleWarrants
             if (dinfo.HasValue && dinfo.Value.Instigator is Pawn instigator && instigator.RaceProps.Humanlike && instigator.Faction == Faction.OfPlayer 
                 && __instance.RaceProps.Animal && __instance.Faction is null && __instance.def.BaseMarketValue >= ThingDefOf.Thrumbo.BaseMarketValue)
             {
-                if (Rand.Chance(0.25f))
+                if (WarrantsManager.Instance.CanPutWarrantOn(instigator) && Rand.Chance(0.25f))
                 {
                     WarrantsManager.Instance.PutWarrantOn(instigator, "SW.Poaching".Translate(), Utils.AnyHostileToPlayerFaction());
                 }

@@ -108,7 +108,8 @@ namespace SimpleWarrants
                 else
                 {
                     var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
-                    if (Rand.Chance(1f - SimpleWarrantsSettings.chanceOfWarrantsMadeOnColonist) || !pawns.Any() || !includeColonists || !SimpleWarrantsSettings.enableWarrantsOnColonists)
+                    if (Rand.Chance(1f - SimpleWarrantsSettings.chanceOfWarrantsMadeOnColonist) || !pawns.Where(x => CanPutWarrantOn(x)).Any() 
+                        || !includeColonists || !SimpleWarrantsSettings.enableWarrantsOnColonists)
                     {
                         var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
                         Faction faction = null;
@@ -127,7 +128,7 @@ namespace SimpleWarrants
                     }
                     else
                     {
-                        var colonist = pawns.RandomElement();
+                        var colonist = pawns.Where(x => CanPutWarrantOn(x)).RandomElement();
                         warrant.thing = colonist;
                         warrant.issuer = Utils.AnyHostileToPlayerFaction();
                         Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonist".Translate(colonist.Named("PAWN")), "SW.WarrantOnYourColonistDesc".Translate(colonist.Named("PAWN"))
@@ -173,6 +174,10 @@ namespace SimpleWarrants
             }
         }
 
+        public bool CanPutWarrantOn(Pawn pawn)
+        {
+            return !availableWarrants.OfType<Warrant_Pawn>().Any(x => x.pawn == pawn);
+        }
         public void PutWarrantOn(Pawn victim, string reason, Faction issuer = null)
         {
             var warrant = new Warrant_Pawn
@@ -257,7 +262,7 @@ namespace SimpleWarrants
                     warrant.End();
                     if (Rand.Chance(0.25f))
                     {
-                        var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists_NoSlaves;
+                        var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists_NoSlaves.Where(x => CanPutWarrantOn(x));
                         if (pawns.TryRandomElement(out var pawn))
                         {
                             PutWarrantOn(pawn, "SW.Fraud".Translate(), warrant.issuer);

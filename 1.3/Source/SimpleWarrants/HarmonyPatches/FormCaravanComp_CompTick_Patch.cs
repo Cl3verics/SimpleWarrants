@@ -30,7 +30,7 @@ namespace SimpleWarrants
         {
             if (__instance.parent is MapParent mapParent && mapParent.Faction != null && mapParent.Faction.def.humanlikeFaction && Rand.Chance(0.25f))
             {
-                var pawns = mapParent.Map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer);
+                var pawns = mapParent.Map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
                 if (pawns.Any())
                 {
                     var random = pawns.RandomElement();
@@ -62,7 +62,7 @@ namespace SimpleWarrants
         {
             if (map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && Rand.Chance(0.25f))
             {
-                var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer);
+                var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
                 if (pawns.Any())
                 {
                     var random = pawns.RandomElement();
