@@ -98,7 +98,7 @@ namespace SimpleWarrants
                     createdTick = Find.TickManager.TicksGame
                 };
 
-                if (Rand.Chance(0.3f))
+                if (Rand.Chance(0.2f) && SimpleWarrantsSettings.enableWarrantsOnAnimals)
                 {
                     warrant.thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement(), null);
                     warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
