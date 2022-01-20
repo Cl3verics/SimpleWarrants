@@ -176,7 +176,7 @@ namespace SimpleWarrants
 
         public bool CanPutWarrantOn(Pawn pawn)
         {
-            return !availableWarrants.OfType<Warrant_Pawn>().Any(x => x.pawn == pawn) && (!pawn.IsColonistPlayerControlled || SimpleWarrantsSettings.enableWarrantsOnColonists);
+            return !availableWarrants.OfType<Warrant_Pawn>().Any(x => x.pawn == pawn) && (!pawn.IsColonist || SimpleWarrantsSettings.enableWarrantsOnColonists);
         }
         public void PutWarrantOn(Pawn victim, string reason, Faction issuer = null)
         {
