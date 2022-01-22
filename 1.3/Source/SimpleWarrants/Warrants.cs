@@ -153,6 +153,7 @@ namespace SimpleWarrants
                 savedSomewhere = IsSavedSomewhereElse(thing);
             }
             Scribe_Values.Look(ref savedSomewhere, "savedSomewhere");
+            Scribe_Values.Look(ref createdTick, "createdTick", -1);
             Scribe_Values.Look(ref acceptedTick, "acceptedTick", -1);
             Scribe_References.Look(ref issuer, "issuer");
             Scribe_References.Look(ref accepteer, "accepteer");

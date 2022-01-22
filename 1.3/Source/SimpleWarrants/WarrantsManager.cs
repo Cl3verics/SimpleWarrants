@@ -222,7 +222,7 @@ namespace SimpleWarrants
             {
                 for (int num = availableWarrants.Count - 1; num >= 0; num--)
                 {
-                    if ((Find.TickManager.TicksGame - availableWarrants[num].createdTick).TicksToDays() >= 15)
+                    if ((Find.TickManager.TicksGame - availableWarrants[num].createdTick).TicksToDays() >= 15 || availableWarrants[num].createdTick == -1)
                     {
                         availableWarrants.RemoveAt(num);
                     }
@@ -270,6 +270,7 @@ namespace SimpleWarrants
                     }
                     acceptedWarrants.RemoveAt(num);
                 }
+
             }
         }
         public void HandleGivenWarrants()
