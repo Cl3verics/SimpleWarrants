@@ -1,13 +1,45 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using Verse;
+using Verse.AI;
 
 namespace SimpleWarrants
 {
+    [HarmonyPatch(typeof(GenHostility), "AnyHostileActiveThreatTo_NewTemp",
+    new Type[] { typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool) },
+    new ArgumentType[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal })]
+    internal static class AnyHostileActiveThreatTo_Patch
+    {
+        public static Dictionary<Map, Faction> lastFactionThreats = new Dictionary<Map, Faction>();
+
+        [HarmonyPriority(Priority.Last)]
+        public static void Postfix(ref bool __result, Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile = false)
+        {
+            if (__result && !map.IsPlayerHome && threat != null && threat is Pawn pawn && pawn.Faction != null && pawn.Faction.def.humanlikeFaction)
+            {
+                lastFactionThreats[map] = pawn.Faction;
+            }
+        }
+
+        public static Faction GetLastHostileFactionFromMap(Map map)
+        {
+            if (lastFactionThreats.TryGetValue(map, out Faction faction))
+            {
+                return faction;
+            }
+            if (map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && map.ParentFaction.HostileTo(Faction.OfPlayer))
+            {
+                return map.ParentFaction;
+            }
+            return null;
+        }
+    }
+
     [HarmonyPatch(typeof(FormCaravanComp), "CompTick")]
     public static class FormCaravanComp_CompTick_Patch
     {
@@ -28,13 +60,17 @@ namespace SimpleWarrants
 
         public static void RegisterAssault(FormCaravanComp __instance)
         {
-            if (__instance.parent is MapParent mapParent && mapParent.Faction != null && mapParent.Faction.def.humanlikeFaction && Rand.Chance(0.25f))
+            if (__instance.parent is MapParent mapParent && mapParent.Map != null && Rand.Chance(0.25f))
             {
-                var pawns = mapParent.Map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
-                if (pawns.Any())
+                var faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(mapParent.Map);
+                if (faction != null)
                 {
-                    var random = pawns.RandomElement();
-                    WarrantsManager.Instance.PutWarrantOn(random, "SW.Assault".Translate(), mapParent.Faction);
+                    var pawns = mapParent.Map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
+                    if (pawns.Any())
+                    {
+                        var random = pawns.RandomElement();
+                        WarrantsManager.Instance.PutWarrantOn(random, "SW.Assault".Translate(), faction);
+                    }
                 }
             }
         }
@@ -60,16 +96,16 @@ namespace SimpleWarrants
 
         public static void RegisterAssault(Map map)
         {
-            if (map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && Rand.Chance(0.25f))
+            var faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(map);
+            if (faction != null && Rand.Chance(0.25f))
             {
                 var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
                 if (pawns.Any())
                 {
                     var random = pawns.RandomElement();
-                    WarrantsManager.Instance.PutWarrantOn(random, "SW.Assault".Translate(), map.ParentFaction);
+                    WarrantsManager.Instance.PutWarrantOn(random, "SW.Assault".Translate(), faction);
                 }
             }
-            Log.Message( map + " - " + " - " + string.Join(", ", map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer)));
         }
     }
 }
