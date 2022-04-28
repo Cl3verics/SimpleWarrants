@@ -40,41 +40,41 @@ namespace SimpleWarrants
         }
     }
 
-    [HarmonyPatch(typeof(FormCaravanComp), "CompTick")]
-    public static class FormCaravanComp_CompTick_Patch
-    {
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
-        {
-            var anyUnexploredFoggedRooms = AccessTools.Method(typeof(FormCaravanComp), "get_AnyUnexploredFoggedRooms");
-            var codes = codeInstructions.ToList();
-            for (var i = 0; i < codes.Count; i++)
-            {
-                if (i < codes.Count - 3 && codes[i].opcode == OpCodes.Ldarg_0 && codes[i + 1].Calls(anyUnexploredFoggedRooms) && codes[i + 2].opcode == OpCodes.Brfalse_S)
-                {
-                    yield return new CodeInstruction(OpCodes.Ldarg_0);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(FormCaravanComp_CompTick_Patch), nameof(RegisterAssault)));
-                }
-                yield return codes[i];
-            }
-        }
-
-        public static void RegisterAssault(FormCaravanComp __instance)
-        {
-            if (__instance.parent is MapParent mapParent && mapParent.Map != null && Rand.Chance(0.25f))
-            {
-                var faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(mapParent.Map);
-                if (faction != null)
-                {
-                    var pawns = mapParent.Map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
-                    if (pawns.Any())
-                    {
-                        var random = pawns.RandomElement();
-                        WarrantsManager.Instance.PutWarrantOn(random, "SW.Assault".Translate(), faction);
-                    }
-                }
-            }
-        }
-    }
+    //[HarmonyPatch(typeof(FormCaravanComp), "CompTick")]
+    //public static class FormCaravanComp_CompTick_Patch
+    //{
+    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
+    //    {
+    //        var anyUnexploredFoggedRooms = AccessTools.Method(typeof(FormCaravanComp), "get_AnyUnexploredFoggedRooms");
+    //        var codes = codeInstructions.ToList();
+    //        for (var i = 0; i < codes.Count; i++)
+    //        {
+    //            if (i < codes.Count - 3 && codes[i].opcode == OpCodes.Ldarg_0 && codes[i + 1].Calls(anyUnexploredFoggedRooms) && codes[i + 2].opcode == OpCodes.Brfalse_S)
+    //            {
+    //                yield return new CodeInstruction(OpCodes.Ldarg_0);
+    //                yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(FormCaravanComp_CompTick_Patch), nameof(RegisterAssault)));
+    //            }
+    //            yield return codes[i];
+    //        }
+    //    }
+    //
+    //    public static void RegisterAssault(FormCaravanComp __instance)
+    //    {
+    //        if (__instance.parent is MapParent mapParent && mapParent.Map != null && Rand.Chance(0.25f))
+    //        {
+    //            var faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(mapParent.Map);
+    //            if (faction != null)
+    //            {
+    //                var pawns = mapParent.Map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
+    //                if (pawns.Any())
+    //                {
+    //                    var random = pawns.RandomElement();
+    //                    WarrantsManager.Instance.PutWarrantOn(random, "SW.Assault".Translate(), faction);
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     [HarmonyPatch(typeof(SettlementDefeatUtility), "CheckDefeated")]
     public static class SettlementDefeatUtility_CheckDefeated_Patch

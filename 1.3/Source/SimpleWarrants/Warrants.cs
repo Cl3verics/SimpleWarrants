@@ -235,6 +235,10 @@ namespace SimpleWarrants
             {
                 return true;
             }
+            if (issuer == Faction.OfPlayer)
+            {
+                return false;
+            }
             if (SimpleWarrantsSettings.enableWarrantRewardScaling)
             {
                 var wealth = Find.AnyPlayerHomeMap.wealthWatcher.WealthTotal;

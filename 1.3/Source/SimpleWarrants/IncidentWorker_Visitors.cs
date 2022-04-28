@@ -16,9 +16,7 @@ namespace SimpleWarrants
 {
     public class IncidentWorker_Visitors : IncidentWorker_VisitorGroup
     {
-		public static Thing toDeliver;
-
-		protected List<Pawn> SpawnDelivers(IncidentParms parms)
+		private List<Pawn> SpawnDelivers(IncidentParms parms)
 		{
 			Map map = (Map)parms.target;
 			var pawnCount = Rand.RangeInclusive(2, 5);
@@ -36,7 +34,12 @@ namespace SimpleWarrants
 			}
 			return list;
 		}
-		protected override bool TryExecuteWorker(IncidentParms parms)
+
+        protected override bool TryExecuteWorker(IncidentParms parms)
+        {
+            return false;
+        }
+        public bool SpawnVisitors(Thing toDeliver, IncidentParms parms)
 		{
 			Map map = (Map)parms.target;
 			if (!TryResolveParms(parms))

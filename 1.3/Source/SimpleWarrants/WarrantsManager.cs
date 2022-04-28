@@ -101,7 +101,8 @@ namespace SimpleWarrants
                 if (Rand.Chance(0.2f) && SimpleWarrantsSettings.enableWarrantsOnAnimals)
                 {
                     warrant.thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement(), null);
-                    warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
+                    warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated 
+                            && !faction.Hidden && !faction.IsPlayer
                             && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
                             .RandomElement();
                 }
@@ -122,7 +123,8 @@ namespace SimpleWarrants
                             faction = Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
                         }
                         warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
-                        warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
+                        warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated 
+                                && !faction.Hidden && !faction.IsPlayer
                                 && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
                                 .RandomElement();
                     }
@@ -180,6 +182,10 @@ namespace SimpleWarrants
         }
         public void PutWarrantOn(Pawn victim, string reason, Faction issuer = null)
         {
+            if (issuer == Faction.OfPlayer)
+            {
+                return;// seems that one of method is calling this with faction player argument, it should prevent the issue
+            }
             var warrant = new Warrant_Pawn
             {
                 loadID = GetWarrantID(),
@@ -192,8 +198,8 @@ namespace SimpleWarrants
             }
             else
             {
-                warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
-                     && faction.RelationKindWith(victim.Faction) == FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
+                warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden 
+                    && !faction.IsPlayer && faction.RelationKindWith(victim.Faction) == FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
                      .RandomElement();
             }
             warrant.reason = reason;
@@ -363,9 +369,7 @@ namespace SimpleWarrants
                                     HealthUtility.DamageUntilDowned(pawn);
                                 }
                             }
-                            IncidentWorker_Visitors.toDeliver = toDeliver;
-                            SW_DefOf.SW_Visitors.Worker.TryExecute(parms);
-                            IncidentWorker_Visitors.toDeliver = null;
+                            ((IncidentWorker_Visitors)SW_DefOf.SW_Visitors.Worker).SpawnVisitors(toDeliver, parms);
                         };
                         payOption.resolveTree = true;
                         if (silvers.Sum(x => x.stackCount) < reward)
