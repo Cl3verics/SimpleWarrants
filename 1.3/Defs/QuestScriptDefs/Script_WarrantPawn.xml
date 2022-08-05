@@ -13,7 +13,7 @@
 		</questNameRules>
 		<questDescriptionRules>
 			<rulesStrings>
-				<li>questDescription->[asker_nameFull] from [asker_faction_name] has issued a warrant on [victim_nameFull] for [reason]. They are offering [rewardForLiving]$ if captured alive, [rewardForDead]$ if returned dead.</li>
+				<li>questDescription->[asker_nameFull] from [asker_faction_name] has issued a warrant on [victim_nameFull] for the crime of [reason]. They are offering [rewardForLiving]$ if captured alive, [rewardForDead]$ if returned dead.</li>
 			</rulesStrings>
 		</questDescriptionRules>
 		<root Class="QuestNode_Sequence">

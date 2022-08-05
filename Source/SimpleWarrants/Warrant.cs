@@ -8,14 +8,6 @@ using Verse;
 
 namespace SimpleWarrants
 {
-    public enum WarrantStatus
-    {
-        Accepted,
-        Completed,
-        Failed,
-        Expired
-    }
-
     [HotSwapAll]
     [StaticConstructorOnStartup]
     public abstract class Warrant : IExposable, ILoadReferenceable
@@ -74,7 +66,7 @@ namespace SimpleWarrants
                     End(affectGoodwill: false);
                     WarrantsManager.Instance.availableWarrants.Remove(this);
                     WarrantsManager.Instance.acceptedWarrants.Remove(this);
-                    WarrantsManager.Instance.givenWarrants.Remove(this);
+                    WarrantsManager.Instance.createdWarrants.Remove(this);
                     WarrantsManager.Instance.takenWarrants.Remove(this);
                 }
             }
@@ -124,7 +116,7 @@ namespace SimpleWarrants
             var acceptRect = new Rect(rect.x + 5, rect.y + 65, 95, 30);
             if (Widgets.ButtonText(acceptRect, "SW.RemoveWarrant".Translate()))
             {
-                WarrantsManager.Instance.givenWarrants.Remove(this);
+                WarrantsManager.Instance.createdWarrants.Remove(this);
             }
         }
 
@@ -255,5 +247,13 @@ namespace SimpleWarrants
             }
             return true;
         }
+    }
+
+    public enum WarrantStatus
+    {
+        Accepted,
+        Completed,
+        Failed,
+        Expired
     }
 }

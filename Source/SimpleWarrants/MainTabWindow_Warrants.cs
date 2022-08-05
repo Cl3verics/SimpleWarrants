@@ -1,7 +1,7 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -23,7 +23,7 @@ namespace SimpleWarrants
         private bool capturePaymentEnabled;
         private Pawn curAnimal;
         private Thing curArtifact;
-        private int curCapturePayment;
+        private int curCapturePayment; 
         private int curDeathPayment;
 
         private Pawn curPawn;
@@ -95,7 +95,7 @@ namespace SimpleWarrants
 
         private void DoRelatedWarrants(Rect rect)
 		{
-			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.givenWarrants).Concat(WarrantsManager.Instance.takenWarrants)
+			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.createdWarrants).Concat(WarrantsManager.Instance.takenWarrants)
 				.Concat(WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction == Faction.OfPlayer)).OrderByDescending(x => x.createdTick).ToList();
 			var posY = rect.y + 10;
 			var sectionWidth = 750;
@@ -126,7 +126,8 @@ namespace SimpleWarrants
 		{
 			var posY = rect.y + 10;
 			var createWarrant = new Rect(790, posY, 160, 30);
-			if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
+
+            if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
             {
 				var warrant = CreateWarrant(out string failReason);
 				if (!failReason.NullOrEmpty())
@@ -136,7 +137,7 @@ namespace SimpleWarrants
 				else
 				{
 					warrant.OnCreate();
-					WarrantsManager.Instance.givenWarrants.Add(warrant);
+					WarrantsManager.Instance.createdWarrants.Add(warrant);
 				}
             }
 
@@ -163,7 +164,7 @@ namespace SimpleWarrants
                 if (curType == TargetType.Human && curPawn is null)
                 {
                     if (!Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn.RaceProps.Humanlike
-                        && !WarrantsManager.Instance.givenWarrants.Any(warrant => pawn == warrant.thing)).TryRandomElement(out curPawn))
+                        && !WarrantsManager.Instance.createdWarrants.Any(warrant => pawn == warrant.thing)).TryRandomElement(out curPawn))
                     {
                         var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike).RandomElement();
                         Faction faction = null;
@@ -315,6 +316,15 @@ namespace SimpleWarrants
         private Warrant CreateWarrant(out string failReason)
         {
 			failReason = "";
+
+            const int MAX_WARRANT_COUNT = 10;
+
+            if (WarrantsManager.Instance.createdWarrants.Count >= MAX_WARRANT_COUNT)
+            {
+                failReason = "SW.TooManyPlayerWarrants".Translate(MAX_WARRANT_COUNT);
+                return null;
+            }
+
 			switch (curType)
             {
 				case TargetType.Human:

@@ -20,9 +20,9 @@ namespace SimpleWarrants
     public class WarrantsManager : GameComponent
     {
         public static WarrantsManager Instance;
-        public List<Warrant> acceptedWarrants;
-        public List<Warrant> availableWarrants;
-        public List<Warrant> givenWarrants;
+        public List<Warrant> acceptedWarrants; // Warrants accepted by the player, to be completed by the player.
+        public List<Warrant> availableWarrants; // Available warrants, created by AI.
+        public List<Warrant> createdWarrants; // Warrants created by the player, to be completed by AI.
         public bool initialized;
         public int lastWarrantID;
         public Dictionary<Warrant_Pawn, LordCollection> raidLords;
@@ -46,7 +46,7 @@ namespace SimpleWarrants
             Instance = this;
             availableWarrants ??= new List<Warrant>();
             acceptedWarrants ??= new List<Warrant>();
-            givenWarrants ??= new List<Warrant>();
+            createdWarrants ??= new List<Warrant>();
             takenWarrants ??= new List<Warrant>();
             raidLords ??= new Dictionary<Warrant_Pawn, LordCollection>();
         }
@@ -222,7 +222,7 @@ namespace SimpleWarrants
             base.GameComponentTick();
             HandleAvailableWarrants();
             HandleAcceptedWarrants();
-            HandleGivenWarrants();
+            HandleCreatedWarrants();
             HandleFactionsTakenWarrants();
         }
 
@@ -283,11 +283,11 @@ namespace SimpleWarrants
             }
         }
 
-        public void HandleGivenWarrants()
+        public void HandleCreatedWarrants()
         {
-            for (int num = givenWarrants.Count - 1; num >= 0; num--)
+            for (int num = createdWarrants.Count - 1; num >= 0; num--)
             {
-                var warrant = givenWarrants[num];
+                var warrant = createdWarrants[num];
                 var chance = warrant.AcceptChance() / (GenDate.TicksPerDay * 7);
                 var success = Rand.Chance(chance);
                 if (success)
@@ -308,7 +308,7 @@ namespace SimpleWarrants
                     }
 
                     warrant.AcceptBy(takerFaction);
-                    givenWarrants.RemoveAt(num);
+                    createdWarrants.RemoveAt(num);
                     takenWarrants.Add(warrant);
                     warrant.tickToBeCompleted = Find.TickManager.TicksGame + (GenDate.TicksPerDay * (int)Rand.Range(3f, 15f));
                     Messages.Message("SW.FactionTookYourWarrant".Translate(takerFaction.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.PositiveEvent);
@@ -324,7 +324,7 @@ namespace SimpleWarrants
                 if (warrant.accepteer.HostileTo(Faction.OfPlayer))
                 {
                     takenWarrants.RemoveAt(num);
-                    givenWarrants.Add(warrant);
+                    createdWarrants.Add(warrant);
                     Messages.Message("SW.FactionDroppedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.NegativeEvent);
                 }
                 else if (Find.TickManager.TicksGame > warrant.tickToBeCompleted)
@@ -423,7 +423,7 @@ namespace SimpleWarrants
             base.ExposeData();
             Scribe_Collections.Look(ref availableWarrants, "warrants", LookMode.Deep);
             Scribe_Collections.Look(ref acceptedWarrants, "acceptedWarrants", LookMode.Deep);
-            Scribe_Collections.Look(ref givenWarrants, "givenWarrants", LookMode.Deep);
+            Scribe_Collections.Look(ref createdWarrants, "givenWarrants", LookMode.Deep);
             Scribe_Collections.Look(ref takenWarrants, "takenWarrants", LookMode.Deep);
             Scribe_Values.Look(ref initialized, "initialized");
             Scribe_Values.Look(ref lastWarrantID, "lastWarrantID");

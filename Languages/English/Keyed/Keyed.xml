@@ -54,6 +54,7 @@
 	<SW.InsufficientReward>This warrant has automatically been flagged for insufficient rewards. This will increase chances of failure and extend the time until completion. Consider raising your reward in a new warrant to increase the chances of success.</SW.InsufficientReward>
 	<SW.Animal>Animal</SW.Animal>
 	<SW.FactionDroppedWarrant>{FACTION_name} has dropped your warrant on {1} because they are enemies now.</SW.FactionDroppedWarrant>
+	<SW.TooManyPlayerWarrants>You have already posted the maximum number of simultaneous warrants ({0}).\nWait for them to be completed or remove them before making a new one.</SW.TooManyPlayerWarrants>
 
 	<SW.Torture>Torture</SW.Torture>
 	<SW.Poaching>Poaching</SW.Poaching>
