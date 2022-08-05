@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
@@ -20,7 +21,7 @@ namespace SimpleWarrants
 	{
         private static readonly Texture2D TradeCommandTex = ContentFinder<Texture2D>.Get("UI/Commands/FulfillTradeRequest");
         public bool ActiveRequest => ActiveWarrants.Any();
-        public IEnumerable<Warrant> ActiveWarrants => WarrantsManager.Instance.acceptedWarrants?.Where(x => x.issuer == parent?.Faction && x.IsWarrantActive()) ?? new List<Warrant>();
+        public IEnumerable<Warrant> ActiveWarrants => WarrantsManager.Instance.acceptedWarrants?.Where(x => x.issuer == parent?.Faction && x.IsWarrantActive()) ?? Array.Empty<Warrant>();
 
         public override string CompInspectStringExtra()
 		{
@@ -50,7 +51,7 @@ namespace SimpleWarrants
 			{
 				Fulfill(caravan);
 			};
-			if (ActiveWarrants.All(x => ThingFromCaravan(x, caravan) == null))
+			if (ActiveWarrants.All(x => TryGetWarrantTargetInCaravan(x, caravan) == null))
             {
 				command_Action.Disable("SW.CommandFulfillWarrantFailInsufficient".Translate(ActiveWarrants.Select(x => x.thing).First()));
 			}
@@ -59,26 +60,26 @@ namespace SimpleWarrants
 
         private void Fulfill(Caravan caravan)
 		{
-			foreach (var warrant in ActiveWarrants.ToList())
+			foreach (var warrant in ActiveWarrants)
             {
-				var thing = ThingFromCaravan(warrant, caravan);
-				if (thing != null)
-				{
-					thing.holdingOwner.Remove(thing);
-					warrant.GiveReward(caravan);
-					var questTarget = thing is Corpse corpse ? corpse.InnerPawn : thing;
-					QuestUtility.SendQuestTargetSignals(questTarget.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
-					WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
-					thing.Destroy();
-				}
-			}
+				var target = TryGetWarrantTargetInCaravan(warrant, caravan);
+                if (target == null)
+                    continue;
+
+                target.holdingOwner.Remove(target);
+                warrant.GiveReward(caravan);
+                var questTarget = target is Corpse corpse ? corpse.InnerPawn : target;
+                QuestUtility.SendQuestTargetSignals(questTarget.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
+                WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
+                target.Destroy();
+            }
 		}
 
-        private Thing ThingFromCaravan(Warrant warrant, Caravan caravan)
+        private Thing TryGetWarrantTargetInCaravan(Warrant warrant, Caravan caravan)
         {
 			foreach (var thing in CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading))
             {
-                if (warrant.thing is Pawn pawn && pawn.Dead && thing == pawn.Corpse)
+                if (warrant.thing is Pawn { Dead: true } pawn && thing == pawn.Corpse)
                 {
 					return pawn.Corpse;
 				}

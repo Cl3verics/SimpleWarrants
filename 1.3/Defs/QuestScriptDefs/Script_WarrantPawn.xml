@@ -13,7 +13,7 @@
 		</questNameRules>
 		<questDescriptionRules>
 			<rulesStrings>
-				<li>questDescription->[asker_nameFull] from [asker_faction_name] issued a warrant on [victim_nameFull] for [reason]. [rewardForLiving] reward for captured, [rewardForDead] reward for dead.</li>
+				<li>questDescription->[asker_nameFull] from [asker_faction_name] has issued a warrant on [victim_nameFull] for [reason]. They are offering [rewardForLiving]$ if captured alive, [rewardForDead]$ if returned dead.</li>
 			</rulesStrings>
 		</questDescriptionRules>
 		<root Class="QuestNode_Sequence">
@@ -89,7 +89,7 @@
 							<li Class="SimpleWarrants.QuestNode_WarrantFailed"></li>
 							<li Class="QuestNode_Letter">
 								<label TKey="LetterLabelQuestExpired">Quest expired: [resolvedQuestName]</label>
-								<text TKey="LetterTextQuestExpired">The warrant was expired. The quest [resolvedQuestName] has expired.</text>
+								<text TKey="LetterTextQuestExpired">The warrant was expired: The quest [resolvedQuestName] has expired.</text>
 							</li>
 							<li Class="QuestNode_End">
 								<outcome>Fail</outcome>
@@ -118,7 +118,7 @@
 							<li Class="SimpleWarrants.QuestNode_WarrantFailed"></li>
 							<li Class="QuestNode_Letter">
 								<label TKey="LetterLabelWarrantExpiredQuestFailed">Quest failed: [resolvedQuestName]</label>
-								<text TKey="LetterTextWarrantExpiredQuestFailed">The warrant was expired. The quest [resolvedQuestName] has ended.</text>
+								<text TKey="LetterTextWarrantExpiredQuestFailed">The warrant was expired: The quest [resolvedQuestName] has ended.</text>
 							</li>
 							<li Class="QuestNode_End">
 								<outcome>Fail</outcome>

@@ -16,13 +16,13 @@ namespace SimpleWarrants
         Expired
     }
 
-    [HotSwappable]
+    [HotSwapAll]
     [StaticConstructorOnStartup]
     public abstract class Warrant : IExposable, ILoadReferenceable
     {
         public static readonly Texture2D InsufficientRewardIcon = ContentFinder<Texture2D>.Get("UI/Warrants/IconWarning");
 
-        public int ApproximateAcceptionDate => Mathf.Max((int)(createdTick + ((GenDate.TicksPerDay * 7) / AcceptChance())), Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
+        public int ApproximateAcceptionDate => Mathf.Max((int)(createdTick + (GenDate.TicksPerDay * 7) / AcceptChance()), Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
         public int ApproximateCompletionDate => Mathf.Max(tickToBeCompleted, Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
 
         public float? acceptChanceCached;

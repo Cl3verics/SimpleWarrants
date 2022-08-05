@@ -7,7 +7,7 @@ using Verse;
 
 namespace SimpleWarrants
 {
-    [HotSwappable]
+    [HotSwapAll]
     [StaticConstructorOnStartup]
     public class Warrant_Pawn : Warrant
     {
@@ -131,23 +131,22 @@ namespace SimpleWarrants
 
         public override bool IsWarrantActive()
         {
-            if (rewardForDead == 0 && (pawn?.Dead ?? false))
+            bool isPawnDead = pawn?.Dead ?? false;
+            if (rewardForDead == 0 && isPawnDead)
             {
                 return false;
             }
 
-            if (pawn?.Corpse is Corpse corpse)
+            if (pawn?.Corpse is {} corpse)
             {
-                if (thing != corpse)
-                {
-                    thing = corpse;
-                }
+                thing = corpse;
+
                 if (rewardForDead > 0 && corpse.ParentHolder is null && !corpse.Spawned)
                 {
                     return false;
                 }
             }
-            else if (pawn is null || pawn.Destroyed)
+            else if (pawn == null || pawn.Destroyed)
             {
                 return false;
             }
@@ -157,21 +156,16 @@ namespace SimpleWarrants
         public override void GiveReward(Caravan caravan)
         {
             base.GiveReward(caravan);
-            var rewardAmount = 0;
-            if (rewardForDead > 0 && (thing is Corpse || pawn.Dead))
-            {
-                rewardAmount = rewardForDead;
-            }
-            else if (!pawn.Dead)
-            {
-                rewardAmount = rewardForLiving;
-            }
-            if (rewardAmount > 0)
-            {
-                var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
-                silver.stackCount = rewardAmount;
-                GiveThing(caravan, silver);
-            }
+
+            bool isPawnDead = thing is Corpse || pawn.Dead;
+            var rewardAmount = isPawnDead ? rewardForDead : rewardForLiving;
+
+            if (rewardAmount <= 0)
+                return;
+
+            var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
+            silver.stackCount = rewardAmount;
+            GiveThing(caravan, silver);
         }
 
         public override void DoCompensateAction()

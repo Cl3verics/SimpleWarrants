@@ -6,7 +6,7 @@ using Verse;
 
 namespace SimpleWarrants
 {
-    [HotSwappable]
+    [HotSwapAll]
     [StaticConstructorOnStartup]
     public class Warrant_Artifact : Warrant
     {
@@ -83,13 +83,13 @@ namespace SimpleWarrants
         public override void GiveReward(Caravan caravan)
         {
             base.GiveReward(caravan);
-            if (reward > 0)
-            {
-                var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
-                silver.stackCount = reward;
-                GiveThing(caravan, silver);
-                Log.Message(this + " - Giving reward: " + silver + " - " + silver.stackCount + " for " + thing);
-            }
+            if (reward <= 0)
+                return;
+
+            var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
+            silver.stackCount = reward;
+            GiveThing(caravan, silver);
+            Log.Message(this + " - Giving reward: " + silver + " - " + silver.stackCount + " for " + thing);
         }
 
         public override bool IsWarrantActive()

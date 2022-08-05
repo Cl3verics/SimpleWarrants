@@ -7,7 +7,7 @@ using Verse.Sound;
 
 namespace SimpleWarrants
 {
-    [HotSwappableAttribute]
+    [HotSwapAll]
 	public class Dialog_SelectArtifact : Window
 	{
         public override Vector2 InitialSize => new Vector2(620f, 500f);

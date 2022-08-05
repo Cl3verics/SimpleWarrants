@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using UnityEngine;
 using Verse;
 using Verse.AI.Group;
 
@@ -187,7 +188,7 @@ namespace SimpleWarrants
             {
                 return;// seems that one of method is calling this with faction player argument, it should prevent the issue
             }
-            var warrant = new Warrant_Pawn
+            var warrant = new Warrant_Pawn 
             {
                 loadID = GetWarrantID(),
                 createdTick = Find.TickManager.TicksGame
@@ -271,7 +272,7 @@ namespace SimpleWarrants
                     warrant.End();
                     if (Rand.Chance(0.25f))
                     {
-                        var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists_NoSlaves.Where(x => CanPutWarrantOn(x));
+                        var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists_NoSlaves.Where(CanPutWarrantOn);
                         if (pawns.TryRandomElement(out var pawn))
                         {
                             PutWarrantOn(pawn, "SW.Fraud".Translate(), warrant.issuer);
@@ -279,7 +280,6 @@ namespace SimpleWarrants
                     }
                     acceptedWarrants.RemoveAt(num);
                 }
-
             }
         }
 
@@ -292,14 +292,26 @@ namespace SimpleWarrants
                 var success = Rand.Chance(chance);
                 if (success)
                 {
-                    var accepteer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated
-                    && !faction.Hidden && !faction.IsPlayer && warrant.issuer != faction && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile
-                    && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).RandomElement();
-                    warrant.AcceptBy(accepteer);
+                    bool IsValidFaction(Faction faction)
+                        => faction.def.humanlikeFaction &&
+                           !faction.defeated &&
+                           !faction.Hidden &&
+                           !faction.IsPlayer &&
+                           warrant.issuer != faction &&
+                           faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile &&
+                           Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction);
+
+                    if (!Find.FactionManager.AllFactions.Where(IsValidFaction).TryRandomElement(out var takerFaction))
+                    {
+                        Log.ErrorOnce("Failed to find any valid faction to accept player warrant.", warrant.GetHashCode());
+                        continue;
+                    }
+
+                    warrant.AcceptBy(takerFaction);
                     givenWarrants.RemoveAt(num);
                     takenWarrants.Add(warrant);
                     warrant.tickToBeCompleted = Find.TickManager.TicksGame + (GenDate.TicksPerDay * (int)Rand.Range(3f, 15f));
-                    Messages.Message("SW.FactionTookYourWarrant".Translate(accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.PositiveEvent);
+                    Messages.Message("SW.FactionTookYourWarrant".Translate(takerFaction.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.PositiveEvent);
                 }
             }
         }
@@ -326,11 +338,12 @@ namespace SimpleWarrants
                         bool dead = false;
                         if (warrant is Warrant_Pawn wp)
                         {
-                            if (wp.rewardForDead > 0 && !Rand.Chance(wp.rewardForLiving / wp.rewardForDead))
+                            float chanceReturnedAlive = Mathf.Clamp01((float)wp.rewardForLiving / (wp.rewardForLiving + wp.rewardForDead));
+                            if (wp.rewardForDead > 0 && !Rand.Chance(chanceReturnedAlive))
                             {
                                 dead = true;
                             }
-                            reward = wp.rewardForDead > wp.rewardForLiving ? wp.rewardForDead : dead ? wp.rewardForDead : wp.rewardForLiving;
+                            reward = dead ? wp.rewardForDead : wp.rewardForLiving;
                         }
                         else if (warrant is Warrant_Artifact wa)
                         {
@@ -356,6 +369,7 @@ namespace SimpleWarrants
                                 thing.SplitOff(num).Destroy();
                                 reward -= num;
                             }
+
                             var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.FactionArrival, map);
                             parms.faction = warrant.accepteer;
                             var toDeliver = warrant.thing;
@@ -367,10 +381,10 @@ namespace SimpleWarrants
                             }
                             else
                             {
-                                var pawn = warrant.thing as Pawn;
-                                if (pawn != null)
+                                if (warrant.thing is Pawn pawn)
                                 {
-                                    HealthUtility.DamageUntilDowned(pawn);
+                                    //HealthUtility.DamageUntilDowned(pawn);
+                                    HealthUtility.DamageLegsUntilIncapableOfMoving(pawn, false);
                                 }
                             }
                             ((IncidentWorker_Visitors)SW_DefOf.SW_Visitors.Worker).SpawnVisitors(toDeliver, parms);
