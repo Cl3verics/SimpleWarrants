@@ -1,21 +1,22 @@
-﻿using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
 
 namespace SimpleWarrants
 {
-    [HotSwappableAttribute]
+    [HotSwappable]
 	public class Dialog_SelectAnimal : Window
 	{
-		private MainTabWindow_Warrants parent;
-		private Vector2 scrollPosition;
-		public override Vector2 InitialSize => new Vector2(620f, 500f);
+        public List<PawnKindDef> allAnimalDefs;
+        private readonly MainTabWindow_Warrants parent;
+        private Vector2 scrollPosition;
 
-		public List<PawnKindDef> allAnimalDefs;
-		public Dialog_SelectAnimal(MainTabWindow_Warrants parent)
+        string searchKey;
+
+        public Dialog_SelectAnimal(MainTabWindow_Warrants parent)
 		{
 			doCloseButton = true;
 			doCloseX = true;
@@ -25,8 +26,9 @@ namespace SimpleWarrants
 			this.parent = parent;
 		}
 
-		string searchKey;
-		public override void DoWindowContents(Rect inRect)
+        public override Vector2 InitialSize => new Vector2(620f, 500f);
+
+        public override void DoWindowContents(Rect inRect)
 		{
 			Text.Font = GameFont.Small;
 			Text.Anchor = TextAnchor.MiddleLeft;
@@ -43,7 +45,7 @@ namespace SimpleWarrants
 
 			var thingDefs = searchKey.NullOrEmpty() ? allAnimalDefs : allAnimalDefs.Where(x => x.label.ToLower().Contains(searchKey.ToLower())).ToList();
 
-			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, (float)thingDefs.Count() * 35f);
+			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, thingDefs.Count() * 35f);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
 			try
 			{
@@ -62,9 +64,9 @@ namespace SimpleWarrants
 					rect.width = 100;
 					if (Widgets.ButtonText(rect, "SW.Select".Translate()))
 					{
-						this.parent.AssignAnimal(PawnGenerator.GeneratePawn(pawnkindDef, null));
+						parent.AssignAnimal(PawnGenerator.GeneratePawn(pawnkindDef));
 						SoundDefOf.Click.PlayOneShotOnCamera();
-						this.Close();
+						Close();
 					}
 					num += 35f;
 				}
@@ -74,5 +76,5 @@ namespace SimpleWarrants
 				Widgets.EndScrollView();
 			}
 		}
-	}
+    }
 }

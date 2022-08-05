@@ -1,10 +1,7 @@
-﻿using RimWorld;
-using RimWorld.Planet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -12,19 +9,32 @@ namespace SimpleWarrants
 {
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-	public class HotSwappableAttribute : Attribute
-	{
-	}
+	public class HotSwappableAttribute : Attribute {}
 
-	[HotSwappableAttribute]
+	[HotSwappable]
 	[StaticConstructorOnStartup]
 	public class MainTabWindow_Warrants : MainTabWindow
 	{
-		private TargetType curType;
-		private WarrantsTab curTab;
-		private Vector2 scrollPosition;
-		private List<TabRecord> tabs = new List<TabRecord>();
-		public override void PreOpen()
+        private string buffCurCapturePayment;
+        private string buffCurDeathPayment;
+        private string buffCurReward;
+
+        private bool capturePaymentEnabled;
+        private Pawn curAnimal;
+        private Thing curArtifact;
+        private int curCapturePayment;
+        private int curDeathPayment;
+
+        private Pawn curPawn;
+        private string curReason;
+        private int curReward;
+        private WarrantsTab curTab;
+        private TargetType curType;
+        private bool deathPaymentEnabled;
+        private Vector2 scrollPosition;
+        private readonly List<TabRecord> tabs = new List<TabRecord>();
+
+        public override void PreOpen()
 		{
 			base.PreOpen();
 			tabs.Clear();
@@ -38,7 +48,7 @@ namespace SimpleWarrants
 			}, () => curTab == WarrantsTab.RelatedWarrants));
 		}
 
-		public override void DoWindowContents(Rect rect)
+        public override void DoWindowContents(Rect rect)
 		{
 			Rect rect2 = rect;
 			rect2.yMin += 45f;
@@ -54,7 +64,8 @@ namespace SimpleWarrants
 			}
 			DoWarrantCreation(rect2);
 		}
-		private void DoPublicWarrants(Rect rect)
+
+        private void DoPublicWarrants(Rect rect)
         {
 			var warrants = WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction != Faction.OfPlayer).OrderByDescending(x => x.createdTick).ToList();
 			var posY = rect.y + 10;
@@ -82,7 +93,7 @@ namespace SimpleWarrants
 			Widgets.EndScrollView();
         }
 
-		private void DoRelatedWarrants(Rect rect)
+        private void DoRelatedWarrants(Rect rect)
 		{
 			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.givenWarrants).Concat(WarrantsManager.Instance.takenWarrants)
 				.Concat(WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction == Faction.OfPlayer)).OrderByDescending(x => x.createdTick).ToList();
@@ -110,7 +121,8 @@ namespace SimpleWarrants
 			}
 			Widgets.EndScrollView();
 		}
-		private void DoWarrantCreation(Rect rect)
+
+        private void DoWarrantCreation(Rect rect)
 		{
 			var posY = rect.y + 10;
 			var createWarrant = new Rect(790, posY, 160, 30);
@@ -140,7 +152,7 @@ namespace SimpleWarrants
                 {
 					floatList.Add(new FloatMenuOption(GetLabel(value), delegate
 					{
-						this.curType = value;
+						curType = value;
 					}));
                 }
 				Find.WindowStack.Add(new FloatMenu(floatList));
@@ -168,7 +180,7 @@ namespace SimpleWarrants
                 }
                 else if (curType == TargetType.Animal && curAnimal is null)
                 {
-                    curAnimal = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement(), null);
+                    curAnimal = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement());
                 }
 
 				if (curType == TargetType.Human)
@@ -193,7 +205,7 @@ namespace SimpleWarrants
 				Widgets.InfoCardButton(thingRect.xMax, thingRect.y + 10, curArtifact);
 
 				var nameRect = new Rect(createWarrant.x, thingRect.yMax, createWarrant.width, createWarrant.height);
-				Widgets.Label(nameRect, curArtifact.LabelCap.ToString());
+				Widgets.Label(nameRect, curArtifact.LabelCap);
 
 				dropdownRect = new Rect(createWarrant.x, nameRect.yMax, createWarrant.width, createWarrant.height);
 				if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
@@ -206,7 +218,7 @@ namespace SimpleWarrants
 				var rewardPayment = new Rect(createWarrant.x - 30, dropdownRect.yMax + 10, 130, 24);
 				Widgets.Label(rewardPayment, "SW.RewardPayment".Translate());
 				var rewardPaymentInput = new Rect(rewardPayment.xMax, rewardPayment.y, 60, 24);
-				Widgets.TextFieldNumeric<int>(rewardPaymentInput, ref curReward, ref buffCurReward);
+				Widgets.TextFieldNumeric(rewardPaymentInput, ref curReward, ref buffCurReward);
 			}
 			Text.Font = GameFont.Small;
 		}
@@ -254,9 +266,9 @@ namespace SimpleWarrants
 					var floatList = new List<FloatMenuOption>();
 					foreach (var value in Utils.GenerateAllTextFromRule(SW_DefOf.SW_WantedFor).OrderBy(x => x))
 					{
-						floatList.Add(new FloatMenuOption(value.ToString(), delegate
+						floatList.Add(new FloatMenuOption(value, delegate
 						{
-							this.curReason = value;
+							curReason = value;
 						}));
 					}
 					Find.WindowStack.Add(new FloatMenu(floatList));
@@ -271,7 +283,7 @@ namespace SimpleWarrants
 			var capturePaymentInput = new Rect(capturePayment.xMax, capturePayment.y, 60, 24);
 			if (capturePaymentEnabled)
 			{
-				Widgets.TextFieldNumeric<int>(capturePaymentInput, ref curCapturePayment, ref buffCurCapturePayment);
+				Widgets.TextFieldNumeric(capturePaymentInput, ref curCapturePayment, ref buffCurCapturePayment);
 			}
 			Widgets.Checkbox(capturePaymentInput.xMax + 5, capturePaymentInput.y, ref capturePaymentEnabled);
 
@@ -280,7 +292,7 @@ namespace SimpleWarrants
 			var deathPaymentInput = new Rect(deathPayment.xMax, deathPayment.y, 60, 24);
 			if (deathPaymentEnabled)
 			{
-				Widgets.TextFieldNumeric<int>(deathPaymentInput, ref curDeathPayment, ref buffCurDeathPayment);
+				Widgets.TextFieldNumeric(deathPaymentInput, ref curDeathPayment, ref buffCurDeathPayment);
 			}
 			Widgets.Checkbox(deathPaymentInput.xMax + 5, deathPaymentInput.y, ref deathPaymentEnabled);
         }
@@ -290,16 +302,17 @@ namespace SimpleWarrants
 			curPawn = pawn;
         }
 
-		public void AssignArtifact(Thing artifact)
+        public void AssignArtifact(Thing artifact)
         {
 			curArtifact = artifact;
 		}
 
-		public void AssignAnimal(Pawn animal)
+        public void AssignAnimal(Pawn animal)
 		{
 			curAnimal = animal;
 		}
-		private Warrant CreateWarrant(out string failReason)
+
+        private Warrant CreateWarrant(out string failReason)
         {
 			failReason = "";
 			switch (curType)
@@ -369,21 +382,7 @@ namespace SimpleWarrants
             return warrant;
         }
 
-        private Pawn curPawn;
-		private string curReason;
-		private Pawn curAnimal;
-		private Thing curArtifact;
-
-		private bool capturePaymentEnabled;
-		private bool deathPaymentEnabled;
-		private int curCapturePayment;
-		private int curDeathPayment;
-		private int curReward;
-
-		private string buffCurCapturePayment;
-		private string buffCurDeathPayment;
-		private string buffCurReward;
-		public string GetLabel(TargetType targetType)
+        public string GetLabel(TargetType targetType)
         {
 			switch (targetType)
             {
@@ -393,5 +392,5 @@ namespace SimpleWarrants
             }
 			return null;
         }
-	}
+    }
 }

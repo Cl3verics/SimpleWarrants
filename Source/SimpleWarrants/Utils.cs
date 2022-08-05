@@ -1,14 +1,8 @@
-﻿using RimWorld;
-using RimWorld.Planet;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+using RimWorld;
 using Verse;
 using Verse.Grammar;
-using Verse.Sound;
 
 namespace SimpleWarrants
 {
@@ -24,13 +18,19 @@ namespace SimpleWarrants
     }
     public static class Utils
     {
+        public static IEnumerable<ThingDef> AllArtifactDefs => DefDatabase<ThingDef>.AllDefs.Where(x => (x.tradeTags?.Contains("Artifact") ?? false)
+                    || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false)
+                    || (x.tradeTags?.Contains("ExoticMisc") ?? false));
+
+        public static IEnumerable<PawnKindDef> AllWorthAnimalDefs => DefDatabase<PawnKindDef>.AllDefs.Where(x => x.race.race.Animal && x.race.GetStatValueAbstract(StatDefOf.MarketValue) >= 400);
+
         [DebugAction("General", "Populate warrants (x15)")]
         private static void PopulateWarrants()
         {
             WarrantsManager.Instance.PopulateWarrants(15);
         }
 
-        [DebugAction("General", "Put warrant on pawn", false, false, actionType = DebugActionType.ToolMapForPawns, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+        [DebugAction("General", "Put warrant on pawn", actionType = DebugActionType.ToolMapForPawns, allowedGameStates = AllowedGameStates.PlayingOnMap)]
         private static void PutWarrantOn(Pawn p)
         {
             Find.WindowStack.Add(new Dialog_DebugOptionListLister(PutWarrant(p)));
@@ -56,11 +56,7 @@ namespace SimpleWarrants
                                         && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
                                         .RandomElement();
         }
-        public static IEnumerable<ThingDef> AllArtifactDefs => DefDatabase<ThingDef>.AllDefs.Where(x => (x.tradeTags?.Contains("Artifact") ?? false)
-                    || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false)
-                    || (x.tradeTags?.Contains("ExoticMisc") ?? false));
 
-        public static IEnumerable<PawnKindDef> AllWorthAnimalDefs => DefDatabase<PawnKindDef>.AllDefs.Where(x => x.race.race.Animal && x.race.GetStatValueAbstract(StatDefOf.MarketValue) >= 400);
         public static TaggedString GenerateTextFromRule(RulePackDef rule, int seed = -1)
         {
             if (seed != -1)
