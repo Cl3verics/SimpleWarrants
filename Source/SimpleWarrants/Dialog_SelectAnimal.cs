@@ -10,6 +10,7 @@ namespace SimpleWarrants
     [HotSwappable]
 	public class Dialog_SelectAnimal : Window
 	{
+        public override Vector2 InitialSize => new Vector2(620f, 500f);
         public List<PawnKindDef> allAnimalDefs;
         private readonly MainTabWindow_Warrants parent;
         private Vector2 scrollPosition;
@@ -25,8 +26,6 @@ namespace SimpleWarrants
 			allAnimalDefs = Utils.AllWorthAnimalDefs.ToList();
 			this.parent = parent;
 		}
-
-        public override Vector2 InitialSize => new Vector2(620f, 500f);
 
         public override void DoWindowContents(Rect inRect)
 		{

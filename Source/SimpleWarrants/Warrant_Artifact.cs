@@ -12,6 +12,7 @@ namespace SimpleWarrants
     {
         public static readonly Texture2D IconRetrieve = ContentFinder<Texture2D>.Get("UI/Warrants/IconRetrieve");
         public int reward;
+
         public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
             base.Draw(rect, doAcceptAndDeclineButtons, doCompensateWarrantButton);
@@ -23,7 +24,7 @@ namespace SimpleWarrants
             var textSize = Text.CalcSize(thing.LabelCap);
             var nameInfoBox = new Rect(thingRect.xMax, thingRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, thing.LabelCap);
-            if (this.issuer.IsPlayer && this.MaxReward() < (thing.MarketValue * 0.75f))
+            if (issuer.IsPlayer && MaxReward() < (thing.MarketValue * 0.75f))
             {
                 var insufficientRewardBox = new Rect(nameInfoBox.xMax + 5, nameInfoBox.y + 3, 24, 24);
                 GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
@@ -35,18 +36,18 @@ namespace SimpleWarrants
             var rewardIconBox = new Rect(nameInfoBox.x, postedByInfoBox.yMax, 24, 24);
             GUI.DrawTexture(rewardIconBox, IconRetrieve);
             var rewardInfoBox = new Rect(rewardIconBox.xMax + 5, postedByInfoBox.yMax, 400, nameInfoBox.height);
-            Widgets.Label(rewardInfoBox, this.reward + " " + ThingDefOf.Silver.LabelCap);
+            Widgets.Label(rewardInfoBox, reward + " " + ThingDefOf.Silver.LabelCap);
 
             var infoBox = new Rect(rect.width - 250, rewardInfoBox.yMax + 40, 250, 24);
             Text.Font = GameFont.Tiny;
-            if (this.issuer != Faction.OfPlayer)
+            if (issuer != Faction.OfPlayer)
             {
-                var expireDate = (this.relatedQuest != null ? this.acceptedTick : this.createdTick) + (GenDate.TicksPerDay * 15) - Find.TickManager.TicksGame;
+                var expireDate = (relatedQuest != null ? acceptedTick : createdTick) + (GenDate.TicksPerDay * 15) - Find.TickManager.TicksGame;
                 Widgets.Label(infoBox, "SW.WillExpireIn".Translate(expireDate.ToStringTicksToDays()));
             }
             else
             {
-                if (this.accepteer != null)
+                if (accepteer != null)
                 {
                     Widgets.Label(infoBox, "SW.ApproximateComplectionDate".Translate(ApproximateCompletionDate.ToStringTicksToDays()));
                 }
@@ -58,6 +59,7 @@ namespace SimpleWarrants
             Text.Font = GameFont.Small;
 
         }
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -73,10 +75,11 @@ namespace SimpleWarrants
             slate.Set("artifactLabel", thing.Label);
             slate.Set("artifact", thing);
             slate.Set("warrant", this);
-            slate.Set("reward", this.reward);
+            slate.Set("reward", reward);
             var quest = QuestUtility.GenerateQuestAndMakeAvailable(SW_DefOf.SW_Warrant_Artifact, slate);
             QuestUtility.SendLetterQuestAvailable(quest);
         }
+
         public override void GiveReward(Caravan caravan)
         {
             base.GiveReward(caravan);
@@ -88,6 +91,7 @@ namespace SimpleWarrants
                 Log.Message(this + " - Giving reward: " + silver + " - " + silver.stackCount + " for " + thing);
             }
         }
+
         public override bool IsWarrantActive()
         {
             if (thing.Destroyed)
@@ -127,7 +131,7 @@ namespace SimpleWarrants
 
         public override int MaxReward()
         {
-            return this.reward;
+            return reward;
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.Linq;
+using HarmonyLib;
 using RimWorld;
-using System.Linq;
 using Verse;
 
 namespace SimpleWarrants
@@ -9,6 +9,7 @@ namespace SimpleWarrants
     public static class IncidentWorker_Raid_TryGenerateRaidInfo_Patch
     {
         public static bool huntForWarrant;
+
         public static void Postfix(IncidentParms parms, bool __result)
         {
             if (__result && parms.faction != null && parms.faction.HostileTo(Faction.OfPlayer) && parms.faction.def.humanlikeFaction && parms.target is Map map)

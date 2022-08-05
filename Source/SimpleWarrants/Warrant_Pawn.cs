@@ -1,7 +1,7 @@
-﻿using RimWorld;
+﻿using System.Linq;
+using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
-using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -13,6 +13,7 @@ namespace SimpleWarrants
     {
         public static readonly Texture2D IconCapture = ContentFinder<Texture2D>.Get("UI/Warrants/IconCapture");
         public static readonly Texture2D IconDeath = ContentFinder<Texture2D>.Get("UI/Warrants/IconDeath");
+
         public Pawn pawn
         {
             get
@@ -24,11 +25,13 @@ namespace SimpleWarrants
                 return thing as Pawn;
             }
         }
+
         public string reason;
+
+        public int rewardForDead;
 
         public int rewardForLiving;
 
-        public int rewardForDead;
         public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
             base.Draw(rect, doAcceptAndDeclineButtons, doCompensateWarrantButton);
@@ -38,12 +41,12 @@ namespace SimpleWarrants
             Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 24, pawn);
 
             Text.Font = GameFont.Medium;
-            var pawnName = this.pawn.RaceProps.Animal ? this.pawn.def.LabelCap.ToString() : pawn.Name.ToString();
+            var pawnName = pawn.RaceProps.Animal ? pawn.def.LabelCap.ToString() : pawn.Name.ToString();
             var textSize = Text.CalcSize(pawnName);
             var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, pawnName);
 
-            if (this.issuer.IsPlayer && this.MaxReward() < (pawn.MarketValue * 0.75f))
+            if (issuer.IsPlayer && MaxReward() < (pawn.MarketValue * 0.75f))
             {
                 var insufficientRewardBox = new Rect(nameInfoBox.xMax + 5, nameInfoBox.y + 3, 24, 24);
                 GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
@@ -63,9 +66,9 @@ namespace SimpleWarrants
             GUI.DrawTexture(rewardsForDeadIconBox, IconDeath);
 
             var rewardsForDeadInfoBox = new Rect(rewardsForDeadIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
-            if (this.rewardForDead > 0)
+            if (rewardForDead > 0)
             {
-                Widgets.Label(rewardsForDeadInfoBox, this.rewardForDead + " " + ThingDefOf.Silver.LabelCap);
+                Widgets.Label(rewardsForDeadInfoBox, rewardForDead + " " + ThingDefOf.Silver.LabelCap);
             }
             else
             {
@@ -75,22 +78,22 @@ namespace SimpleWarrants
             var rewardsForLivingIconBox = new Rect(rewardsForDeadInfoBox.xMax, wantedForInfoBox.yMax, 24, 24);
             var rewardsForLivingInfoBox = new Rect(rewardsForLivingIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
 
-            if (!this.pawn.RaceProps.Animal || this.issuer.IsPlayer)
+            if (!pawn.RaceProps.Animal || issuer.IsPlayer)
             {
                 GUI.DrawTexture(rewardsForLivingIconBox, IconCapture);
-                Widgets.Label(rewardsForLivingInfoBox, this.rewardForLiving + " " + ThingDefOf.Silver.LabelCap);
+                Widgets.Label(rewardsForLivingInfoBox, rewardForLiving + " " + ThingDefOf.Silver.LabelCap);
             }
 
             var infoBox = new Rect(rect.width - 250, rewardsForLivingInfoBox.yMax + 40, 250, 24);
             Text.Font = GameFont.Tiny;
-            if (this.issuer != Faction.OfPlayer)
+            if (issuer != Faction.OfPlayer)
             {
-                var expireDate = (this.relatedQuest != null ? this.acceptedTick : this.createdTick) + (GenDate.TicksPerDay * 15) - Find.TickManager.TicksGame;
+                var expireDate = (relatedQuest != null ? acceptedTick : createdTick) + (GenDate.TicksPerDay * 15) - Find.TickManager.TicksGame;
                 Widgets.Label(infoBox, "SW.WillExpireIn".Translate(expireDate.ToStringTicksToDays()));
             }
             else
             {
-                if (this.accepteer != null)
+                if (accepteer != null)
                 {
                     Widgets.Label(infoBox, "SW.ApproximateComplectionDate".Translate(ApproximateCompletionDate.ToStringTicksToDays()));
                 }
@@ -111,9 +114,9 @@ namespace SimpleWarrants
             slate.Set("victim", pawn);
             slate.Set("reason", reason);
             slate.Set("warrant", this);
-            slate.Set("rewardForLiving", this.rewardForLiving);
-            slate.Set("rewardForDead", this.rewardForDead);
-            var questDef = this.pawn.RaceProps.Animal ? SW_DefOf.SW_Warrant_Animal : SW_DefOf.SW_Warrant_Pawn;
+            slate.Set("rewardForLiving", rewardForLiving);
+            slate.Set("rewardForDead", rewardForDead);
+            var questDef = pawn.RaceProps.Animal ? SW_DefOf.SW_Warrant_Animal : SW_DefOf.SW_Warrant_Pawn;
             var quest = QuestUtility.GenerateQuestAndMakeAvailable(questDef, slate);
             QuestUtility.SendLetterQuestAvailable(quest);
         }
@@ -132,7 +135,8 @@ namespace SimpleWarrants
             {
                 return false;
             }
-            else if (pawn?.Corpse is Corpse corpse)
+
+            if (pawn?.Corpse is Corpse corpse)
             {
                 if (thing != corpse)
                 {
@@ -169,10 +173,11 @@ namespace SimpleWarrants
                 GiveThing(caravan, silver);
             }
         }
+
         public override void DoCompensateAction()
         {
             var map = Find.CurrentMap ?? Find.AnyPlayerHomeMap;
-            var silvers = map.listerThings.ThingsOfDef(ThingDefOf.Silver).Where((Thing x) => !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage())).ToList();
+            var silvers = map.listerThings.ThingsOfDef(ThingDefOf.Silver).Where(x => !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage())).ToList();
             var toCompensate = Mathf.Max(rewardForDead, rewardForLiving);
             if (silvers.Sum(x => x.stackCount) >= toCompensate)
             {
@@ -207,12 +212,12 @@ namespace SimpleWarrants
 
         public override bool ShouldShowCompensateButton()
         {
-            return this.issuer != Faction.OfPlayer && this.accepteer != Faction.OfPlayer;
+            return issuer != Faction.OfPlayer && accepteer != Faction.OfPlayer;
         }
 
         public override bool IsThreatForPlayer()
         {
-            return this.pawn.Faction == Faction.OfPlayer;
+            return pawn.Faction == Faction.OfPlayer;
         }
 
         public override void OnCreate()
@@ -223,6 +228,7 @@ namespace SimpleWarrants
                 pawn.Faction.TryAffectGoodwillWith(Faction.OfPlayer, -80);
             }
         }
+
         public override int MaxReward()
         {
             if (rewardForDead > rewardForLiving)

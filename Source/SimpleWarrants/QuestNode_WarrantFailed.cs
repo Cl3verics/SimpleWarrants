@@ -1,27 +1,21 @@
-﻿using RimWorld;
-using RimWorld.Planet;
+﻿using System.Collections.Generic;
+using RimWorld;
 using RimWorld.QuestGen;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 using Verse;
-using Verse.Grammar;
-using Verse.Sound;
 
 namespace SimpleWarrants
 {
 	public class QuestNode_WarrantFailed : QuestNode
 	{
-		[NoTranslate]
+        [NoTranslate]
 		public SlateRef<string> inSignal;
-		protected override bool TestRunInt(Slate slate)
+
+        protected override bool TestRunInt(Slate slate)
 		{
 			return true;
 		}
-		protected override void RunInt()
+
+        protected override void RunInt()
 		{
 			Slate slate = QuestGen.slate;
 			QuestPart_WarrantFailed questPart = new QuestPart_WarrantFailed();
@@ -30,20 +24,21 @@ namespace SimpleWarrants
 			questPart.warrant.relatedQuest = QuestGen.quest;
 			QuestGen.quest.AddPart(questPart);
 		}
-	}
+    }
 
 	public class QuestPart_WarrantFailed : QuestPart
 	{
-		public string inSignal;
-		public Warrant warrant;
-
-		public override IEnumerable<Faction> InvolvedFactions
+        public override IEnumerable<Faction> InvolvedFactions
 		{
 			get
 			{
 				yield return warrant.issuer;
 			}
 		}
+
+        public string inSignal;
+        public Warrant warrant;
+
         public override void Notify_QuestSignalReceived(Signal signal)
 		{
 			base.Notify_QuestSignalReceived(signal);
@@ -55,12 +50,12 @@ namespace SimpleWarrants
 			WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
 		}
 
-		public override void ExposeData()
+        public override void ExposeData()
 		{
 			base.ExposeData();
 			Scribe_Values.Look(ref inSignal, "inSignal");
 			Scribe_References.Look(ref warrant, "warrant");
 		}
-	}
+    }
 
 }

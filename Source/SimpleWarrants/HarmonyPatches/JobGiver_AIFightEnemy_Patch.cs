@@ -1,6 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.Linq;
+using HarmonyLib;
 using RimWorld;
-using System.Linq;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
@@ -27,7 +27,7 @@ namespace SimpleWarrants
                             {
                                 if (victim.Downed)
                                 {
-                                    if (ReservationUtility.CanReserve(pawn, victim) && RCellFinder.TryFindBestExitSpot(pawn, out IntVec3 spot))
+                                    if (pawn.CanReserve(victim) && RCellFinder.TryFindBestExitSpot(pawn, out IntVec3 spot))
                                     {
                                         __result = JobMaker.MakeJob(JobDefOf.Kidnap);
                                         __result.targetA = victim;
@@ -37,7 +37,7 @@ namespace SimpleWarrants
                                 }
                                 else if (victim.Corpse != null)
                                 {
-                                    if (ReservationUtility.CanReserve(pawn, victim.Corpse) && RCellFinder.TryFindBestExitSpot(pawn, out IntVec3 spot))
+                                    if (pawn.CanReserve(victim.Corpse) && RCellFinder.TryFindBestExitSpot(pawn, out IntVec3 spot))
                                     {
                                         __result = JobMaker.MakeJob(JobDefOf.Kidnap);
                                         __result.targetA = victim.Corpse;

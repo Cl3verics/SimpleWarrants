@@ -1,20 +1,16 @@
-﻿using RimWorld;
-using RimWorld.Planet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+using RimWorld;
 using Verse;
 using Verse.AI.Group;
-using Verse.Sound;
 
 namespace SimpleWarrants
 {
     public class LordCollection : IExposable
     {
         public List<Lord> lords;
+
         public void ExposeData()
         {
             Scribe_Collections.Look(ref lords, "lords", LookMode.Reference);
@@ -23,13 +19,17 @@ namespace SimpleWarrants
     public class WarrantsManager : GameComponent
     {
         public static WarrantsManager Instance;
-        public List<Warrant> availableWarrants;
         public List<Warrant> acceptedWarrants;
-        public List<Warrant> takenWarrants;
+        public List<Warrant> availableWarrants;
         public List<Warrant> givenWarrants;
-        public Dictionary<Warrant_Pawn, LordCollection> raidLords;
         public bool initialized;
         public int lastWarrantID;
+        public Dictionary<Warrant_Pawn, LordCollection> raidLords;
+        public List<Warrant> takenWarrants;
+        private List<LordCollection> lordValues;
+
+        private List<Warrant_Pawn> warrantKeys;
+
         public WarrantsManager()
         {
             Instance = this;
@@ -100,7 +100,7 @@ namespace SimpleWarrants
 
                 if (Rand.Chance(0.2f) && SimpleWarrantsSettings.enableWarrantsOnAnimals)
                 {
-                    warrant.thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement(), null);
+                    warrant.thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement());
                     warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated 
                             && !faction.Hidden && !faction.IsPlayer
                             && faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
@@ -178,8 +178,9 @@ namespace SimpleWarrants
 
         public bool CanPutWarrantOn(Pawn pawn)
         {
-            return !availableWarrants.OfType<Warrant_Pawn>().Any(x => x.pawn == pawn) && (!pawn.IsColonist || SimpleWarrantsSettings.enableWarrantsOnColonists);
+            return availableWarrants.OfType<Warrant_Pawn>().All(x => x.pawn != pawn) && (!pawn.IsColonist || SimpleWarrantsSettings.enableWarrantsOnColonists);
         }
+
         public void PutWarrantOn(Pawn victim, string reason, Faction issuer = null)
         {
             if (issuer == Faction.OfPlayer)
@@ -208,11 +209,13 @@ namespace SimpleWarrants
             AssignRewards(warrant);
             availableWarrants.Add(warrant);
         }
+
         public string GetWarrantID()
         {
             lastWarrantID++;
             return "Warrant" + lastWarrantID;
         }
+
         public override void GameComponentTick()
         {
             base.GameComponentTick();
@@ -279,6 +282,7 @@ namespace SimpleWarrants
 
             }
         }
+
         public void HandleGivenWarrants()
         {
             for (int num = givenWarrants.Count - 1; num >= 0; num--)
@@ -333,7 +337,7 @@ namespace SimpleWarrants
                             reward = wa.reward;
                         }
                         var map = Find.AnyPlayerHomeMap;
-                        var silvers = map.listerThings.ThingsOfDef(ThingDefOf.Silver).Where((Thing x) => !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage())).ToList();
+                        var silvers = map.listerThings.ThingsOfDef(ThingDefOf.Silver).Where(x => !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage())).ToList();
 
                         string title = "SW.FactionCompletedWarrant".Translate(warrant.accepteer.Named("FACTION"));
                         DiaNode diaNode = new DiaNode("SW.FactionCompletedWarrantDesc".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap, reward));
@@ -381,7 +385,7 @@ namespace SimpleWarrants
                         DiaOption refuseOption = new DiaOption("SW.Refuse".Translate());
                         refuseOption.action = delegate
                         {
-                            warrant.accepteer.TryAffectGoodwillWith(Faction.OfPlayer, -100, true, true);
+                            warrant.accepteer.TryAffectGoodwillWith(Faction.OfPlayer, -100);
                             var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
                             parms.faction = warrant.accepteer;
                             IncidentDefOf.RaidEnemy.Worker.TryExecute(parms);
@@ -399,6 +403,7 @@ namespace SimpleWarrants
                 }
             }
         }
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -411,8 +416,5 @@ namespace SimpleWarrants
             Scribe_Collections.Look(ref raidLords, "raidLords", LookMode.Reference, LookMode.Deep, ref warrantKeys, ref lordValues);
             PreInit();
         }
-
-        private List<Warrant_Pawn> warrantKeys;
-        private List<LordCollection> lordValues;
     }
 }

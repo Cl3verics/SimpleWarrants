@@ -1,6 +1,6 @@
-﻿using RimWorld;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -10,12 +10,15 @@ namespace SimpleWarrants
     [HotSwappableAttribute]
 	public class Dialog_SelectPawn : Window
 	{
-		private MainTabWindow_Warrants parent;
-		private Vector2 scrollPosition;
-		public override Vector2 InitialSize => new Vector2(620f, 500f);
+        public override Vector2 InitialSize => new Vector2(620f, 500f);
 
-		public List<Pawn> allPawns;
-		public Dialog_SelectPawn(MainTabWindow_Warrants parent)
+        public List<Pawn> allPawns;
+        private readonly MainTabWindow_Warrants parent;
+        private Vector2 scrollPosition;
+
+        string searchKey;
+
+        public Dialog_SelectPawn(MainTabWindow_Warrants parent)
 		{
 			doCloseButton = true;
 			doCloseX = true;
@@ -26,8 +29,7 @@ namespace SimpleWarrants
 			this.parent = parent;
 		}
 
-		string searchKey;
-		public override void DoWindowContents(Rect inRect)
+        public override void DoWindowContents(Rect inRect)
 		{
 			Text.Font = GameFont.Small;
 
@@ -45,7 +47,7 @@ namespace SimpleWarrants
 
 			var pawns = searchKey.NullOrEmpty() ? allPawns : allPawns.Where(x => x.Name.ToStringFull.ToLower().Contains(searchKey.ToLower())).ToList();
 
-			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, (float)pawns.Count() * 35f);
+			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, pawns.Count() * 35f);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
 			try
 			{
@@ -72,15 +74,15 @@ namespace SimpleWarrants
                         {
 							Find.WindowStack.Add(new Dialog_MessageBox("SW.WarrantOnNonHostileWarning".Translate(pawn.Faction.Named("FACTION")), "Accept".Translate(), delegate
 							{
-								this.parent.AssignPawn(pawn);
-							}, "Cancel".Translate(), null));
+								parent.AssignPawn(pawn);
+							}, "Cancel".Translate()));
                         }
 						else
                         {
-							this.parent.AssignPawn(pawn);
+							parent.AssignPawn(pawn);
 						}
 						SoundDefOf.Click.PlayOneShotOnCamera();
-						this.Close();
+						Close();
 					}
 					num += 35f;
 				}
@@ -90,5 +92,5 @@ namespace SimpleWarrants
 				Widgets.EndScrollView();
 			}
 		}
-	}
+    }
 }

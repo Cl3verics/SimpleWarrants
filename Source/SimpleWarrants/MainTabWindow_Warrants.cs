@@ -15,6 +15,7 @@ namespace SimpleWarrants
 	[StaticConstructorOnStartup]
 	public class MainTabWindow_Warrants : MainTabWindow
 	{
+        private readonly List<TabRecord> tabs = new List<TabRecord>();
         private string buffCurCapturePayment;
         private string buffCurDeathPayment;
         private string buffCurReward;
@@ -32,7 +33,6 @@ namespace SimpleWarrants
         private TargetType curType;
         private bool deathPaymentEnabled;
         private Vector2 scrollPosition;
-        private readonly List<TabRecord> tabs = new List<TabRecord>();
 
         public override void PreOpen()
 		{

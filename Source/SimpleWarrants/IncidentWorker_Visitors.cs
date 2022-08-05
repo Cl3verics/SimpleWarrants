@@ -1,22 +1,15 @@
-﻿using RimWorld;
-using RimWorld.Planet;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+using RimWorld;
 using Verse;
 using Verse.AI;
 using Verse.AI.Group;
-using Verse.Grammar;
-using Verse.Sound;
 
 namespace SimpleWarrants
 {
     public class IncidentWorker_Visitors : IncidentWorker_VisitorGroup
     {
-		private List<Pawn> SpawnDelivers(IncidentParms parms)
+        private List<Pawn> SpawnDelivers(IncidentParms parms)
 		{
 			Map map = (Map)parms.target;
 			var pawnCount = Rand.RangeInclusive(2, 5);
@@ -39,6 +32,7 @@ namespace SimpleWarrants
         {
             return false;
         }
+
         public bool SpawnVisitors(Thing toDeliver, IncidentParms parms)
 		{
 			Map map = (Map)parms.target;
@@ -52,7 +46,7 @@ namespace SimpleWarrants
 				return false;
 			}
 			LordMaker.MakeNewLord(parms.faction, CreateLordJob(parms, list), map, list);
-			Pawn leader = list.Find((Pawn x) => parms.faction.leader == x);
+			Pawn leader = list.Find(x => parms.faction.leader == x);
 			var deliveree = leader ?? list.RandomElement();
 			GenSpawn.Spawn(toDeliver, deliveree.Position, map);
 			IntVec3 cell = IntVec3.Invalid;
@@ -69,5 +63,5 @@ namespace SimpleWarrants
 			SendLetter(parms, list, leader, false);
 			return true;
 		}
-	}
+    }
 }

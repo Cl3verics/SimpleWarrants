@@ -1,18 +1,17 @@
-﻿using HarmonyLib;
-using RimWorld;
-using RimWorld.Planet;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using HarmonyLib;
+using RimWorld;
+using RimWorld.Planet;
 using Verse;
 using Verse.AI;
 
 namespace SimpleWarrants
 {
     [HarmonyPatch(typeof(GenHostility), "AnyHostileActiveThreatTo_NewTemp",
-    new Type[] { typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool) },
-    new ArgumentType[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal })]
+    new[] { typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool) },
+    new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal })]
     internal static class AnyHostileActiveThreatTo_Patch
     {
         public static Dictionary<Map, Faction> lastFactionThreats = new Dictionary<Map, Faction>();

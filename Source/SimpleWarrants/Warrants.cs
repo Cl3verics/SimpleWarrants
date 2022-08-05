@@ -1,14 +1,10 @@
-﻿using RimWorld;
-using RimWorld.Planet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using RimWorld;
+using RimWorld.Planet;
 using UnityEngine;
 using Verse;
-using Verse.AI;
-using Verse.Sound;
 
 namespace SimpleWarrants
 {
@@ -24,124 +20,25 @@ namespace SimpleWarrants
     [StaticConstructorOnStartup]
     public abstract class Warrant : IExposable, ILoadReferenceable
     {
-        public Thing thing;
-        private bool savedSomewhere;
-        public string loadID;
+        public static readonly Texture2D InsufficientRewardIcon = ContentFinder<Texture2D>.Get("UI/Warrants/IconWarning");
+
+        public int ApproximateAcceptionDate => Mathf.Max((int)(createdTick + ((GenDate.TicksPerDay * 7) / AcceptChance())), Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
+        public int ApproximateCompletionDate => Mathf.Max(tickToBeCompleted, Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
+
+        public float? acceptChanceCached;
         public int acceptedTick = -1;
+        public Faction accepteer;
         public int createdTick = -1;
         public Faction issuer;
+        public string loadID;
         public Quest relatedQuest;
 
         public WarrantStatus status;
-        public Faction accepteer;
-        public int tickToBeCompleted;
-
-        public static readonly Texture2D InsufficientRewardIcon = ContentFinder<Texture2D>.Get("UI/Warrants/IconWarning");
-
-        public float? acceptChanceCached;
         public float? successChanceCached;
-        public abstract float AcceptChance();
-        public abstract float SuccessChance();
-        public abstract bool IsWarrantActive();
-        public abstract bool IsThreatForPlayer();
+        public Thing thing;
+        public int tickToBeCompleted;
+        private bool savedSomewhere;
 
-        public virtual void OnCreate()
-        {
-
-        }
-        public void DrawAcceptDeclineButtons(Rect rect)
-        {
-            var acceptRect = new Rect(rect.x + 5, rect.y + 50, 95, 30);
-            if (Widgets.ButtonText(acceptRect, "Accept".Translate()))
-            {
-                DoAcceptAction();
-            }
-
-            var declineRect = new Rect(acceptRect.x, acceptRect.yMax + 10, acceptRect.width, acceptRect.height);
-            if (Widgets.ButtonText(declineRect, "SW.Decline".Translate()))
-            {
-                WarrantsManager.Instance.availableWarrants.Remove(this);
-            }
-        }
-        public void DrawCompensateButton(Rect rect)
-        {
-            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 95, 30);
-            if (Widgets.ButtonText(acceptRect, "SW.Compensate".Translate()))
-            {
-                DoCompensateAction();
-            }
-        }
-
-        public void DrawRemoveWarrantButton(Rect rect)
-        {
-            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 95, 30);
-            if (Widgets.ButtonText(acceptRect, "SW.RemoveWarrant".Translate()))
-            {
-                WarrantsManager.Instance.givenWarrants.Remove(this);
-            }
-        }
-        public abstract bool ShouldShowCompensateButton();
-        public virtual void DoCompensateAction()
-        {
-        }
-
-        public void Pay(List<Thing> silvers, int amountToPay)
-        {
-            while (amountToPay > 0)
-            {
-                Thing thing = silvers.RandomElement();
-                silvers.Remove(thing);
-                if (thing == null)
-                {
-                    break;
-                }
-                int num = Math.Min(amountToPay, thing.stackCount);
-                thing.SplitOff(num).Destroy();
-                amountToPay -= num;
-            }
-        }
-        public abstract int MaxReward();
-        public virtual void DoAcceptAction()
-        {
-            WarrantsManager.Instance.availableWarrants.Remove(this);
-            WarrantsManager.Instance.acceptedWarrants.Add(this);
-            AcceptBy(Faction.OfPlayer);
-        }
-
-        public void AcceptBy(Faction faction)
-        {
-            acceptedTick = Find.TickManager.TicksGame;
-            this.status = WarrantStatus.Accepted;
-            this.accepteer = faction;
-        }
-
-        public int ApproximateAcceptionDate => Mathf.Max((int)(this.createdTick + ((GenDate.TicksPerDay * 7) / this.AcceptChance())), Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
-        public int ApproximateCompletionDate => Mathf.Max(this.tickToBeCompleted, Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
-        public virtual void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
-        {
-            Widgets.DrawLine(new Vector2(rect.x, rect.y), new Vector2(rect.xMax, rect.y), Color.gray, 1);
-            if (doAcceptAndDeclineButtons)
-            {
-                DrawAcceptDeclineButtons(rect);
-            }
-            if (doCompensateWarrantButton && ShouldShowCompensateButton())
-            {
-                DrawCompensateButton(rect);
-            }
-            if (this.issuer == Faction.OfPlayer && this.accepteer is null)
-            {
-                DrawRemoveWarrantButton(rect);
-            }
-        }
-
-        public void End(QuestEndOutcome questEndOutcome = QuestEndOutcome.Fail, bool affectGoodwill = true)
-        {
-            this.relatedQuest?.End(questEndOutcome);
-            if (affectGoodwill)
-            {
-                this.issuer.TryAffectGoodwillWith(Faction.OfPlayer, -30);
-            }
-        }
         public virtual void ExposeData()
         {
             if (thing is Pawn pawn && pawn.Corpse != null)
@@ -174,12 +71,124 @@ namespace SimpleWarrants
                 if (thing is null)
                 {
                     Log.Error(this + " has null thing, bugged now and won't work. Clearing it to avoid errors.");
-                    this.End(affectGoodwill: false);
+                    End(affectGoodwill: false);
                     WarrantsManager.Instance.availableWarrants.Remove(this);
                     WarrantsManager.Instance.acceptedWarrants.Remove(this);
                     WarrantsManager.Instance.givenWarrants.Remove(this);
                     WarrantsManager.Instance.takenWarrants.Remove(this);
                 }
+            }
+        }
+
+        public string GetUniqueLoadID()
+        {
+            return loadID;
+        }
+
+        public abstract float AcceptChance();
+        public abstract float SuccessChance();
+        public abstract bool IsWarrantActive();
+        public abstract bool IsThreatForPlayer();
+
+        public virtual void OnCreate()
+        {
+
+        }
+
+        public void DrawAcceptDeclineButtons(Rect rect)
+        {
+            var acceptRect = new Rect(rect.x + 5, rect.y + 50, 95, 30);
+            if (Widgets.ButtonText(acceptRect, "Accept".Translate()))
+            {
+                DoAcceptAction();
+            }
+
+            var declineRect = new Rect(acceptRect.x, acceptRect.yMax + 10, acceptRect.width, acceptRect.height);
+            if (Widgets.ButtonText(declineRect, "SW.Decline".Translate()))
+            {
+                WarrantsManager.Instance.availableWarrants.Remove(this);
+            }
+        }
+
+        public void DrawCompensateButton(Rect rect)
+        {
+            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 95, 30);
+            if (Widgets.ButtonText(acceptRect, "SW.Compensate".Translate()))
+            {
+                DoCompensateAction();
+            }
+        }
+
+        public void DrawRemoveWarrantButton(Rect rect)
+        {
+            var acceptRect = new Rect(rect.x + 5, rect.y + 65, 95, 30);
+            if (Widgets.ButtonText(acceptRect, "SW.RemoveWarrant".Translate()))
+            {
+                WarrantsManager.Instance.givenWarrants.Remove(this);
+            }
+        }
+
+        public abstract bool ShouldShowCompensateButton();
+
+        public virtual void DoCompensateAction()
+        {
+        }
+
+        public void Pay(List<Thing> silvers, int amountToPay)
+        {
+            while (amountToPay > 0)
+            {
+                Thing thing = silvers.RandomElement();
+                silvers.Remove(thing);
+                if (thing == null)
+                {
+                    break;
+                }
+                int num = Math.Min(amountToPay, thing.stackCount);
+                thing.SplitOff(num).Destroy();
+                amountToPay -= num;
+            }
+        }
+
+        public abstract int MaxReward();
+
+        public virtual void DoAcceptAction()
+        {
+            WarrantsManager.Instance.availableWarrants.Remove(this);
+            WarrantsManager.Instance.acceptedWarrants.Add(this);
+            AcceptBy(Faction.OfPlayer);
+        }
+
+        public void AcceptBy(Faction faction)
+        {
+            acceptedTick = Find.TickManager.TicksGame;
+            status = WarrantStatus.Accepted;
+            accepteer = faction;
+        }
+
+        public virtual void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
+        {
+            Widgets.DrawLine(new Vector2(rect.x, rect.y), new Vector2(rect.xMax, rect.y), Color.gray, 1);
+            if (doAcceptAndDeclineButtons)
+            {
+                DrawAcceptDeclineButtons(rect);
+            }
+            if (doCompensateWarrantButton && ShouldShowCompensateButton())
+            {
+                DrawCompensateButton(rect);
+            }
+            if (issuer == Faction.OfPlayer && accepteer is null)
+            {
+                DrawRemoveWarrantButton(rect);
+            }
+        }
+
+        public void End(QuestEndOutcome questEndOutcome = QuestEndOutcome.Fail, bool affectGoodwill = true)
+        {
+            relatedQuest?.End(questEndOutcome);
+            if (affectGoodwill)
+            {
+                issuer.TryAffectGoodwillWith(Faction.OfPlayer, -30);
             }
         }
 
@@ -199,15 +208,11 @@ namespace SimpleWarrants
             return false;
         }
 
-        public string GetUniqueLoadID()
-        {
-            return loadID;
-        }
-
         public virtual void GiveReward(Caravan caravan)
         {
-            this.status = WarrantStatus.Completed;
+            status = WarrantStatus.Completed;
         }
+
         public static void GiveThing(Caravan caravan, Thing thing)
         {
             if (CaravanInventoryUtility.AllInventoryItems(caravan).Contains(thing))

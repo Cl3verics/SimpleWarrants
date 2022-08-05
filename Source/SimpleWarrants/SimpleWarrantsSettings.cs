@@ -1,21 +1,16 @@
-﻿using RimWorld;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.NetworkInformation;
-using UnityEngine;
+﻿using UnityEngine;
 using Verse;
-using Verse.Noise;
 
 namespace SimpleWarrants
 {
     public class SimpleWarrantsSettings : ModSettings
     {
         public static float chanceOfWarrantsMadeOnColonist = 0.05f;
-        public static bool enableWarrantsOnColonists = true;
-        public static bool enableWarrantsOnArtifact = true;
-        public static bool enableWarrantsOnAnimals = true;
         public static bool enableWarrantRewardScaling = true;
+        public static bool enableWarrantsOnAnimals = true;
+        public static bool enableWarrantsOnArtifact = true;
+        public static bool enableWarrantsOnColonists = true;
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -25,6 +20,7 @@ namespace SimpleWarrants
             Scribe_Values.Look(ref enableWarrantsOnAnimals, nameof(enableWarrantsOnAnimals), true);
             Scribe_Values.Look(ref enableWarrantRewardScaling, nameof(enableWarrantRewardScaling), true);
         }
+
         public void DoSettingsWindowContents(Rect inRect)
         {
             Rect rect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height);
