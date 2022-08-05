@@ -80,7 +80,7 @@ namespace SimpleWarrants
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
         {
-            var notify_PlayerRaidedSomeone = AccessTools.Method(typeof(IdeoUtility), "Notify_PlayerRaidedSomeone");
+            var notify_PlayerRaidedSomeone = AccessTools.Method(typeof(IdeoUtility), nameof(IdeoUtility.Notify_PlayerRaidedSomeone));
             var codes = codeInstructions.ToList();
             for (var i = 0; i < codes.Count; i++)
             {
@@ -96,14 +96,22 @@ namespace SimpleWarrants
         public static void RegisterAssault(Map map)
         {
             var faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(map);
-            if (faction != null && Rand.Chance(0.25f))
+            if (faction == null)
+                return;
+
+            // Do not count aggression against enemies as assault.
+            if (faction.HostileTo(Faction.OfPlayer))
+                return;
+
+            // 50% chance.
+            if (!Rand.Chance(0.5f))
+                return;
+
+            // Get a random player pawn from the attackers and slap a bounty on them.
+            var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(WarrantsManager.Instance.CanPutWarrantOn);
+            if (pawns.TryRandomElement(out var selectedPawn))
             {
-                var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(x => WarrantsManager.Instance.CanPutWarrantOn(x));
-                if (pawns.Any())
-                {
-                    var random = pawns.RandomElement();
-                    WarrantsManager.Instance.PutWarrantOn(random, "SW.Assault".Translate(), faction);
-                }
+                WarrantsManager.Instance.PutWarrantOn(selectedPawn, "SW.Assault".Translate(), faction);
             }
         }
     }
