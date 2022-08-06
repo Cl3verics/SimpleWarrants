@@ -9,6 +9,9 @@ namespace SimpleWarrants
         [Label("SW.EnableWarrantsOnAnimals")]
         public bool enableWarrantsOnAnimals = true;
 
+        [Label("SW.EnableTamingWarrants")]
+        public bool enableTamingWarrants = true;
+
         [Label("SW.EnableWarrantsOnArtifact")]
         public bool enableWarrantsOnArtifact = true;
 
@@ -35,7 +38,7 @@ namespace SimpleWarrants
         [Header("SW.Rewards")]
         [Label("SW.WarrantRewardMax")]
         [Percentage]
-        public float warrantRewardMax = 0.05f;
+        public float warrantRewardMax = 0.08f;
 
         [Label("SW.warrantRewardScaling")]
         public bool warrantRewardScaling = true;

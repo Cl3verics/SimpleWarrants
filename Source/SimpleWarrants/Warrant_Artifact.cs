@@ -16,10 +16,10 @@ namespace SimpleWarrants
         public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
             base.Draw(rect, doAcceptAndDeclineButtons, doCompensateWarrantButton);
-            var thingRect = new Rect(new Vector2(rect.x + 90, rect.y + 10), new Vector2(rect.height * 0.722f, rect.height * 0.722f));
-            GUI.DrawTexture(thingRect, thing.Graphic.MatSouth.mainTexture);
+            var thingRect = new Rect(new Vector2(rect.x + 100, rect.y + 10), new Vector2(rect.height * 0.7f, rect.height));
+            GUI.DrawTexture(thingRect, thing.Graphic.MatSouth.mainTexture, ScaleMode.ScaleToFit);
 
-            Widgets.InfoCardButton(thingRect.xMax - 24, thingRect.yMax + 18, thing);
+            Widgets.InfoCardButton(thingRect.xMax - 24, thingRect.yMax - 24, thing);
             Text.Font = GameFont.Medium;
             var textSize = Text.CalcSize(thing.LabelCap);
             var nameInfoBox = new Rect(thingRect.xMax, thingRect.y, textSize.x, 30);
@@ -80,9 +80,9 @@ namespace SimpleWarrants
             QuestUtility.SendLetterQuestAvailable(quest);
         }
 
-        public override void GiveReward(Caravan caravan)
+        public override void GiveReward(Caravan caravan, Thing thingHandedIn)
         {
-            base.GiveReward(caravan);
+            base.GiveReward(caravan, thingHandedIn);
             if (reward <= 0)
                 return;
 

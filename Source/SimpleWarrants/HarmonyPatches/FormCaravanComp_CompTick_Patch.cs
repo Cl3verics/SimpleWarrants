@@ -19,7 +19,7 @@ namespace SimpleWarrants
         [HarmonyPriority(Priority.Last)]
         public static void Postfix(ref bool __result, Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile = false)
         {
-            if (__result && !map.IsPlayerHome && threat != null && threat is Pawn pawn && pawn.Faction != null && pawn.Faction.def.humanlikeFaction)
+            if (__result && !map.IsPlayerHome && threat is Pawn { Faction: {} } pawn && pawn.Faction.def.humanlikeFaction)
             {
                 lastFactionThreats[map] = pawn.Faction;
             }

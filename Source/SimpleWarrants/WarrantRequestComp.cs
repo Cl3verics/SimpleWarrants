@@ -25,13 +25,12 @@ namespace SimpleWarrants
 
         public override string CompInspectStringExtra()
 		{
-			if (ActiveRequest)
-			{
-				var requestInfo = string.Join(", ", ActiveWarrants.Select(x => x.thing.LabelCap ?? x.thing.def.label));
-				return "SW.CaravanRequestInfo".Translate(requestInfo);
-			}
-			return null;
-		}
+            if (!ActiveRequest)
+                return null;
+
+            var requestInfo = string.Join(", ", ActiveWarrants.Select(x => x is Warrant_TameAnimal tame ? (string)tame.AnimalRace.LabelCap : x.thing.LabelCap ?? x.thing.def.label));
+            return "SW.CaravanRequestInfo".Translate(requestInfo);
+        }
 
         public override IEnumerable<Gizmo> GetCaravanGizmos(Caravan caravan)
 		{
@@ -53,7 +52,7 @@ namespace SimpleWarrants
 			};
 			if (ActiveWarrants.All(x => TryGetWarrantTargetInCaravan(x, caravan) == null))
             {
-				command_Action.Disable("SW.CommandFulfillWarrantFailInsufficient".Translate(ActiveWarrants.Select(x => x.thing).First()));
+				command_Action.Disable("SW.CommandFulfillWarrantFailInsufficient".Translate(ActiveWarrants.Select(x => x is Warrant_TameAnimal t ? (string)t.AnimalRace.LabelCap : x.thing.LabelCap).First()));
 			}
 			return command_Action;
 		}
@@ -67,23 +66,57 @@ namespace SimpleWarrants
                     continue;
 
                 target.holdingOwner.Remove(target);
-                warrant.GiveReward(caravan);
+                warrant.GiveReward(caravan, target);
                 var questTarget = target is Corpse corpse ? corpse.InnerPawn : target;
                 QuestUtility.SendQuestTargetSignals(questTarget.questTags, "WarrantRequestFulfilled", parent.Named("SUBJECT"), caravan.Named("CARAVAN"));
+				
+				// Force quest to end. Only necessary with animal quests because reasons.
+                if (warrant.relatedQuest is { State: <= QuestState.Ongoing })
+                    warrant.relatedQuest.End(QuestEndOutcome.Success);
+
                 WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
                 target.Destroy();
+				Messages.Message("Warrant completed. Your caravan has received the payment.", MessageTypeDefOf.PositiveEvent, false);
             }
 		}
 
         private Thing TryGetWarrantTargetInCaravan(Warrant warrant, Caravan caravan)
         {
+            var tame = warrant as Warrant_TameAnimal;
+
 			foreach (var thing in CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading))
             {
+                // Tame warrant requires any pawn of the required type.
+                if (tame != null && thing is Pawn p && p.RaceProps.Animal && p.kindDef == tame.AnimalRace)
+                {
+					// Check tameness.
+					bool isTame = p.training?.HasLearned(TrainableDefOf.Tameness) ?? false;
+
+					// Check health.
+					float healthPct = p.health.summaryHealth.SummaryHealthPercent;
+
+
+					if (isTame && healthPct >= 0.9f)
+					    return thing;
+                }
+
+				// Corpse for animal-pawn warrant.
+                if (warrant is Warrant_Pawn pw && pw.pawn.RaceProps.Animal)
+                {
+                    if (thing is Pawn p2 && p2.kindDef == pw.pawn.kindDef && p2.Dead)
+						return thing;
+
+                    if (thing is Corpse c && c.InnerPawn?.kindDef == pw.pawn.kindDef)
+                        return thing;
+                }
+
+				// Corpse for pawn warrant.
                 if (warrant.thing is Pawn { Dead: true } pawn && thing == pawn.Corpse)
                 {
 					return pawn.Corpse;
 				}
 
+				// Living pawn for pawn warrant.
                 if (thing == warrant.thing)
                 {
                     return thing;

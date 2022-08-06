@@ -2,18 +2,18 @@
 <Defs>
 
 	<QuestScriptDef>
-		<defName>SW_Warrant_Animal</defName>
+		<defName>SW_Warrant_Tame</defName>
 		<rootSelectionWeight>0</rootSelectionWeight>
 		<rootMinPoints>350</rootMinPoints>
 		<autoAccept>true</autoAccept>
 		<questNameRules>
 			<rulesStrings>
-				<li>questName->A warrant on [victim_nameFull]</li>
+				<li>questName->A warrant on [animal_indefinite]</li>
 			</rulesStrings>
 		</questNameRules>
 		<questDescriptionRules>
 			<rulesStrings>
-				<li>questDescription->[asker_nameFull] from [asker_faction_name] issued a warrant on [victim_nameFull]. They are offering [rewardForDead]$ for you to hunt and deliver one.</li>
+				<li>questDescription->[asker_nameFull] from [asker_faction_name] issued a warrant on [animal_indefinite]. They are offering [reward]$ for you to tame and deliver one.</li>
 			</rulesStrings>
 		</questDescriptionRules>
 		<root Class="QuestNode_Sequence">

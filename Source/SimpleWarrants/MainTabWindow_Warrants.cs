@@ -67,7 +67,7 @@ namespace SimpleWarrants
 
         private void DoPublicWarrants(Rect rect)
         {
-			var warrants = WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction != Faction.OfPlayer).OrderByDescending(x => x.createdTick).ToList();
+			var warrants = WarrantsManager.Instance.availableWarrants.Where(x => x.thing?.Faction != Faction.OfPlayer).OrderByDescending(x => x.createdTick).ToList();
 			var posY = rect.y + 10;
 			var sectionWidth = 750;
 			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
@@ -96,7 +96,7 @@ namespace SimpleWarrants
         private void DoRelatedWarrants(Rect rect)
 		{
 			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.createdWarrants).Concat(WarrantsManager.Instance.takenWarrants)
-				.Concat(WarrantsManager.Instance.availableWarrants.Where(x => x.thing.Faction == Faction.OfPlayer)).OrderByDescending(x => x.createdTick).ToList();
+				.Concat(WarrantsManager.Instance.availableWarrants.Where(x => x.thing?.Faction == Faction.OfPlayer)).OrderByDescending(x => x.createdTick).ToList();
 			var posY = rect.y + 10;
 			var sectionWidth = 750;
 			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
@@ -172,10 +172,7 @@ namespace SimpleWarrants
                         {
                             faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
                         }
-                        if (faction is null)
-                        {
-                            faction = Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
-                        }
+                        faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
                         curPawn = PawnGenerator.GeneratePawn(randomKind, faction);
                     }
                 }
@@ -184,15 +181,8 @@ namespace SimpleWarrants
                     curAnimal = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement());
                 }
 
-				if (curType == TargetType.Human)
-                {
-					DrawPawnWarrant(curPawn, createWarrant, dropdownRect);
-				}
-				else
-                {
-					DrawPawnWarrant(curAnimal, createWarrant, dropdownRect);
-				}
-			}
+                DrawPawnWarrant(curType == TargetType.Human ? curPawn : curAnimal, createWarrant, dropdownRect);
+            }
             else
             {
 				if (curArtifact is null) 

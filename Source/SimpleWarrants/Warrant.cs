@@ -31,16 +31,26 @@ namespace SimpleWarrants
         public int tickToBeCompleted;
         private bool savedSomewhere;
 
+        public virtual bool UsesThings => true;
+
         public virtual void ExposeData()
         {
             if (thing is Pawn pawn && pawn.Corpse != null)
             {
                 thing = pawn.Corpse;
             }
+
             if (Scribe.mode == LoadSaveMode.Saving)
             {
-                savedSomewhere = IsSavedSomewhereElse(thing);
+                if (loadID == null)
+                    throw new Exception("LOAD ID IS NULL WHEN SAVING!");
+                if (UsesThings)
+                {
+                    savedSomewhere = IsSavedSomewhereElse(thing);
+                }
             }
+            
+
             Scribe_Values.Look(ref savedSomewhere, "savedSomewhere");
             Scribe_Values.Look(ref createdTick, "createdTick", -1);
             Scribe_Values.Look(ref acceptedTick, "acceptedTick", -1);
@@ -49,6 +59,10 @@ namespace SimpleWarrants
             Scribe_Values.Look(ref tickToBeCompleted, "tickToBeCompleted");
             Scribe_Values.Look(ref loadID, "loadID");
             Scribe_References.Look(ref relatedQuest, "relatedQuest");
+
+            if (!UsesThings)
+                return;
+
             if (!savedSomewhere)
             {
                 Scribe_Deep.Look(ref thing, "thing");
@@ -58,18 +72,15 @@ namespace SimpleWarrants
                 Scribe_References.Look(ref thing, "thing");
             }
 
-            if (Scribe.mode == LoadSaveMode.PostLoadInit)
-            {
-                if (thing is null)
-                {
-                    Log.Error(this + " has null thing, bugged now and won't work. Clearing it to avoid errors.");
-                    End(affectGoodwill: false);
-                    WarrantsManager.Instance.availableWarrants.Remove(this);
-                    WarrantsManager.Instance.acceptedWarrants.Remove(this);
-                    WarrantsManager.Instance.createdWarrants.Remove(this);
-                    WarrantsManager.Instance.takenWarrants.Remove(this);
-                }
-            }
+            if (Scribe.mode != LoadSaveMode.PostLoadInit || thing is not null)
+                return;
+
+            Log.Error(this + " has null thing, bugged now and won't work. Clearing it to avoid errors.");
+            End();
+            WarrantsManager.Instance.availableWarrants.Remove(this);
+            WarrantsManager.Instance.acceptedWarrants.Remove(this);
+            WarrantsManager.Instance.createdWarrants.Remove(this);
+            WarrantsManager.Instance.takenWarrants.Remove(this);
         }
 
         public string GetUniqueLoadID()
@@ -175,13 +186,9 @@ namespace SimpleWarrants
             }
         }
 
-        public void End(QuestEndOutcome questEndOutcome = QuestEndOutcome.Fail, bool affectGoodwill = true)
+        public void End(QuestEndOutcome questEndOutcome = QuestEndOutcome.Fail)
         {
             relatedQuest?.End(questEndOutcome);
-            if (affectGoodwill)
-            {
-                issuer.TryAffectGoodwillWith(Faction.OfPlayer, -30);
-            }
         }
 
         private bool IsSavedSomewhereElse(Thing thing)
@@ -200,7 +207,7 @@ namespace SimpleWarrants
             return false;
         }
 
-        public virtual void GiveReward(Caravan caravan)
+        public virtual void GiveReward(Caravan caravan, Thing thingHandedIn)
         {
             status = WarrantStatus.Completed;
         }
@@ -229,7 +236,7 @@ namespace SimpleWarrants
         public bool CanPlayerReceive()
         {
             // If the target thing belongs to the player faction, allow it.
-            if (thing.Faction == Faction.OfPlayer)
+            if (thing != null && thing.Faction == Faction.OfPlayer)
             {
                 return true;
             }

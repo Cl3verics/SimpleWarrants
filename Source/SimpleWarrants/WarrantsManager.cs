@@ -19,7 +19,23 @@ namespace SimpleWarrants
     }
     public class WarrantsManager : GameComponent
     {
+        private const int TYPE_ARTIFACT = 0;
+        private const int TYPE_ANIMAL = 1;
+        private const int TYPE_PAWN = 2;
+        private const int TYPE_TAME = 3;
+
         public static WarrantsManager Instance;
+        private static readonly float[] warrantTypeToWeight = new float[4];
+        private static readonly int[] warrantTypes = new int[4];
+
+        static WarrantsManager()
+        {
+            for (int i = 0; i < warrantTypes.Length; i++)
+            {
+                warrantTypes[i] = i;
+            }
+        }
+
         public List<Warrant> acceptedWarrants; // Warrants accepted by the player, to be completed by the player.
         public List<Warrant> availableWarrants; // Available warrants, created by AI.
         public List<Warrant> createdWarrants; // Warrants created by the player, to be completed by AI.
@@ -77,7 +93,7 @@ namespace SimpleWarrants
         {
             int num = 0;
             var count = 0;
-            while (count < amountToPopulate && num < amountToPopulate * 2)
+            while (count < amountToPopulate && num < amountToPopulate * 5)
             {
                 num++;
 
@@ -95,35 +111,17 @@ namespace SimpleWarrants
 
         private Warrant GenerateRandomWarrant(bool includeColonists = true)
         {
-            if (!SimpleWarrantsMod.Settings.enableWarrantsOnArtifact || Rand.Chance(0.5f))
+            warrantTypeToWeight[TYPE_ARTIFACT] = SimpleWarrantsMod.Settings.enableWarrantsOnArtifact ? 0.25f : 0f;
+            warrantTypeToWeight[TYPE_PAWN] = 1f;
+            warrantTypeToWeight[TYPE_ANIMAL] = SimpleWarrantsMod.Settings.enableWarrantsOnAnimals ? 0.2f : 0f;
+            warrantTypeToWeight[TYPE_TAME] = SimpleWarrantsMod.Settings.enableTamingWarrants ? 0.2f : 0f;
+
+            int type = warrantTypes.RandomElementByWeight(t => warrantTypeToWeight[t]);
+
+            switch (type)
             {
-                // Do a pawn (human or animal) warrant.
-                var warrant = new Warrant_Pawn
-                {
-                    loadID = GetWarrantID(),
-                    createdTick = Find.TickManager.TicksGame
-                };
-
-                // Should we do an animal warrant?
-                if (SimpleWarrantsMod.Settings.enableWarrantsOnAnimals && Rand.Chance(0.2f))
-                {
-                    warrant.thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement());
-                    Find.FactionManager.AllFactions.Where(faction => 
-                        faction.def.humanlikeFaction &&
-                        !faction.defeated &&
-                        !faction.Hidden &&
-                        !faction.IsPlayer &&
-                        faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile &&
-                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out warrant.issuer);
-
-                    if (warrant.issuer == null)
-                    {
-                        Log.Error("Failed to find a valid faction to issue warrant (non-hostile humanlike w/ fac base).");
-                        return null;
-                    }
-                }
-                else
-                {
+                case TYPE_PAWN:
+                    #region PAWN WARRANT
                     // Human warrant.
                     var humanlikeColonists = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
 
@@ -131,6 +129,13 @@ namespace SimpleWarrants
                                            SimpleWarrantsMod.Settings.enableWarrantsOnColonists &&
                                            humanlikeColonists.Any(CanPutWarrantOn) &&
                                            Rand.Chance(SimpleWarrantsMod.Settings.chanceOfWarrantsMadeOnColonist);
+
+                    var warrant = new Warrant_Pawn
+                    {
+                        loadID = GetWarrantID(),
+                        createdTick = Find.TickManager.TicksGame,
+                        thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement())
+                    };
 
                     if (placeOnColonist)
                     {
@@ -156,10 +161,10 @@ namespace SimpleWarrants
 
                         if (randomKind.defaultFactionType != null)
                             faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
-                        
+
                         faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
 
-                        Find.FactionManager.AllFactions.Where(fac => 
+                        Find.FactionManager.AllFactions.Where(fac =>
                             fac.def.humanlikeFaction &&
                             !fac.defeated &&
                             !fac.Hidden &&
@@ -175,42 +180,121 @@ namespace SimpleWarrants
 
                         warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
                     }
-                    
+
                     warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.pawn.thingIDNumber);
-                }
+                    AssignRewards(warrant);
+                    return warrant;
+                #endregion
 
-                AssignRewards(warrant);
-                return warrant;
-            }
-            else
-            {
-                // Artifact warrant.
-                var warrant = new Warrant_Artifact
-                {
-                    loadID = GetWarrantID(),
-                    createdTick = Find.TickManager.TicksGame
-                };
+                case TYPE_ANIMAL:
+                    #region ANIMAL WARRANT
+                    warrant = new Warrant_Pawn
+                    {
+                        loadID = GetWarrantID(),
+                        createdTick = Find.TickManager.TicksGame,
+                        thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement())
+                    };
 
-                Find.FactionManager.AllFactions.Where(faction =>
-                    faction.def.humanlikeFaction &&
-                    !faction.defeated &&
-                    !faction.Hidden &&
-                    !faction.IsPlayer &&
-                    !faction.HostileTo(Faction.OfPlayer) &&
-                    Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out warrant.issuer);
+                    Find.FactionManager.AllFactions.Where(faction =>
+                        faction.def.humanlikeFaction &&
+                        !faction.defeated &&
+                        !faction.Hidden &&
+                        !faction.IsPlayer &&
+                        faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile &&
+                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out warrant.issuer);
 
-                if (warrant.issuer == null)
-                {
-                    Log.Error("Failed to find a valid faction to issue warrant (non-hostile humanlike w/ fac base).");
+                    if (warrant.issuer == null)
+                    {
+                        Log.Error("Failed to find a valid faction to issue warrant (non-hostile humanlike w/ fac base).");
+                        warrant.thing.Destroy();
+                        return null;
+                    }
+
+                    AssignRewards(warrant);
+                    return warrant;
+                #endregion
+
+                case TYPE_ARTIFACT:
+                    #region ARTIFACT WARRANT
+                    // Artifact warrant.
+                    var artWarrant = new Warrant_Artifact
+                    {
+                        loadID = GetWarrantID(),
+                        createdTick = Find.TickManager.TicksGame
+                    };
+
+                    Find.FactionManager.AllFactions.Where(faction =>
+                        faction.def.humanlikeFaction &&
+                        !faction.defeated &&
+                        !faction.Hidden &&
+                        !faction.IsPlayer &&
+                        !faction.HostileTo(Faction.OfPlayer) &&
+                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out artWarrant.issuer);
+
+                    if (artWarrant.issuer == null)
+                    {
+                        Log.Error("Failed to find a valid faction to issue warrant (non-hostile humanlike w/ fac base).");
+                        return null;
+                    }
+
+                    var artifacts = Utils.AllArtifactDefs;
+                    var randomArtifact = artifacts.RandomElement();
+                    artWarrant.thing = ThingMaker.MakeThing(randomArtifact);
+                    artWarrant.reward = (int)(artWarrant.thing.MarketValue * Rand.Range(0.5f, 2f));
+                    DoWealthScaling(artWarrant);
+                    return artWarrant;
+                #endregion
+
+                case TYPE_TAME:
+                    var tameWarrant = new Warrant_TameAnimal()
+                    {
+                        loadID = GetWarrantID(),
+                        createdTick = Find.TickManager.TicksGame
+                    };
+
+                    Find.FactionManager.AllFactions.Where(faction =>
+                        faction.def.humanlikeFaction &&
+                        !faction.defeated &&
+                        !faction.Hidden &&
+                        !faction.IsPlayer &&
+                        !faction.HostileTo(Faction.OfPlayer) &&
+                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out tameWarrant.issuer);
+
+                    if (tameWarrant.issuer == null)
+                    {
+                        Log.Error("Failed to find a valid faction to issue warrant (non-hostile humanlike w/ fac base).");
+                        return null;
+                    }
+
+                    var playerHome = Find.AnyPlayerHomeMap;
+                    if (playerHome == null)
+                        return null;
+
+                    // Get a random animal kind that can spawn in the player map
+                    // in the current season, and is tameable.
+                    var allAnimals = (from animal in playerHome.Biome.AllWildAnimals
+                                      where playerHome.mapTemperature.SeasonAcceptableFor(animal.race) &&
+                                            animal.RaceProps.wildness < 1f
+                                      select animal).ToList();
+
+                    if (!allAnimals.TryRandomElementByWeight(a => a.race.GetStatValueAbstract(StatDefOf.MarketValue), out tameWarrant.AnimalRace))
+                    {
+                        Log.Error($"Failed to find animal type to spawn for tame warrant. There were {allAnimals.Count} candidates.");
+                        return null;
+                    }
+
+                    float marketValue = tameWarrant.AnimalRace.race.GetStatValueAbstract(StatDefOf.MarketValue);
+
+                    tameWarrant.Reward = (int)(marketValue * Rand.Range(0.7f, 2.5f));
+                    DoWealthScaling(tameWarrant);
+
+                    // Cap reward at 350% of animal market value.
+                    tameWarrant.Reward = (int)Mathf.Min(marketValue * 3.5f, tameWarrant.Reward);
+                    return tameWarrant;
+
+                default:
+                    Log.Error($"Warrant type switch invalid: {type}");
                     return null;
-                }
-
-                var artifacts = Utils.AllArtifactDefs;
-                var randomArtifact = artifacts.RandomElement();
-                warrant.thing = ThingMaker.MakeThing(randomArtifact);
-                warrant.reward = (int)(warrant.thing.MarketValue * Rand.Range(0.5f, 2f));
-                DoWealthScaling(warrant);
-                return warrant;
             }
         }
 
@@ -256,6 +340,10 @@ namespace SimpleWarrants
 
                 case Warrant_Artifact art:
                     art.reward += increment;
+                    return;
+
+                case Warrant_TameAnimal tame:
+                    tame.Reward += increment;
                     return;
             }
         }

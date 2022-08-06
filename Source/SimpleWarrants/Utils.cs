@@ -13,6 +13,7 @@ namespace SimpleWarrants
         public static IncidentDef SW_Visitors;
         public static RulePackDef SW_WantedFor;
         public static QuestScriptDef SW_Warrant_Animal;
+        public static QuestScriptDef SW_Warrant_Tame;
         public static QuestScriptDef SW_Warrant_Artifact;
         public static QuestScriptDef SW_Warrant_Pawn;
     }

@@ -35,13 +35,17 @@ namespace SimpleWarrants
         public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
             base.Draw(rect, doAcceptAndDeclineButtons, doCompensateWarrantButton);
-            var pawnRect = new Rect(new Vector2(rect.x + 90, rect.y + 10), new Vector2(rect.height * 0.722f, rect.height));
+            var pawnRect = new Rect(new Vector2(rect.x + 100, rect.y + 10), new Vector2(rect.height * 0.7f, rect.height));
             Vector2 pos = new Vector2(pawnRect.width, pawnRect.height);
-            GUI.DrawTexture(pawnRect, PortraitsCache.Get(pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f));
+            var portraitColor = pawn.RaceProps.Animal ? pawn.def.uiIconColor : Color.white;
+            var portrait = pawn.RaceProps.Animal ? (Texture)pawn.def.uiIcon : PortraitsCache.Get(pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f);
+            GUI.color = portraitColor;
+            GUI.DrawTexture(pawnRect, portrait, ScaleMode.ScaleToFit);
+            GUI.color = Color.white;
             Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 24, pawn);
 
             Text.Font = GameFont.Medium;
-            var pawnName = pawn.RaceProps.Animal ? pawn.def.LabelCap.ToString() : pawn.Name.ToString();
+            var pawnName = pawn.RaceProps.Animal ? $"<color=#f0898e>{"SW.Hunt".Translate()}</color> {pawn.def.LabelCap}" : pawn.Name.ToString();
             var textSize = Text.CalcSize(pawnName);
             var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, pawnName);
@@ -52,6 +56,7 @@ namespace SimpleWarrants
                 GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
                 TooltipHandler.TipRegion(insufficientRewardBox, "SW.InsufficientReward".Translate());
             }
+
             var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, rect.width - pawnRect.width, nameInfoBox.height);
             if (!pawn.RaceProps.Animal)
             {
@@ -153,11 +158,11 @@ namespace SimpleWarrants
             return true;
         }
 
-        public override void GiveReward(Caravan caravan)
+        public override void GiveReward(Caravan caravan, Thing thingHandedIn)
         {
-            base.GiveReward(caravan);
+            base.GiveReward(caravan, thingHandedIn);
 
-            bool isPawnDead = thing is Corpse || pawn.Dead;
+            bool isPawnDead = thingHandedIn is Corpse or Pawn { Dead: true };
             var rewardAmount = isPawnDead ? rewardForDead : rewardForLiving;
 
             if (rewardAmount <= 0)
@@ -217,6 +222,7 @@ namespace SimpleWarrants
         public override void OnCreate()
         {
             base.OnCreate();
+
             if (pawn.Faction != null && !pawn.Faction.HostileTo(Faction.OfPlayer))
             {
                 pawn.Faction.TryAffectGoodwillWith(Faction.OfPlayer, -80);
