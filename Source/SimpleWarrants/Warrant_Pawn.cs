@@ -46,7 +46,7 @@ namespace SimpleWarrants
             var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, pawnName);
 
-            if (issuer.IsPlayer && MaxReward() < (pawn.MarketValue * 0.75f))
+            if (issuer.IsPlayer && MaxRewardValue() < (pawn.MarketValue * 0.75f))
             {
                 var insufficientRewardBox = new Rect(nameInfoBox.xMax + 5, nameInfoBox.y + 3, 24, 24);
                 GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
@@ -223,13 +223,9 @@ namespace SimpleWarrants
             }
         }
 
-        public override int MaxReward()
+        public override int MaxRewardValue()
         {
-            if (rewardForDead > rewardForLiving)
-            {
-                return rewardForDead;
-            }
-            return rewardForLiving;
+            return Mathf.Max(rewardForDead, rewardForLiving);
         }
     }
 }

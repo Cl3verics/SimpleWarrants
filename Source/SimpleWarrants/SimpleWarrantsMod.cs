@@ -6,18 +6,18 @@ namespace SimpleWarrants
 {
     internal class SimpleWarrantsMod : Mod
     {
-        public static SimpleWarrantsSettings settings;
+        public static SimpleWarrantsSettings Settings { get; private set; }
 
         public SimpleWarrantsMod(ModContentPack mod) : base(mod)
         {
-            settings = GetSettings<SimpleWarrantsSettings>();
+            Settings = GetSettings<SimpleWarrantsSettings>();
             new Harmony("SimpleWarrants.Mod").PatchAll();
         }
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
             base.DoSettingsWindowContents(inRect);
-            settings.DoSettingsWindowContents(inRect);
+            Settings.DoSettingsWindowContents(inRect);
         }
 
         public override string SettingsCategory()

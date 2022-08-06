@@ -14,6 +14,7 @@
     <AssemblyName>SimpleWarrants</AssemblyName>
     <RootNamespace>SimpleWarrants</RootNamespace>
     <Platforms>AnyCPU;ARM64</Platforms>
+    <UserSecretsId>67a0fce7-7eea-4422-9a4f-b05fa0f250ec</UserSecretsId>
   </PropertyGroup>
 
 

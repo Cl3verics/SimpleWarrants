@@ -24,7 +24,7 @@ namespace SimpleWarrants
             var textSize = Text.CalcSize(thing.LabelCap);
             var nameInfoBox = new Rect(thingRect.xMax, thingRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, thing.LabelCap);
-            if (issuer.IsPlayer && MaxReward() < (thing.MarketValue * 0.75f))
+            if (issuer.IsPlayer && MaxRewardValue() < (thing.MarketValue * 0.75f))
             {
                 var insufficientRewardBox = new Rect(nameInfoBox.xMax + 5, nameInfoBox.y + 3, 24, 24);
                 GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
@@ -94,28 +94,18 @@ namespace SimpleWarrants
 
         public override bool IsWarrantActive()
         {
-            if (thing.Destroyed)
-            {
-                return false;
-            }
-            return true;
+            return !thing.Destroyed;
         }
 
         public override float AcceptChance()
         {
-            if (!acceptChanceCached.HasValue)
-            {
-                acceptChanceCached = reward / thing.MarketValue;
-            }
+            acceptChanceCached ??= reward / thing.MarketValue;
             return acceptChanceCached.Value;
         }
 
         public override float SuccessChance()
         {
-            if (!successChanceCached.HasValue)
-            {
-                successChanceCached = reward / thing.MarketValue;
-            }
+            successChanceCached ??= reward / thing.MarketValue;
             return successChanceCached.Value;
         }
 
@@ -129,7 +119,7 @@ namespace SimpleWarrants
             return false;
         }
 
-        public override int MaxReward()
+        public override int MaxRewardValue()
         {
             return reward;
         }

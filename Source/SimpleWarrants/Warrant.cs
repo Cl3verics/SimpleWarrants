@@ -142,7 +142,7 @@ namespace SimpleWarrants
             }
         }
 
-        public abstract int MaxReward();
+        public abstract int MaxRewardValue();
 
         public virtual void DoAcceptAction()
         {
@@ -228,24 +228,26 @@ namespace SimpleWarrants
 
         public bool CanPlayerReceive()
         {
+            // If the target thing belongs to the player faction, allow it.
             if (thing.Faction == Faction.OfPlayer)
             {
                 return true;
             }
+
+            // Player can't take receive own warrants...
             if (issuer == Faction.OfPlayer)
             {
                 return false;
             }
-            if (SimpleWarrantsSettings.enableWarrantRewardScaling)
-            {
-                var wealth = Find.AnyPlayerHomeMap.wealthWatcher.WealthTotal;
-                if ((wealth * 0.05f) >= MaxReward())
-                {
-                    return true;
-                }
-                return false;
-            }
-            return true;
+
+            // Player can't receive warrants with a reward more than 5% of their colony's total wealth.
+            float maxPct = SimpleWarrantsMod.Settings.warrantRewardMax;
+            if (maxPct >= 1f)
+                return true;
+
+            var wealth = Find.AnyPlayerHomeMap.wealthWatcher.WealthTotal;
+            return wealth * maxPct >= MaxRewardValue();
+
         }
     }
 
