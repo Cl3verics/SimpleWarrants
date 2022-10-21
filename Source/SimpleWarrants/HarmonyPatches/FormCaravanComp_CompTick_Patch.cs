@@ -1,25 +1,25 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using HarmonyLib;
+﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using Verse;
 using Verse.AI;
 
-namespace SimpleWarrants
+namespace SimpleWarrants.HarmonyPatches
 {
-    [HarmonyPatch(typeof(GenHostility), "AnyHostileActiveThreatTo_NewTemp",
-    new[] { typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool) },
-    new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal })]
+    [HarmonyPatch(typeof(GenHostility), "AnyHostileActiveThreatTo",
+    new[] { typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool), typeof(bool) },
+    new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal, ArgumentType.Normal })]
     internal static class AnyHostileActiveThreatTo_Patch
     {
-        public static Dictionary<Map, Faction> lastFactionThreats = new Dictionary<Map, Faction>();
+        public static Dictionary<Map, Faction> lastFactionThreats = new();
 
         [HarmonyPriority(Priority.Last)]
-        public static void Postfix(ref bool __result, Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile = false)
+        public static void Postfix(ref bool __result, Map map, Faction faction, ref IAttackTarget threat)
         {
-            if (__result && !map.IsPlayerHome && threat is Pawn { Faction: {} } pawn && pawn.Faction.def.humanlikeFaction)
+            if (__result && !map.IsPlayerHome && threat is Pawn { Faction: { } } pawn && pawn.Faction.def.humanlikeFaction)
             {
                 lastFactionThreats[map] = pawn.Faction;
             }
@@ -27,15 +27,11 @@ namespace SimpleWarrants
 
         public static Faction GetLastHostileFactionFromMap(Map map)
         {
-            if (lastFactionThreats.TryGetValue(map, out Faction faction))
-            {
-                return faction;
-            }
-            if (map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && map.ParentFaction.HostileTo(Faction.OfPlayer))
-            {
-                return map.ParentFaction;
-            }
-            return null;
+            return lastFactionThreats.TryGetValue(map, out Faction faction)
+                ? faction
+                : map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && map.ParentFaction.HostileTo(Faction.OfPlayer)
+                ? map.ParentFaction
+                : null;
         }
     }
 
@@ -80,9 +76,9 @@ namespace SimpleWarrants
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
         {
-            var notify_PlayerRaidedSomeone = AccessTools.Method(typeof(IdeoUtility), nameof(IdeoUtility.Notify_PlayerRaidedSomeone));
-            var codes = codeInstructions.ToList();
-            for (var i = 0; i < codes.Count; i++)
+            System.Reflection.MethodInfo notify_PlayerRaidedSomeone = AccessTools.Method(typeof(IdeoUtility), nameof(IdeoUtility.Notify_PlayerRaidedSomeone));
+            List<CodeInstruction> codes = codeInstructions.ToList();
+            for (int i = 0; i < codes.Count; i++)
             {
                 yield return codes[i];
                 if (codes[i].Calls(notify_PlayerRaidedSomeone))
@@ -95,21 +91,27 @@ namespace SimpleWarrants
 
         public static void RegisterAssault(Map map)
         {
-            var faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(map);
+            Faction faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(map);
             if (faction == null)
+            {
                 return;
+            }
 
             // Do not count aggression against enemies as assault.
             if (faction.HostileTo(Faction.OfPlayer))
+            {
                 return;
+            }
 
             // 50% chance.
             if (!Rand.Chance(0.5f))
+            {
                 return;
+            }
 
             // Get a random player pawn from the attackers and slap a bounty on them.
-            var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(WarrantsManager.Instance.CanPutWarrantOn);
-            if (pawns.TryRandomElement(out var selectedPawn))
+            IEnumerable<Pawn> pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(WarrantsManager.Instance.CanPutWarrantOn);
+            if (pawns.TryRandomElement(out Pawn selectedPawn))
             {
                 WarrantsManager.Instance.PutWarrantOn(selectedPawn, "SW.Assault".Translate(), faction);
             }
