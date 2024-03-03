@@ -7,6 +7,9 @@
     <description>View available and active warrants.</description>
     <tabWindowClass>SimpleWarrants.MainTabWindow_Warrants</tabWindowClass>
     <order>66</order>
+    <validWithoutMap>true</validWithoutMap>
+    <minimized>True</minimized>
+    <iconPath>UI/Warrants/TargetWarrants</iconPath>
   </MainButtonDef>
 
 </Defs>

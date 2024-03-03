@@ -6,7 +6,7 @@ using Verse;
 
 namespace SimpleWarrants
 {
-    [HotSwapAll]
+    [HotSwappable]
     [StaticConstructorOnStartup]
     public class Warrant_Artifact : Warrant
     {

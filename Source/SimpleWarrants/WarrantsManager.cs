@@ -39,6 +39,8 @@ namespace SimpleWarrants
         public List<Warrant> acceptedWarrants; // Warrants accepted by the player, to be completed by the player.
         public List<Warrant> availableWarrants; // Available warrants, created by AI.
         public List<Warrant> createdWarrants; // Warrants created by the player, to be completed by AI.
+        public List<Warrant> postponedWarrants; // Warrants accepted by the player, payment postponed by the player.
+
         public bool initialized;
         public int lastWarrantID;
         public Dictionary<Warrant_Pawn, LordCollection> raidLords;
@@ -64,6 +66,7 @@ namespace SimpleWarrants
             acceptedWarrants ??= new List<Warrant>();
             createdWarrants ??= new List<Warrant>();
             takenWarrants ??= new List<Warrant>();
+            postponedWarrants ??= new List<Warrant>();
             raidLords ??= new Dictionary<Warrant_Pawn, LordCollection>();
         }
 
@@ -97,7 +100,7 @@ namespace SimpleWarrants
             {
                 num++;
 
-                var warrant = GenerateRandomWarrant(false);
+                var warrant = GenerateRandomWarrant();
                 if (warrant == null || !warrant.CanPlayerReceive())
                     continue;
 
@@ -109,7 +112,7 @@ namespace SimpleWarrants
                 Log.Warning($"Generated {count}/{amountToPopulate} warrants in {num} tries. Colony wealth may be too low.");
         }
 
-        private Warrant GenerateRandomWarrant(bool includeColonists = true)
+        private Warrant GenerateRandomWarrant()
         {
             warrantTypeToWeight[TYPE_ARTIFACT] = SimpleWarrantsMod.Settings.enableWarrantsOnArtifact ? 0.25f : 0f;
             warrantTypeToWeight[TYPE_PAWN] = 1f;
@@ -122,14 +125,6 @@ namespace SimpleWarrants
             {
                 case TYPE_PAWN:
                     #region PAWN WARRANT
-                    // Human warrant.
-                    var humanlikeColonists = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists.Where(x => x.HomeFaction == Faction.OfPlayer && x.RaceProps.Humanlike).ToList();
-
-                    bool placeOnColonist = includeColonists &&
-                                           SimpleWarrantsMod.Settings.enableWarrantsOnColonists &&
-                                           humanlikeColonists.Any(CanPutWarrantOn) &&
-                                           Rand.Chance(SimpleWarrantsMod.Settings.chanceOfWarrantsMadeOnColonist);
-
                     var warrant = new Warrant_Pawn
                     {
                         loadID = GetWarrantID(),
@@ -137,49 +132,31 @@ namespace SimpleWarrants
                         thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement())
                     };
 
-                    if (placeOnColonist)
+                    // Generate a random pawn to give a warrant to.
+                    // The pawn is made part of a random human-like faction.
+                    var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
+                    Faction faction = null;
+
+                    if (randomKind.defaultFactionType != null)
+                        faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
+
+                    faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
+
+                    Find.FactionManager.AllFactions.Where(fac =>
+                        fac.def.humanlikeFaction &&
+                        !fac.defeated &&
+                        !fac.Hidden &&
+                        !fac.IsPlayer &&
+                        !fac.HostileTo(Faction.OfPlayer) &&
+                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == fac)).TryRandomElement(out warrant.issuer);
+
+                    if (warrant.issuer == null)
                     {
-                        // Give to a colonist that does not already have a warrant.
-                        var colonist = humanlikeColonists.Where(CanPutWarrantOn).RandomElement();
-                        warrant.thing = colonist;
-                        warrant.issuer = Utils.AnyHostileToPlayerFaction();
-
-                        if (warrant.issuer == null)
-                        {
-                            Log.Error("Failed to find a valid faction to issue warrant (non-hostile).");
-                            return null;
-                        }
-
-                        Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonist".Translate(colonist.Named("PAWN")), "SW.WarrantOnYourColonistDesc".Translate(colonist.Named("PAWN")), LetterDefOf.NegativeEvent, colonist);
+                        Log.Error("Failed to find a valid faction to issue warrant (non-hostile humanlike w/ fac base).");
+                        return null;
                     }
-                    else
-                    {
-                        // Generate a random pawn to give a warrant to.
-                        // The pawn is made part of a random human-like faction.
-                        var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
-                        Faction faction = null;
 
-                        if (randomKind.defaultFactionType != null)
-                            faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
-
-                        faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
-
-                        Find.FactionManager.AllFactions.Where(fac =>
-                            fac.def.humanlikeFaction &&
-                            !fac.defeated &&
-                            !fac.Hidden &&
-                            !fac.IsPlayer &&
-                            !fac.HostileTo(Faction.OfPlayer) &&
-                            Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == fac)).TryRandomElement(out warrant.issuer);
-
-                        if (warrant.issuer == null)
-                        {
-                            Log.Error("Failed to find a valid faction to issue warrant (non-hostile humanlike w/ fac base).");
-                            return null;
-                        }
-
-                        warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
-                    }
+                    warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
 
                     warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.pawn.thingIDNumber);
                     AssignRewards(warrant);
@@ -350,7 +327,12 @@ namespace SimpleWarrants
 
         public bool CanPutWarrantOn(Pawn pawn)
         {
-            return availableWarrants.OfType<Warrant_Pawn>().All(x => x.pawn != pawn) && (!pawn.IsColonist || SimpleWarrantsMod.Settings.enableWarrantsOnColonists);
+            var allWarrants = availableWarrants.OfType<Warrant_Pawn>();
+            if (pawn.IsColonist && allWarrants.Any(x => x.pawn.IsColonist)) // cannot put warrants on more than one colonist
+            {
+                return false;
+            }
+            return allWarrants.All(x => x.pawn != pawn) && (!pawn.IsColonist || SimpleWarrantsMod.Settings.enableWarrantsOnColonists);
         }
 
         public void PutWarrantOn(Pawn victim, string reason, Faction issuer = null)
@@ -422,28 +404,22 @@ namespace SimpleWarrants
                 }
             }
 
-            // Available warrants that target a colonist trigger raids periodically.
-            foreach (var warrant in availableWarrants.Where(x => x.IsThreatForPlayer()))
+            if (Rand.MTBEventOccurs(SimpleWarrantsMod.Settings.bountyHunterMTB, GenDate.TicksPerDay, 1)
+                && availableWarrants.Where(x => x.IsThreatForPlayer()).TryRandomElement(out var warrantOnColonist))
             {
-                if (Rand.MTBEventOccurs(SimpleWarrantsMod.Settings.bountyHunterMTB, GenDate.TicksPerDay, 1))
+                var map = Find.AnyPlayerHomeMap;
+                if (map != null)
                 {
-                    var map = Find.AnyPlayerHomeMap;
-                    if (map == null)
-                        break;
-
                     var parameters = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
                     Find.FactionManager.AllFactionsVisible.Where(x => x.def.humanlikeFaction && x.HostileTo(Faction.OfPlayer)).TryRandomElement(out parameters.faction);
                     parameters.points *= SimpleWarrantsMod.Settings.bountyHunterRaidScale;
 
-                    if (parameters.faction == null)
+                    if (parameters.faction != null)
                     {
-                        Log.Error("Failed to find raider faction for warrant hunters (hostile humanlike).");
-                        continue;
+                        IncidentWorker_Raid_TryGenerateRaidInfo_Patch.huntForWarrant = true;
+                        IncidentDefOf.RaidEnemy.Worker.TryExecute(parameters);
+                        IncidentWorker_Raid_TryGenerateRaidInfo_Patch.huntForWarrant = false;
                     }
-
-                    IncidentWorker_Raid_TryGenerateRaidInfo_Patch.huntForWarrant = true;
-                    IncidentDefOf.RaidEnemy.Worker.TryExecute(parameters);
-                    IncidentWorker_Raid_TryGenerateRaidInfo_Patch.huntForWarrant = false;
                 }
             }
         }
@@ -535,95 +511,123 @@ namespace SimpleWarrants
                 var success = Rand.Chance(chance);
                 if (success)
                 {
-                    var reward = 0;
-                    bool dead = false;
-                    switch (warrant)
-                    {
-                        case Warrant_Pawn wp:
-                        {
-                            // Chance to be returned alive is the ratio between living and dead reward.
-                            float chanceReturnedAlive = Mathf.Clamp01((float)wp.rewardForLiving / (wp.rewardForLiving + wp.rewardForDead));
-                            if (wp.rewardForDead > 0 && !Rand.Chance(chanceReturnedAlive))
-                            {
-                                dead = true;
-                            }
-                            reward = dead ? wp.rewardForDead : wp.rewardForLiving;
-                            break;
-                        }
-
-                        case Warrant_Artifact wa:
-                            reward = wa.reward;
-                            break;
-                    }
-                    var map = Find.AnyPlayerHomeMap;
-                    var silvers = map.listerThings.ThingsOfDef(ThingDefOf.Silver).Where(x => !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage())).ToList();
-
-                    string title = "SW.FactionCompletedWarrant".Translate(warrant.accepteer.Named("FACTION"));
-                    DiaNode diaNode = new DiaNode("SW.FactionCompletedWarrantDesc".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap, reward));
-                    DiaOption payOption = new DiaOption("SW.Pay".Translate(reward));
-                    payOption.action = delegate
-                    {
-                        while (reward > 0)
-                        {
-                            Thing thing = silvers.RandomElement();
-                            silvers.Remove(thing);
-                            if (thing == null)
-                            {
-                                break;
-                            }
-                            int num = Math.Min(reward, thing.stackCount);
-                            thing.SplitOff(num).Destroy();
-                            reward -= num;
-                        }
-
-                        var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.FactionArrival, map);
-                        parms.faction = warrant.accepteer;
-                        var toDeliver = warrant.thing;
-                        if (dead)
-                        {
-                            var pawn = warrant.thing as Pawn;
-                            pawn.Kill(null);
-                            toDeliver = pawn.Corpse;
-                        }
-                        else
-                        {
-                            if (warrant.thing is Pawn pawn)
-                            {
-                                //HealthUtility.DamageUntilDowned(pawn);
-                                HealthUtility.DamageLegsUntilIncapableOfMoving(pawn, false);
-                            }
-                        }
-                        ((IncidentWorker_Visitors)SW_DefOf.SW_Visitors.Worker).SpawnVisitors(toDeliver, parms);
-                    };
-                    payOption.resolveTree = true;
-                    if (silvers.Sum(x => x.stackCount) < reward)
-                    {
-                        payOption.Disable("SW.NotEnoughSilver".Translate());
-                    }
-                    diaNode.options.Add(payOption);
-
-                    DiaOption refuseOption = new DiaOption("SW.Refuse".Translate());
-                    refuseOption.action = delegate
-                    {
-                        warrant.accepteer.TryAffectGoodwillWith(Faction.OfPlayer, -100);
-                        var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
-                        parms.faction = warrant.accepteer;
-                        IncidentDefOf.RaidEnemy.Worker.TryExecute(parms);
-                    };
-                    refuseOption.resolveTree = true;
-                    diaNode.options.Add(refuseOption);
-                    Find.WindowStack.Add(new Dialog_NodeTreeWithFactionInfo(diaNode, warrant.accepteer, delayInteractivity: true, radioMode: false, title));
-                    Find.Archive.Add(new ArchivedDialog(diaNode.text, title, warrant.accepteer));
+                    MakeWarrantDialog(warrant);
                 }
                 else
                 {
                     Messages.Message("SW.FactionFailedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.NegativeEvent);
-
                     int relationshipDamage = SimpleWarrantsMod.Settings.failedPlayerWarrantRelationshipDamage;
                     if (relationshipDamage > 0)
                         warrant.accepteer.TryAffectGoodwillWith(Faction.OfPlayer, -relationshipDamage);
                 }
             }
+
+            for (int num = postponedWarrants.Count - 1; num >= 0; num--)
+            {
+                var warrant = postponedWarrants[num];
+                if (Find.TickManager.TicksGame >= warrant.postponedUntilTicks)
+                {
+                    MakeWarrantDialog(warrant);
+                    postponedWarrants.RemoveAt(num);
+                }
+            }
+        }
+
+        private void MakeWarrantDialog(Warrant warrant)
+        {
+            var reward = 0;
+            bool dead = false;
+            switch (warrant)
+            {
+                case Warrant_Pawn wp:
+                    {
+                        // Chance to be returned alive is the ratio between living and dead reward.
+                        float chanceReturnedAlive = Mathf.Clamp01((float)wp.rewardForLiving / (wp.rewardForLiving + wp.rewardForDead));
+                        if (wp.rewardForDead > 0 && !Rand.Chance(chanceReturnedAlive))
+                        {
+                            dead = true;
+                        }
+                        reward = dead ? wp.rewardForDead : wp.rewardForLiving;
+                        break;
+                    }
+
+                case Warrant_Artifact wa:
+                    reward = wa.reward;
+                    break;
+            }
+            var map = Find.AnyPlayerHomeMap;
+            var silvers = map.listerThings.ThingsOfDef(ThingDefOf.Silver).Where(x => !x.Position.Fogged(x.Map) && (map.areaManager.Home[x.Position] || x.IsInAnyStorage())).ToList();
+
+            string title = "SW.FactionCompletedWarrant".Translate(warrant.accepteer.Named("FACTION"));
+            DiaNode diaNode = new DiaNode("SW.FactionCompletedWarrantDesc".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap, reward));
+            DiaOption payOption = new DiaOption("SW.Pay".Translate(reward));
+            payOption.action = delegate
+            {
+                while (reward > 0)
+                {
+                    Thing thing = silvers.RandomElement();
+                    silvers.Remove(thing);
+                    if (thing == null)
+                    {
+                        break;
+                    }
+                    int num = Math.Min(reward, thing.stackCount);
+                    thing.SplitOff(num).Destroy();
+                    reward -= num;
+                }
+
+                var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.FactionArrival, map);
+                parms.faction = warrant.accepteer;
+                var toDeliver = warrant.thing;
+                if (dead)
+                {
+                    var pawn = warrant.thing as Pawn;
+                    pawn.Kill(null);
+                    toDeliver = pawn.Corpse;
+                }
+                else
+                {
+                    if (warrant.thing is Pawn pawn)
+                    {
+                        //HealthUtility.DamageUntilDowned(pawn);
+                        HealthUtility.DamageLegsUntilIncapableOfMoving(pawn, false);
+                        HealthUtility.TryAnesthetize(pawn);
+                    }
+                }
+                ((IncidentWorker_Visitors)SW_DefOf.SW_Visitors.Worker).SpawnVisitors(toDeliver, parms);
+            };
+            payOption.resolveTree = true;
+            if (silvers.Sum(x => x.stackCount) < reward)
+            {
+                payOption.Disable("SW.NotEnoughSilver".Translate());
+            }
+            diaNode.options.Add(payOption);
+
+            DiaOption refuseOption = new DiaOption("SW.Refuse".Translate());
+            refuseOption.action = delegate
+            {
+                warrant.accepteer.TryAffectGoodwillWith(Faction.OfPlayer, -100);
+                var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
+                parms.faction = warrant.accepteer;
+                IncidentDefOf.RaidEnemy.Worker.TryExecute(parms);
+            };
+            refuseOption.resolveTree = true;
+            diaNode.options.Add(refuseOption);
+            if (warrant.paymentPostponed is false)
+            {
+                DiaOption delayOption = new DiaOption("SW.Delay24Hours".Translate());
+                delayOption.action = delegate
+                {
+                    postponedWarrants.Add(warrant);
+                    warrant.postponedUntilTicks = Find.TickManager.TicksGame + (GenDate.TicksPerHour * 24);
+                    warrant.paymentPostponed = true;
+                };
+                delayOption.resolveTree = true;
+                diaNode.options.Add(delayOption);
+            }
+
+            Find.WindowStack.Add(new Dialog_NodeTreeWithFactionInfo(diaNode, warrant.accepteer, delayInteractivity: true, radioMode: false, title));
+            Find.Archive.Add(new ArchivedDialog(diaNode.text, title, warrant.accepteer));
         }
 
         public override void ExposeData()
@@ -633,6 +637,7 @@ namespace SimpleWarrants
             Scribe_Collections.Look(ref acceptedWarrants, "acceptedWarrants", LookMode.Deep);
             Scribe_Collections.Look(ref createdWarrants, "givenWarrants", LookMode.Deep);
             Scribe_Collections.Look(ref takenWarrants, "takenWarrants", LookMode.Deep);
+            Scribe_Collections.Look(ref postponedWarrants, "delayedWarrants", LookMode.Deep);
             Scribe_Values.Look(ref initialized, "initialized");
             Scribe_Values.Look(ref lastWarrantID, "lastWarrantID");
             Scribe_Collections.Look(ref raidLords, "raidLords", LookMode.Reference, LookMode.Deep, ref warrantKeys, ref lordValues);

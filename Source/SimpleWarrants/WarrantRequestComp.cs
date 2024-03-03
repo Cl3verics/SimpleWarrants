@@ -59,7 +59,7 @@ namespace SimpleWarrants
 
         private void Fulfill(Caravan caravan)
 		{
-			foreach (var warrant in ActiveWarrants)
+			foreach (var warrant in ActiveWarrants.ToList())
             {
 				var target = TryGetWarrantTargetInCaravan(warrant, caravan);
                 if (target == null)

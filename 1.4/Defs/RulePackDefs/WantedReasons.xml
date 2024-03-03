@@ -25,7 +25,6 @@
         <li>r_logentry->Fraud</li>
         <li>r_logentry->Loitering</li>
         <li>r_logentry->Arson</li>
-        <li>r_logentry->Kidnapped</li>
         <li>r_logentry->Other</li>
       </rulesStrings>
     </rulePack>

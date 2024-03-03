@@ -9,9 +9,9 @@ namespace SimpleWarrants
 {
 
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-	public class HotSwapAllAttribute : Attribute {}
+	public class HotSwappableAttribute : Attribute {}
 
-	[HotSwapAll]
+	[HotSwappable]
 	[StaticConstructorOnStartup]
 	public class MainTabWindow_Warrants : MainTabWindow
 	{
@@ -129,19 +129,23 @@ namespace SimpleWarrants
 
             if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
             {
-				var warrant = CreateWarrant(out string failReason);
-				if (!failReason.NullOrEmpty())
+                var warrant = CreateWarrant(out string failReason);
+                if (warrant is Warrant_Pawn warrantPawn && warrantPawn.pawn.Faction is not null 
+					&& warrantPawn.pawn.Faction != Faction.OfPlayer && warrantPawn.pawn.Faction.HostileTo(Faction.OfPlayer) is false)
                 {
-					Find.WindowStack.Add(new Dialog_MessageBox(failReason));
+					Find.WindowStack.Add(new Dialog_MessageBox("SW.ConfirmationPrompt".Translate(warrantPawn.pawn.Named("PAWN"),
+						warrantPawn.pawn.Faction.Name), "Confirm".Translate(), delegate
+                        {
+                            TryAddWarrant(warrant, failReason);
+                        }, "Cancel".Translate()));
                 }
 				else
 				{
-					warrant.OnCreate();
-					WarrantsManager.Instance.createdWarrants.Add(warrant);
-				}
+                    TryAddWarrant(warrant, failReason);
+                }
             }
 
-			Text.Font = GameFont.Medium;
+            Text.Font = GameFont.Medium;
 			var warrantSubject = new Rect(createWarrant.x, createWarrant.yMax + 20, createWarrant.width, createWarrant.height);
 			Widgets.Label(warrantSubject, "SW.WarrantSubject".Translate());
 
@@ -214,6 +218,19 @@ namespace SimpleWarrants
 			Text.Font = GameFont.Small;
 		}
 
+        private static void TryAddWarrant(Warrant warrant, string failReason)
+        {
+            if (!failReason.NullOrEmpty())
+            {
+                Find.WindowStack.Add(new Dialog_MessageBox(failReason));
+            }
+            else
+            {
+                warrant.OnCreate();
+                WarrantsManager.Instance.createdWarrants.Add(warrant);
+            }
+        }
+
         private void DrawPawnWarrant(Pawn pawn, Rect createWarrant, Rect dropdownRect)
         {
             var pawnRect = new Rect(new Vector2(createWarrant.x + 40, dropdownRect.yMax + 10), new Vector2(100 * 0.722f, 100));
@@ -244,31 +261,21 @@ namespace SimpleWarrants
 				}
 			}
 
-			var reasonRect = new Rect(dropdownRect.x, dropdownRect.yMax + 10, createWarrant.width, createWarrant.height);
+			var reasonRect = new Rect(dropdownRect.x - 30, dropdownRect.yMax + 10, 60, createWarrant.height);
 			if (curType == TargetType.Human)
             {
 				if (curReason.NullOrEmpty())
 				{
 					curReason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, pawn.thingIDNumber);
 				}
-
-				if (Widgets.ButtonTextSubtle(reasonRect, "SW.Reason".Translate(curReason)))
-				{
-					var floatList = new List<FloatMenuOption>();
-					foreach (var value in Utils.GenerateAllTextFromRule(SW_DefOf.SW_WantedFor).OrderBy(x => x))
-					{
-						floatList.Add(new FloatMenuOption(value, delegate
-						{
-							curReason = value;
-						}));
-					}
-					Find.WindowStack.Add(new FloatMenu(floatList));
-				}
+				Widgets.Label(reasonRect, "SW.Reason".Translate());
+				var reasonAreaRect = new Rect(reasonRect.xMax, reasonRect.y, 130, 24);
+				curReason = Widgets.TextArea(reasonAreaRect, curReason);
 			}
 
 
             Text.Font = GameFont.Small;
-            var capturePayment = new Rect(reasonRect.x - 30, reasonRect.yMax + 10, 120, 24);
+            var capturePayment = new Rect(reasonRect.x, reasonRect.yMax + 10, 120, 24);
 
 			Widgets.Label(capturePayment, "SW.CapturePayment".Translate());
 			var capturePaymentInput = new Rect(capturePayment.xMax, capturePayment.y, 60, 24);

@@ -8,7 +8,7 @@ using Verse;
 
 namespace SimpleWarrants
 {
-    [HotSwapAll]
+    [HotSwappable]
     [StaticConstructorOnStartup]
     public abstract class Warrant : IExposable, ILoadReferenceable
     {
@@ -30,6 +30,8 @@ namespace SimpleWarrants
         public Thing thing;
         public int tickToBeCompleted;
         private bool savedSomewhere;
+        public bool paymentPostponed;
+        public int postponedUntilTicks;
 
         public virtual bool UsesThings => true;
 
@@ -59,6 +61,8 @@ namespace SimpleWarrants
             Scribe_Values.Look(ref tickToBeCompleted, "tickToBeCompleted");
             Scribe_Values.Look(ref loadID, "loadID");
             Scribe_References.Look(ref relatedQuest, "relatedQuest");
+            Scribe_Values.Look(ref paymentPostponed, "paymentPostponed");
+            Scribe_Values.Look(ref postponedUntilTicks, "postponedUntilTicks");
 
             if (!UsesThings)
                 return;
@@ -81,6 +85,7 @@ namespace SimpleWarrants
             WarrantsManager.Instance.acceptedWarrants.Remove(this);
             WarrantsManager.Instance.createdWarrants.Remove(this);
             WarrantsManager.Instance.takenWarrants.Remove(this);
+            WarrantsManager.Instance.postponedWarrants.Remove(this);
         }
 
         public string GetUniqueLoadID()

@@ -7,7 +7,7 @@ using Verse.Sound;
 
 namespace SimpleWarrants
 {
-    [HotSwapAll]
+    [HotSwappable]
 	public class Dialog_SelectPawn : Window
 	{
         public override Vector2 InitialSize => new Vector2(620f, 500f);
@@ -17,6 +17,7 @@ namespace SimpleWarrants
         private Vector2 scrollPosition;
 
         string searchKey;
+		public Faction specificFaction;
 
         public Dialog_SelectPawn(MainTabWindow_Warrants parent)
 		{
@@ -40,13 +41,36 @@ namespace SimpleWarrants
 			searchKey = Widgets.TextField(searchRect, searchKey);
 			Text.Anchor = TextAnchor.UpperLeft;
 
+			var factionFilterLabel = "SW.FactionFilter".Translate(specificFaction?.Name ?? "None".Translate());
+			var factionFilterWidth = Text.CalcSize(factionFilterLabel).x + 10;
+			var factionButtonRect = new Rect(searchRect.xMax + 15, searchRect.y, factionFilterWidth, 24f);
+			if (Widgets.ButtonText(factionButtonRect, factionFilterLabel))
+			{
+				var list = new List<FloatMenuOption>();
+				var factions = allPawns.Select(x => x.Faction).Where(x => x != null).Distinct();
+				foreach (var faction in factions)
+				{
+					list.Add(new FloatMenuOption(faction.Name, delegate
+					{
+						specificFaction = faction;
+					}, itemIcon: faction.def.FactionIcon, iconColor: faction.Color));
+				}
+				list.Add(new FloatMenuOption("None".Translate(), delegate
+				{
+					specificFaction = null;
+				}));
+                Find.WindowStack.Add(new FloatMenu(list));
+			}
 			Rect outRect = new Rect(inRect);
 			outRect.y = searchRect.yMax + 5;
 			outRect.yMax -= 70f;
 			outRect.width -= 16f;
 
 			var pawns = searchKey.NullOrEmpty() ? allPawns : allPawns.Where(x => x.Name.ToStringFull.ToLower().Contains(searchKey.ToLower())).ToList();
-
+			if (specificFaction != null)
+			{
+				pawns = pawns.Where(x => x.Faction == specificFaction).ToList();
+			}
 			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, pawns.Count() * 35f);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
 			try

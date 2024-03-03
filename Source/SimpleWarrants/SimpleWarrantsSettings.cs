@@ -41,7 +41,7 @@ namespace SimpleWarrants
         public float warrantRewardMax = 0.08f;
 
         [Label("SW.warrantRewardScaling")]
-        public bool warrantRewardScaling = true;
+        public bool warrantRewardScaling = false;
 
         [Header("SW.Raids")]
 
