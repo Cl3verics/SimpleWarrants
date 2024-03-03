@@ -27,7 +27,7 @@ namespace SimpleWarrants
         private int curDeathPayment;
 
         private Pawn curPawn;
-        private string curReason;
+		private string curReason = null;
         private int curReward;
         private WarrantsTab curTab;
         private TargetType curType;
@@ -264,13 +264,13 @@ namespace SimpleWarrants
 			var reasonRect = new Rect(dropdownRect.x - 30, dropdownRect.yMax + 10, 60, createWarrant.height);
 			if (curType == TargetType.Human)
             {
-				if (curReason.NullOrEmpty())
+				if (curReason is null)
 				{
 					curReason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, pawn.thingIDNumber);
 				}
 				Widgets.Label(reasonRect, "SW.Reason".Translate());
 				var reasonAreaRect = new Rect(reasonRect.xMax, reasonRect.y, 130, 24);
-				curReason = Widgets.TextArea(reasonAreaRect, curReason);
+				curReason = string.Concat(Widgets.TextArea(reasonAreaRect, curReason).Take(14));
 			}
 
 
@@ -367,6 +367,7 @@ namespace SimpleWarrants
             warrant.rewardForLiving = curCapturePayment;
             warrant.rewardForDead = curDeathPayment;
             warrant.reason = curReason;
+			curReason = null;
             if (deathPaymentEnabled && curDeathPayment <= 0)
             {
                 failReason = "SW.YouMustFillAmountForDeadReward".Translate();
