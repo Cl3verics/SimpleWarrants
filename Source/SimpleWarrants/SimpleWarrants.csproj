@@ -30,7 +30,7 @@
 
   <PropertyGroup Condition="'$(Configuration)'=='v1.3'">
     <DebugType>none</DebugType>
-    <OutputPath>..\..\1.4\Assemblies\</OutputPath>
+    <OutputPath>..\..\1.5\Assemblies\</OutputPath>
     <Optimize>true</Optimize>
     <DefineConstants>V13</DefineConstants>
   </PropertyGroup>
