@@ -576,7 +576,7 @@ namespace SimpleWarrants
                     reward -= num;
                 }
 
-                var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.FactionArrival, map);
+                var parms = StorytellerUtility.DefaultParmsNow(SW_DefOf.FactionArrival, map);
                 parms.faction = warrant.accepteer;
                 var toDeliver = warrant.thing;
                 if (dead)

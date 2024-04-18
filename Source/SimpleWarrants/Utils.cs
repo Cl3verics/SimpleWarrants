@@ -1,26 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using LudeonTK;
 using RimWorld;
 using Verse;
 using Verse.Grammar;
 
 namespace SimpleWarrants
 {
-
-    [DefOf]
-    public static class SW_DefOf
-    {
-        public static IncidentDef SW_Visitors;
-        public static RulePackDef SW_WantedFor;
-        public static QuestScriptDef SW_Warrant_Animal;
-        public static QuestScriptDef SW_Warrant_Tame;
-        public static QuestScriptDef SW_Warrant_Artifact;
-        public static QuestScriptDef SW_Warrant_Pawn;
-    }
     public static class Utils
     {
         public static IEnumerable<ThingDef> AllArtifactDefs => DefDatabase<ThingDef>.AllDefs.Where(x => (x.tradeTags?.Contains("Artifact") ?? false)
-                    || (x.thingCategories?.Contains(ThingCategoryDefOf.Artifacts) ?? false)
+                    || (x.thingCategories?.Contains(SW_DefOf.Artifacts) ?? false)
                     || (x.tradeTags?.Contains("ExoticMisc") ?? false));
 
         public static IEnumerable<PawnKindDef> AllWorthAnimalDefs => DefDatabase<PawnKindDef>.AllDefs.Where(x => x.race.race.Animal && x.race.GetStatValueAbstract(StatDefOf.MarketValue) >= 400);
