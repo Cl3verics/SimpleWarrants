@@ -86,11 +86,20 @@ namespace SimpleWarrants
             }
 		}
 
+        /**
+         * Separated method to get all potential targets to allow other modders to easily patch this method to add other potential sources.
+         * For example allowing pawns to be taken from pawn storage mods or potentially remote locations rather than directly in the caravan.
+         */
+		protected virtual IEnumerable<Thing> GetPotentialTargetsInCaravan(Warrant warrant, Caravan caravan)
+		{
+			return CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading);
+		}
+
         private Thing TryGetWarrantTargetInCaravan(Warrant warrant, Caravan caravan)
         {
             var tame = warrant as Warrant_TameAnimal;
 
-			foreach (var thing in CaravanInventoryUtility.AllInventoryItems(caravan).Concat(caravan.PawnsListForReading))
+			foreach (var thing in GetPotentialTargetsInCaravan(warrant, caravan))
             {
                 // Tame warrant requires any pawn of the required type.
                 if (tame != null && thing is Pawn p && p.RaceProps.Animal && p.kindDef == tame.AnimalRace)
