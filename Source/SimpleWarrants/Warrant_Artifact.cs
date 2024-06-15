@@ -10,8 +10,13 @@ namespace SimpleWarrants
     [StaticConstructorOnStartup]
     public class Warrant_Artifact : Warrant
     {
-        public static readonly Texture2D IconRetrieve = ContentFinder<Texture2D>.Get("UI/Warrants/IconRetrieve");
+        public static readonly Texture2D IconRetrieve;
         public int reward;
+
+        static Warrant_Artifact()
+        {
+            IconRetrieve = ContentFinder<Texture2D>.Get("UI/Warrants/IconRetrieve");
+        }
 
         public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {
