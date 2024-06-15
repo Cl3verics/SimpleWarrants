@@ -11,8 +11,8 @@ namespace SimpleWarrants
     [StaticConstructorOnStartup]
     public class Warrant_Pawn : Warrant
     {
-        public static readonly Texture2D IconCapture = ContentFinder<Texture2D>.Get("UI/Warrants/IconCapture");
-        public static readonly Texture2D IconDeath = ContentFinder<Texture2D>.Get("UI/Warrants/IconDeath");
+        public static readonly Texture2D IconCapture;
+        public static readonly Texture2D IconDeath;
 
         public Pawn pawn
         {
@@ -31,6 +31,12 @@ namespace SimpleWarrants
         public int rewardForDead;
 
         public int rewardForLiving;
+
+        static Warrant_Pawn()
+        {
+            IconDeath = ContentFinder<Texture2D>.Get("UI/Warrants/IconDeath");
+            IconCapture = ContentFinder<Texture2D>.Get("UI/Warrants/IconCapture");
+        }
 
         public override void Draw(Rect rect, bool doAcceptAndDeclineButtons = true, bool doCompensateWarrantButton = false)
         {

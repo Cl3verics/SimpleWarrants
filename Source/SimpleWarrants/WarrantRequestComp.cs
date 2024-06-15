@@ -19,7 +19,13 @@ namespace SimpleWarrants
 	[StaticConstructorOnStartup]
 	public class WarrantRequestComp : WorldObjectComp
 	{
-        private static readonly Texture2D TradeCommandTex = ContentFinder<Texture2D>.Get("UI/Commands/FulfillTradeRequest");
+        private static readonly Texture2D TradeCommandTex;
+
+        static WarrantRequestComp()
+		{
+			TradeCommandTex = ContentFinder<Texture2D>.Get("UI/Commands/FulfillTradeRequest");
+		}
+
         public bool ActiveRequest => ActiveWarrants.Any();
         public IEnumerable<Warrant> ActiveWarrants => WarrantsManager.Instance.acceptedWarrants?.Where(x => x.issuer == parent?.Faction && x.IsWarrantActive()) ?? Array.Empty<Warrant>();
 
@@ -111,13 +117,13 @@ namespace SimpleWarrants
                 }
 
 				// Corpse for pawn warrant.
-                if (warrant.thing is Pawn { Dead: true } pawn && thing == pawn.Corpse)
+                if (warrant.thing is Pawn pawn && thing is Corpse corpse && corpse.InnerPawn.thingIDNumber == pawn.thingIDNumber)
                 {
-					return pawn.Corpse;
+					return thing;
 				}
 
 				// Living pawn for pawn warrant.
-                if (thing == warrant.thing)
+                if (thing.thingIDNumber == warrant.thing.thingIDNumber)
                 {
                     return thing;
                 }

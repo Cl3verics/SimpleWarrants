@@ -12,7 +12,7 @@ namespace SimpleWarrants
     [StaticConstructorOnStartup]
     public abstract class Warrant : IExposable, ILoadReferenceable
     {
-        public static readonly Texture2D InsufficientRewardIcon = ContentFinder<Texture2D>.Get("UI/Warrants/IconWarning");
+        public static readonly Texture2D InsufficientRewardIcon;
 
         public int ApproximateAcceptionDate => Mathf.Max((int)(createdTick + (GenDate.TicksPerDay * 7) / AcceptChance()), Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
         public int ApproximateCompletionDate => Mathf.Max(tickToBeCompleted, Find.TickManager.TicksGame) - Find.TickManager.TicksGame;
@@ -32,6 +32,11 @@ namespace SimpleWarrants
         private bool savedSomewhere;
         public bool paymentPostponed;
         public int postponedUntilTicks;
+
+        static Warrant()
+        {
+            InsufficientRewardIcon = ContentFinder<Texture2D>.Get("UI/Warrants/IconWarning");
+        }
 
         public virtual bool UsesThings => true;
 
