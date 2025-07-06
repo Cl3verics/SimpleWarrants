@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -53,7 +53,7 @@ namespace SimpleWarrants
 					list.Add(new FloatMenuOption(faction.Name, delegate
 					{
 						specificFaction = faction;
-					}, itemIcon: faction.def.FactionIcon, iconColor: faction.Color));
+					}, iconTex: faction.def.FactionIcon, iconColor: faction.Color));
 				}
 				list.Add(new FloatMenuOption("None".Translate(), delegate
 				{

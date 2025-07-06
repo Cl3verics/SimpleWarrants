@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -208,6 +208,7 @@ public static class SimpleSettings
 
                 if(isCurrentTab)
                 {
+                    Log.Message("tes");
                     var headerRect = new Rect(new Vector2(pos.x, pos.y + 12), new Vector2(inRect.width - 20, headerHeight));
                     string headerText = header.header.TryTranslate(out var f) ? f : $"{settings.GetType().FullName}.{header.header}".TryTranslate(out var found) ? found : header.header;
                     Widgets.Label(headerRect, $"<color=cyan><b><size=22>{headerText}</size></b></color>");
@@ -449,14 +450,14 @@ public static class SimpleSettings
         float value = member.Get<float>(settings);
 
         const float TEXTBOX_HEIGHT = 28;
-        Rect field = area;
-        field.y += height;
-        field.height = TEXTBOX_HEIGHT;
+        Rect fieldInfo = area;
+        fieldInfo.y += height;
+        fieldInfo.height = TEXTBOX_HEIGHT;
 
         float minF = min ?? float.MinValue;
         float maxF = max ?? float.MaxValue;
         float newValue = value;
-        Widgets.TextFieldNumeric(field, ref newValue, ref member.TextBuffer, minF, maxF);
+        Widgets.TextFieldNumeric(fieldInfo, ref newValue, ref member.TextBuffer, minF, maxF);
         if (newValue != value)
             member.Set(settings, newValue);
 
@@ -632,7 +633,7 @@ public static class SimpleSettings
 
     private class MemberWrapperDict<K, V> : MemberWrapper
     {
-        public MemberWrapperDict(object obj, FieldInfo field) : base(obj, field) { }
+        public MemberWrapperDict(object obj, FieldInfo fieldInfo) : base(obj, fieldInfo) { }
         public MemberWrapperDict(object obj, PropertyInfo prop) : base(obj, prop) { }
 
         private LookMode GetLookMode<T>()
@@ -656,7 +657,7 @@ public static class SimpleSettings
 
     private class MemberWrapperList<T> : MemberWrapper
     {
-        public MemberWrapperList(object obj, FieldInfo field) : base(obj, field) { }
+        public MemberWrapperList(object obj, FieldInfo fieldInfo) : base(obj, fieldInfo) { }
         public MemberWrapperList(object obj, PropertyInfo prop) : base(obj, prop) { }
 
         public LookMode GetLookMode()
@@ -680,7 +681,7 @@ public static class SimpleSettings
 
     private class MemberWrapperDef<T> : MemberWrapperGen<T> where T : Def, new()
     {
-        public MemberWrapperDef(object obj, FieldInfo field) : base(obj, field) { }
+        public MemberWrapperDef(object obj, FieldInfo fieldInfo) : base(obj, fieldInfo) { }
         public MemberWrapperDef(object obj, PropertyInfo prop) : base(obj, prop) { }
 
         public override void Expose(object obj)
@@ -695,7 +696,7 @@ public static class SimpleSettings
 
     private class MemberWrapperGen<T> : MemberWrapper
     {
-        public MemberWrapperGen(object obj, FieldInfo field) : base(obj, field) { }
+        public MemberWrapperGen(object obj, FieldInfo fieldInfo) : base(obj, fieldInfo) { }
         public MemberWrapperGen(object obj, PropertyInfo prop) : base(obj, prop) { }
 
         public override void Expose(object obj)
@@ -720,7 +721,7 @@ public static class SimpleSettings
         {
             // When unboxing, we need to cast to the exact type.
             // However, it is nice to be able to call Get<T> where T is assignable from the real type,
-            // such as Get<float> when the field is actually a double.
+            // such as Get<float> when the fieldInfo is actually a double.
             // The cast will fail unless we unbox to the T first before re-boxing, then unboxing into 
             object temp = base.Get<T>(obj);
             if (temp == null)
@@ -750,24 +751,24 @@ public static class SimpleSettings
     public abstract class MemberWrapper
     {
         public string DisplayName => _displayName ??= MakeDisplayName();
-        public string Name => field?.Name ?? prop?.Name;
+        public string Name => fieldInfo?.Name ?? prop?.Name;
         public readonly object DefaultValue;
-        public Type MemberType => field?.FieldType ?? prop.PropertyType;
-        public Type DeclaringType => field?.DeclaringType ?? prop.DeclaringType;
+        public Type MemberType => fieldInfo?.FieldType ?? prop.PropertyType;
+        public Type DeclaringType => fieldInfo?.DeclaringType ?? prop.DeclaringType;
         public string TranslationName => $"{DeclaringType.FullName}.{Name}";
         public bool IsIExposable => MemberType.GetInterfaces().Contains(typeof(IExposable));
         public bool IsValueType => MemberType.IsValueType;
         public bool IsDefType => typeof(Def).IsAssignableFrom(MemberType);
-        public bool IsStatic => field?.IsStatic ?? prop.GetMethod.IsStatic;
+        public bool IsStatic => fieldInfo?.IsStatic ?? prop.GetMethod.IsStatic;
         public string NameInXML => Name;
-        public IEnumerable<Attribute> CustomAttributes => field?.GetCustomAttributes() ?? prop.GetCustomAttributes();
+        public IEnumerable<Attribute> CustomAttributes => fieldInfo?.GetCustomAttributes() ?? prop.GetCustomAttributes();
         public string TextBuffer = "";
         public DrawHandler OverrideDrawHandler { get; set; }
         public bool ShouldExpose { get; set; } = true;
         public SettingOptionsAttribute Options { get; protected set; }
         public DrawIfAttribute DrawIfAttr { get; protected set; }
 
-        protected readonly FieldInfo field;
+        protected readonly FieldInfo fieldInfo;
         protected readonly PropertyInfo prop;
         private string _displayName;
 
@@ -776,7 +777,7 @@ public static class SimpleSettings
             switch (member)
             {
                 case FieldInfo fi:
-                    field = fi;
+                    fieldInfo = fi;
                     break;
                 case PropertyInfo pi:
                     prop = pi;
@@ -820,7 +821,7 @@ public static class SimpleSettings
             if (TranslationName.TryTranslate(out var found))
                 return found;
 
-            // Make label from field name.
+            // Make label from fieldInfo name.
             var str = new StringBuilder();
             bool lastWasLower = true;
             foreach (var c in Name)
@@ -871,8 +872,8 @@ public static class SimpleSettings
 
         public virtual T Get<T>(object obj)
         {
-            if (field != null)
-                return (T)field.GetValue(IsStatic ? null : obj);
+            if (fieldInfo != null)
+                return (T)fieldInfo.GetValue(IsStatic ? null : obj);
 
             return (T)prop.GetValue(IsStatic ? null : obj);
         }
@@ -881,7 +882,7 @@ public static class SimpleSettings
 
         public virtual T TryGetCustomAttribute<T>() where T : Attribute
         {
-            return field != null ? field.TryGetAttribute<T>() : prop.TryGetAttribute<T>();
+            return fieldInfo != null ? fieldInfo.TryGetAttribute<T>() : prop.TryGetAttribute<T>();
         }
 
         public void Set(object obj, object value)
@@ -892,9 +893,9 @@ public static class SimpleSettings
             if (got != null && got != expected && value is IConvertible)
                 value = Convert.ChangeType(value, expected);
 
-            if (field != null)
+            if (fieldInfo != null)
             {
-                field.SetValue(IsStatic ? null : obj, value);
+                fieldInfo.SetValue(IsStatic ? null : obj, value);
                 return;
             }
 
@@ -941,10 +942,10 @@ public class DrawIfAttribute : Attribute
         if (Evaluate != null)
             return;
 
-        var field = AccessTools.Field(settings.GetType(), Condition);
-        if (field != null && field.FieldType == typeof(bool))
+        var fieldInfo = AccessTools.Field(settings.GetType(), Condition);
+        if (fieldInfo != null && fieldInfo.FieldType == typeof(bool))
         {
-            Evaluate = m => (bool)field.GetValue(m);
+            Evaluate = m => (bool)fieldInfo.GetValue(m);
             return;
         }
 
@@ -962,7 +963,7 @@ public class DrawIfAttribute : Attribute
             return;
         }
 
-        Log.Error($"Failed to find boolean field, property or method called '{Condition}' in class {settings.GetType().FullName}");
+        Log.Error($"Failed to find boolean fieldInfo, property or method called '{Condition}' in class {settings.GetType().FullName}");
         Evaluate = _ => true;
     }
 }

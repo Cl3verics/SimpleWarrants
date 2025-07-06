@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -134,11 +134,11 @@ namespace SimpleWarrants
 
                     // Generate a random pawn to give a warrant to.
                     // The pawn is made part of a random human-like faction.
-                    var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionType != Faction.OfPlayer.def).RandomElement();
+                    var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionDef != Faction.OfPlayer.def).RandomElement();
                     Faction faction = null;
 
-                    if (randomKind.defaultFactionType != null)
-                        faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
+                    if (randomKind.defaultFactionDef != null)
+                        faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionDef);
 
                     faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
 
@@ -251,7 +251,7 @@ namespace SimpleWarrants
                     // in the current season, and is tameable.
                     var allAnimals = (from animal in playerHome.Biome.AllWildAnimals
                                       where playerHome.mapTemperature.SeasonAcceptableFor(animal.race) &&
-                                            animal.RaceProps.wildness < 1f
+                                            animal.race.GetStatValueAbstract(StatDefOf.Wildness) < 1f
                                       select animal).ToList();
 
                     if (!allAnimals.TryRandomElementByWeight(a => a.race.GetStatValueAbstract(StatDefOf.MarketValue), out tameWarrant.AnimalRace))
@@ -444,7 +444,7 @@ namespace SimpleWarrants
                     // 25% chance to accuse of fraud.
                     if (Rand.Chance(0.25f))
                     {
-                        var pawns = PawnsFinder.AllMapsCaravansAndTravelingTransportPods_Alive_Colonists_NoSlaves.Where(CanPutWarrantOn);
+                        var pawns = PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_Colonists_NoSlaves.Where(CanPutWarrantOn);
                         if (pawns.TryRandomElement(out var pawn))
                         {
                             PutWarrantOn(pawn, "SW.Fraud".Translate(), warrant.issuer);

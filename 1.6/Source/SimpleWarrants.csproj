@@ -1,5 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
@@ -16,23 +16,17 @@
     <Platforms>AnyCPU;ARM64</Platforms>
     <UserSecretsId>67a0fce7-7eea-4422-9a4f-b05fa0f250ec</UserSecretsId>
   </PropertyGroup>
-
-
   <!-- To be included regardless of rimworld version. -->
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    <PackageReference Include="Lib.Harmony" Version="2.*" />
   </ItemGroup>
-
-  <!-- _____ 1.3 _____ -->
-  <ItemGroup Condition="'$(Configuration)'=='v1.3'">
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.5.4104" />
+  <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.*-*" />
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(Configuration)'=='v1.3'">
+  <PropertyGroup>
     <DebugType>none</DebugType>
-    <OutputPath>..\..\1.5\Assemblies\</OutputPath>
+    <OutputPath>..\Assemblies\</OutputPath>
     <Optimize>true</Optimize>
     <DefineConstants>V13</DefineConstants>
   </PropertyGroup>
-
 </Project>

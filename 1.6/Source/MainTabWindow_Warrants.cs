@@ -172,9 +172,9 @@ namespace SimpleWarrants
                     {
                         var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike).RandomElement();
                         Faction faction = null;
-                        if (randomKind.defaultFactionType != null)
+                        if (randomKind.defaultFactionDef != null)
                         {
-                            faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionType);
+                            faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionDef);
                         }
                         faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
                         curPawn = PawnGenerator.GeneratePawn(randomKind, faction);
