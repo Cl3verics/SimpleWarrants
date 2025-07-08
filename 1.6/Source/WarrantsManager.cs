@@ -5,6 +5,7 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI.Group;
+using RimWorld.Planet;
 
 namespace SimpleWarrants
 {
@@ -142,13 +143,7 @@ namespace SimpleWarrants
 
                     faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
 
-                    Find.FactionManager.AllFactions.Where(fac =>
-                        fac.def.humanlikeFaction &&
-                        !fac.defeated &&
-                        !fac.Hidden &&
-                        !fac.IsPlayer &&
-                        !fac.HostileTo(Faction.OfPlayer) &&
-                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == fac)).TryRandomElement(out warrant.issuer);
+                    GetValidWarrantIssuers(Faction.OfPlayer, false).TryRandomElement(out warrant.issuer);
 
                     if (warrant.issuer == null)
                     {
@@ -172,13 +167,7 @@ namespace SimpleWarrants
                         thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement())
                     };
 
-                    Find.FactionManager.AllFactions.Where(faction =>
-                        faction.def.humanlikeFaction &&
-                        !faction.defeated &&
-                        !faction.Hidden &&
-                        !faction.IsPlayer &&
-                        faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile &&
-                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out warrant.issuer);
+                    GetValidWarrantIssuers(Faction.OfPlayer, false).TryRandomElement(out warrant.issuer);
 
                     if (warrant.issuer == null)
                     {
@@ -200,13 +189,7 @@ namespace SimpleWarrants
                         createdTick = Find.TickManager.TicksGame
                     };
 
-                    Find.FactionManager.AllFactions.Where(faction =>
-                        faction.def.humanlikeFaction &&
-                        !faction.defeated &&
-                        !faction.Hidden &&
-                        !faction.IsPlayer &&
-                        !faction.HostileTo(Faction.OfPlayer) &&
-                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out artWarrant.issuer);
+                    GetValidWarrantIssuers(Faction.OfPlayer, false).TryRandomElement(out artWarrant.issuer);
 
                     if (artWarrant.issuer == null)
                     {
@@ -229,13 +212,7 @@ namespace SimpleWarrants
                         createdTick = Find.TickManager.TicksGame
                     };
 
-                    Find.FactionManager.AllFactions.Where(faction =>
-                        faction.def.humanlikeFaction &&
-                        !faction.defeated &&
-                        !faction.Hidden &&
-                        !faction.IsPlayer &&
-                        !faction.HostileTo(Faction.OfPlayer) &&
-                        Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction)).TryRandomElement(out tameWarrant.issuer);
+                    GetValidWarrantIssuers(Faction.OfPlayer, false).TryRandomElement(out tameWarrant.issuer);
 
                     if (tameWarrant.issuer == null)
                     {
@@ -278,7 +255,7 @@ namespace SimpleWarrants
         private static void AssignRewards(Warrant_Pawn warrant)
         {
             var awardForLiving = (int)(warrant.pawn.MarketValue * Rand.Range(0.5f, 2f));
-            int rewardForDead  = (int)(awardForLiving * Rand.Range(0.3f, 0.7f));
+            int rewardForDead = (int)(awardForLiving * Rand.Range(0.3f, 0.7f));
 
             if (warrant.pawn.def.race.Animal)
             {
@@ -325,6 +302,17 @@ namespace SimpleWarrants
             }
         }
 
+        private static IEnumerable<Faction> GetValidWarrantIssuers(Faction targetFaction, bool mustBeHostile)
+        {
+            return Find.FactionManager.AllFactions.Where(faction =>
+                faction.def.humanlikeFaction &&
+                !faction.defeated &&
+                !faction.Hidden &&
+                !faction.IsPlayer &&
+                (mustBeHostile ? faction.HostileTo(targetFaction) : !faction.HostileTo(targetFaction)) &&
+                Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction && settlement.Tile.LayerDef.SurfaceTiles));
+        }
+
         public bool CanPutWarrantOn(Pawn pawn)
         {
             var allWarrants = availableWarrants.OfType<Warrant_Pawn>();
@@ -341,7 +329,7 @@ namespace SimpleWarrants
             {
                 return;// seems that one of method is calling this with faction player argument, it should prevent the issue
             }
-            var warrant = new Warrant_Pawn 
+            var warrant = new Warrant_Pawn
             {
                 loadID = GetWarrantID(),
                 createdTick = Find.TickManager.TicksGame
@@ -353,12 +341,18 @@ namespace SimpleWarrants
             }
             else
             {
-                warrant.issuer = Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden 
-                    && !faction.IsPlayer && faction.RelationKindWith(victim.Faction) == FactionRelationKind.Hostile && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
-                     .RandomElement();
+                warrant.issuer = GetValidWarrantIssuers(victim.Faction, true).RandomElement();
+                if (warrant.issuer == null)
+                {
+                    Log.Error("Failed to find a valid faction to issue warrant (hostile humanlike w/ fac base).");
+                    return;
+                }
+                var settlements = Find.World.worldObjects.Settlements.Where(settlement => settlement.Faction == warrant.issuer);
+                Log.Message(warrant.issuer.Name + " - settlements: " + settlements.Select(x => x.Tile
+                .LayerDef + " - " + x.Tile.LayerDef.SurfaceTiles));
             }
             warrant.reason = reason;
-            Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonistReason".Translate(victim.Named("PAWN"), reason), 
+            Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonistReason".Translate(victim.Named("PAWN"), reason),
                 "SW.WarrantOnYourColonistDesc".Translate(victim.Named("PAWN")), LetterDefOf.NegativeEvent, victim);
             AssignRewards(warrant);
             availableWarrants.Add(warrant);
@@ -464,16 +458,7 @@ namespace SimpleWarrants
                 var success = Rand.Chance(chance);
                 if (success)
                 {
-                    bool IsValidFaction(Faction faction)
-                        => faction.def.humanlikeFaction &&
-                           !faction.defeated &&
-                           !faction.Hidden &&
-                           !faction.IsPlayer &&
-                           warrant.issuer != faction &&
-                           faction.RelationKindWith(Faction.OfPlayer) != FactionRelationKind.Hostile &&
-                           Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction);
-
-                    if (!Find.FactionManager.AllFactions.Where(IsValidFaction).TryRandomElement(out var takerFaction))
+                    if (!GetValidWarrantIssuers(Faction.OfPlayer, false).Where(f => f != warrant.issuer).TryRandomElement(out var takerFaction))
                     {
                         Log.ErrorOnce("Failed to find any valid faction to accept player warrant.", warrant.GetHashCode());
                         continue;

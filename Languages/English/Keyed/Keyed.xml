@@ -92,4 +92,6 @@
   <SW.ConfirmationPrompt>Are you sure you want to place a warrant on {PAWN_nameDef}?
 
 This will negatively impact relations with {1}!</SW.ConfirmationPrompt>
+    <SW.WarrantCompletedByPods>{0} has sent the reward via transport pods for the completed warrant.</SW.WarrantCompletedByPods>
+    <SW.ReturnWarrantViaTransportPods>Return warrant via transport pods ({0})</SW.ReturnWarrantViaTransportPods>
 </LanguageData>
