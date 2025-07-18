@@ -94,4 +94,8 @@
 This will negatively impact relations with {1}!</SW.ConfirmationPrompt>
     <SW.WarrantCompletedByPods>{0} has sent the reward via transport pods for the completed warrant.</SW.WarrantCompletedByPods>
     <SW.ReturnWarrantViaTransportPods>Return warrant via transport pods ({0})</SW.ReturnWarrantViaTransportPods>
+	<SW.EnableWarrantsOnPoaching>Enable warrants on poaching</SW.EnableWarrantsOnPoaching>
+    <SW.EnableWarrantsOnFraud>Enable warrants on fraud</SW.EnableWarrantsOnFraud>
+    <SW.EnableWarrantsOnAssault>Enable warrants on assault</SW.EnableWarrantsOnAssault>
+    <SW.EnableWarrantsOnTorture>Enable warrants on torture</SW.EnableWarrantsOnTorture>
 </LanguageData>

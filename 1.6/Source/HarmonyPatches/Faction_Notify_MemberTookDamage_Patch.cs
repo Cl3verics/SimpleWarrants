@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using RimWorld;
 using Verse;
 
@@ -12,7 +12,7 @@ namespace SimpleWarrants
             if (member.IsPrisoner && member.Faction != Faction.OfPlayer && dinfo.Instigator is Pawn instigator && instigator.Faction == Faction.OfPlayer
                 && !member.InMentalState && !PrisonBreakUtility.IsPrisonBreaking(member) && !SlaveRebellionUtility.IsRebelling(member))
             {
-                if (WarrantsManager.Instance.CanPutWarrantOn(instigator) && Rand.Chance(0.05f))
+                if (SimpleWarrantsMod.Settings.enableWarrantsOnTorture && WarrantsManager.Instance.CanPutWarrantOn(instigator) && Rand.Chance(0.05f))
                 {
                     WarrantsManager.Instance.PutWarrantOn(instigator, "SW.Torture".Translate(), __instance);
                 }

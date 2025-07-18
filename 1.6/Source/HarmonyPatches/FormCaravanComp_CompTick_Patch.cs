@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using System.Collections.Generic;
@@ -104,7 +104,7 @@ namespace SimpleWarrants.HarmonyPatches
             }
 
             // 50% chance.
-            if (!Rand.Chance(0.5f))
+            if (!SimpleWarrantsMod.Settings.enableWarrantsOnAssault || !Rand.Chance(0.5f))
             {
                 return;
             }

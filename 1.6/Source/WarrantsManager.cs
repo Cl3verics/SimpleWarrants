@@ -435,8 +435,7 @@ namespace SimpleWarrants
                     if (relationshipDamage > 0)
                         warrant.issuer.TryAffectGoodwillWith(Faction.OfPlayer, -relationshipDamage);
 
-                    // 25% chance to accuse of fraud.
-                    if (Rand.Chance(0.25f))
+                    if (SimpleWarrantsMod.Settings.enableWarrantsOnFraud && Rand.Chance(0.25f))
                     {
                         var pawns = PawnsFinder.AllMapsCaravansAndTravellingTransporters_Alive_Colonists_NoSlaves.Where(CanPutWarrantOn);
                         if (pawns.TryRandomElement(out var pawn))

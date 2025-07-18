@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using Verse;
 
 namespace SimpleWarrants
@@ -22,6 +22,22 @@ namespace SimpleWarrants
         [DrawIf(nameof(enableWarrantsOnColonists))]
         [Percentage]
         public float chanceOfWarrantsMadeOnColonist = 0.05f;
+        
+        [Label("SW.EnableWarrantsOnPoaching")]
+        [DrawIf(nameof(enableWarrantsOnColonists))]
+        public bool enableWarrantsOnPoaching = true;
+
+        [Label("SW.EnableWarrantsOnFraud")]
+        [DrawIf(nameof(enableWarrantsOnColonists))]
+        public bool enableWarrantsOnFraud = true;
+
+        [Label("SW.EnableWarrantsOnAssault")]
+        [DrawIf(nameof(enableWarrantsOnColonists))]
+        public bool enableWarrantsOnAssault = true;
+
+        [Label("SW.EnableWarrantsOnTorture")]
+        [DrawIf(nameof(enableWarrantsOnColonists))]
+        public bool enableWarrantsOnTorture = true;
 
         [Label("SW.FailedPlayerWarrantRelationshipDamage")]
         [Range(0, 100)]
