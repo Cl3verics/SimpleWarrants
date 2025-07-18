@@ -152,7 +152,7 @@ namespace SimpleWarrants
                     }
 
                     warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
-
+                    warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages, warrant.pawn.thingIDNumber);
                     warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.pawn.thingIDNumber);
                     AssignRewards(warrant);
                     return warrant;
@@ -166,6 +166,7 @@ namespace SimpleWarrants
                         createdTick = Find.TickManager.TicksGame,
                         thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement())
                     };
+                    warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages, warrant.pawn.thingIDNumber);
 
                     GetValidWarrantIssuers(Faction.OfPlayer, false).TryRandomElement(out warrant.issuer);
 

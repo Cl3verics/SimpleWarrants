@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
@@ -26,6 +26,14 @@ namespace SimpleWarrants
             }
         }
 
+        public float ThreatPoints
+        {
+            get
+            {
+                return StorytellerUtility.DefaultThreatPointsNow(Find.World);
+            }
+        }
+
         public string reason;
 
         public int rewardForDead;
@@ -48,7 +56,7 @@ namespace SimpleWarrants
             GUI.color = portraitColor;
             GUI.DrawTexture(pawnRect, portrait, ScaleMode.ScaleToFit);
             GUI.color = Color.white;
-            Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 24, pawn);
+            Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 40, pawn);
 
             Text.Font = GameFont.Medium;
             var pawnName = pawn.RaceProps.Animal ? $"<color=#f0898e>{"SW.Hunt".Translate()}</color> {pawn.def.LabelCap}" : pawn.Name.ToString();
@@ -95,7 +103,7 @@ namespace SimpleWarrants
                 Widgets.Label(rewardsForLivingInfoBox, rewardForLiving + " " + ThingDefOf.Silver.LabelCap);
             }
 
-            var infoBox = new Rect(rect.width - 250, rewardsForLivingInfoBox.yMax + 40, 250, 24);
+            var infoBox = new Rect(rect.width - 250, rewardsForLivingInfoBox.yMax + 30, 250, 24);
             Text.Font = GameFont.Tiny;
             if (issuer != Faction.OfPlayer)
             {
@@ -120,7 +128,7 @@ namespace SimpleWarrants
         {
             base.DoAcceptAction();
             Slate slate = new Slate();
-            slate.Set("points", StorytellerUtility.DefaultThreatPointsNow(Find.World));
+            slate.Set("points", ThreatPoints);
             slate.Set("asker", issuer.leader);
             slate.Set("victim", pawn);
             slate.Set("reason", reason);

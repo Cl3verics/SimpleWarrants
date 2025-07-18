@@ -1,4 +1,4 @@
-﻿using RimWorld;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,35 +8,41 @@ using Verse;
 namespace SimpleWarrants
 {
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-	public class HotSwappableAttribute : Attribute {}
+	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+	public class HotSwappableAttribute : Attribute { }
 
 	[HotSwappable]
 	[StaticConstructorOnStartup]
 	public class MainTabWindow_Warrants : MainTabWindow
 	{
-        private readonly List<TabRecord> tabs = new List<TabRecord>();
-        private string buffCurCapturePayment;
-        private string buffCurDeathPayment;
-        private string buffCurReward;
+		private readonly List<TabRecord> tabs = new List<TabRecord>();
+		private string buffCurCapturePayment;
+		private string buffCurDeathPayment;
+		private string buffCurReward;
 
-        private bool capturePaymentEnabled;
-        private Pawn curAnimal;
-        private Thing curArtifact;
-        private int curCapturePayment; 
-        private int curDeathPayment;
-
-        private Pawn curPawn;
+		private bool capturePaymentEnabled;
+		private Pawn curAnimal;
+		private Thing curArtifact;
+		private int curCapturePayment;
+		private int curDeathPayment;
+		private string curMessage = null;
+		private Pawn curPawn;
 		private string curReason = null;
-        private int curReward;
-        private WarrantsTab curTab;
-        private TargetType curType;
-        private bool deathPaymentEnabled;
-        private Vector2 scrollPosition;
+		private int curReward;
+		private WarrantsTab curTab;
+		private TargetType curType;
+		private bool deathPaymentEnabled;
+		private Vector2 scrollPosition;
+		private Warrant selectedWarrant;
+		private float UI_WIDTH => 1600f;
+		private float UI_HEIGHT => 700f;
 
-        public override void PreOpen()
+		public override Vector2 InitialSize => new Vector2(UI_WIDTH, UI_HEIGHT);
+
+		public override void PreOpen()
 		{
 			base.PreOpen();
+			selectedWarrant = null;
 			tabs.Clear();
 			tabs.Add(new TabRecord("SW.PublicWarrants".Translate(), delegate
 			{
@@ -48,37 +54,174 @@ namespace SimpleWarrants
 			}, () => curTab == WarrantsTab.RelatedWarrants));
 		}
 
-        public override void DoWindowContents(Rect rect)
+		public override void DoWindowContents(Rect rect)
 		{
-			Rect rect2 = rect;
-			rect2.yMin += 45f;
-			TabDrawer.DrawTabs(rect2, tabs);
+			Rect mainRect = rect;
+			mainRect.yMin += 45f;
+			TabDrawer.DrawTabs(mainRect, tabs);
+
+			Rect leftPanelRect = new Rect(mainRect.x, mainRect.y, 800, mainRect.height);
+
 			switch (curTab)
 			{
 				case WarrantsTab.PublicWarrants:
-					DoPublicWarrants(rect2);
+					DoPublicWarrants(leftPanelRect);
 					break;
 				case WarrantsTab.RelatedWarrants:
-					DoRelatedWarrants(rect2);
+					DoRelatedWarrants(leftPanelRect);
 					break;
 			}
-			DoWarrantCreation(rect2);
+
+			Rect menuSectionRect = new Rect(leftPanelRect.xMax + 10f, mainRect.y, 530, mainRect.height);
+
+			DoMenuSection(menuSectionRect);
+
+			Rect rightPanelRect = new Rect(menuSectionRect.xMax + 10f, mainRect.y, 200, mainRect.height);
+
+			DoWarrantCreation(rightPanelRect);
 		}
 
-        private void DoPublicWarrants(Rect rect)
-        {
+		private void DoMenuSection(Rect rect)
+		{
+			if (selectedWarrant != null)
+			{
+				if (selectedWarrant is Warrant_Pawn pawnWarrant && pawnWarrant.pawn != null)
+				{
+					var sectionRect = new Rect(rect.x, rect.y, rect.width, rect.height);
+					var currentY = sectionRect.y;
+					float portraitSize = 150;
+					float topSectionHeight = portraitSize;
+					var leftColRect = new Rect(sectionRect.x, currentY, portraitSize, topSectionHeight);
+
+					Text.Font = GameFont.Medium;
+					GUI.color = Color.red;
+					Text.Anchor = TextAnchor.UpperCenter;
+
+					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Wanted".Translate());
+
+					Text.Font = GameFont.Medium;
+					GUI.color = Color.yellow;
+					Widgets.Label(new Rect(leftColRect.x, leftColRect.y + 35f, leftColRect.width, 30f), "SW.WantedFor".Translate(pawnWarrant.reason));
+					Text.Anchor = TextAnchor.UpperLeft;
+					Text.Font = GameFont.Small;
+
+					GUI.color = Color.white;
+					float buttonWidth = (leftColRect.width - 10f) / 2f;
+					var acceptButtonRect = new Rect(leftColRect.x, leftColRect.y + 85f, buttonWidth, 30f);
+					if (Widgets.ButtonText(acceptButtonRect, "Accept".Translate()))
+					{
+						selectedWarrant.DoAcceptAction();
+						selectedWarrant = null;
+						return;
+					}
+					var declineButtonRect = new Rect(acceptButtonRect.xMax + 30f, acceptButtonRect.y, buttonWidth, 30f);
+					if (Widgets.ButtonText(declineButtonRect, "SW.Decline".Translate()))
+					{
+						WarrantsManager.Instance.availableWarrants.Remove(selectedWarrant);
+						selectedWarrant = null;
+						return;
+					}
+					var portraitRect = new Rect(leftColRect.xMax + 10f, currentY, portraitSize, portraitSize);
+					GUI.DrawTexture(portraitRect, PortraitsCache.Get(pawnWarrant.pawn, new Vector2(portraitSize, portraitSize), Rot4.South, default(Vector3), 1.5f));
+
+					var infoRectX = portraitRect.xMax + 15f;
+					var infoRect = new Rect(infoRectX, currentY, sectionRect.xMax - infoRectX, topSectionHeight);
+					string baseInfo = "SW.NameLabel".Translate(pawnWarrant.pawn.LabelCap) + "\n" +
+									  "SW.RaceLabel".Translate(pawnWarrant.pawn.genes?.XenotypeLabel ?? pawnWarrant.pawn.def.label) + "\n" +
+									  "SW.AgeLabel".Translate(pawnWarrant.pawn.ageTracker.AgeBiologicalYears);
+
+					string allianceInfo = "SW.AllianceLabel".Translate(pawnWarrant.pawn.Faction != null ? pawnWarrant.pawn.Faction.Name : "SW.None".Translate().Resolve());
+					var baseInfoHeight = Text.CalcHeight(baseInfo, infoRect.width);
+					Widgets.Label(new Rect(infoRect.x, infoRect.y, infoRect.width, baseInfoHeight), baseInfo);
+					GUI.color = ColorLibrary.RedReadable;
+					var height = Text.CalcHeight(allianceInfo, infoRect.width);
+					Widgets.Label(new Rect(infoRect.x, infoRect.y + baseInfoHeight, infoRect.width, height), allianceInfo);
+					GUI.color = Color.white;
+					currentY += topSectionHeight + 20f;
+
+					Text.Font = GameFont.Medium;
+					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.MessageFromFaction".Translate(selectedWarrant.issuer.NameColored));
+					currentY += 30f + 5f;
+
+					Text.Font = GameFont.Small;
+					string messageText = $"\"{selectedWarrant.message}\"";
+					float messageHeight = Text.CalcHeight(messageText, sectionRect.width);
+					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, messageHeight), messageText);
+					currentY += messageHeight + 15f;
+
+					Text.Font = GameFont.Medium;
+					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.Rewards".Translate());
+					currentY += 30f + 5f;
+
+					Text.Font = GameFont.Small;
+					if (pawnWarrant.rewardForDead > 0)
+					{
+						var rewardRect = new Rect(sectionRect.x, currentY, sectionRect.width, 25f);
+						GUI.DrawTexture(new Rect(rewardRect.x, rewardRect.y + 2.5f, 20f, 20f), Warrant_Pawn.IconDeath);
+						Widgets.Label(new Rect(rewardRect.x + 25f, rewardRect.y, rewardRect.width - 25f, rewardRect.height), pawnWarrant.rewardForDead + " " + ThingDefOf.Silver.label);
+						currentY += 25f;
+					}
+					if (pawnWarrant.rewardForLiving > 0)
+					{
+						var rewardRect = new Rect(sectionRect.x, currentY, sectionRect.width, 25f);
+						GUI.DrawTexture(new Rect(rewardRect.x, rewardRect.y + 2.5f, 20f, 20f), Warrant_Pawn.IconCapture);
+						Widgets.Label(new Rect(rewardRect.x + 25f, rewardRect.y, rewardRect.width - 25f, rewardRect.height), pawnWarrant.rewardForLiving + " " + ThingDefOf.Silver.label);
+						currentY += 25f;
+					}
+					currentY += 15f;
+
+					Text.Font = GameFont.Medium;
+					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.EstimatedThreatLevel".Translate());
+					currentY += 30f + 5f;
+
+					GUI.color = Color.red;
+					Text.Font = GameFont.Medium;
+					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.ThreatLevelPoints".Translate(pawnWarrant.ThreatPoints));
+					GUI.color = Color.white;
+
+					Text.Font = GameFont.Small;
+				}
+				else
+				{
+					Text.Anchor = TextAnchor.MiddleCenter;
+					Widgets.Label(rect, "SW.WarrantDetails".Translate());
+					Text.Anchor = TextAnchor.UpperLeft;
+				}
+			}
+			else
+			{
+				Text.Anchor = TextAnchor.MiddleCenter;
+				Widgets.Label(rect, "SW.WarrantDetails".Translate());
+				Text.Anchor = TextAnchor.UpperLeft;
+			}
+		}
+
+		private void DoPublicWarrants(Rect rect)
+		{
 			var warrants = WarrantsManager.Instance.availableWarrants.Where(x => x.thing?.Faction != Faction.OfPlayer).OrderByDescending(x => x.createdTick).ToList();
+			if (selectedWarrant != null && !warrants.Contains(selectedWarrant))
+			{
+				selectedWarrant = null;
+			}
 			var posY = rect.y + 10;
-			var sectionWidth = 750;
-			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
+			var sectionWidth = rect.width;
+			var outRect = new Rect(rect.x, posY, sectionWidth, rect.height - posY);
 			var viewRect = new Rect(outRect.x, posY, sectionWidth - 16, warrants.Count * 165);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
 			if (warrants.Count > 0)
-            {
+			{
 				for (var i = 0; i < warrants.Count; i++)
 				{
 					var warrantBox = new Rect(rect.x, posY, sectionWidth - 30, 150);
+					if (selectedWarrant == warrants[i])
+					{
+						Widgets.DrawHighlightSelected(warrantBox);
+					}
 					warrants[i].Draw(warrantBox);
+					if (Widgets.ButtonInvisible(warrantBox))
+					{
+						selectedWarrant = warrants[i];
+					}
 					posY = warrantBox.yMax + 15;
 				}
 			}
@@ -91,28 +234,40 @@ namespace SimpleWarrants
 				Text.Font = GameFont.Small;
 			}
 			Widgets.EndScrollView();
-        }
+		}
 
-        private void DoRelatedWarrants(Rect rect)
+		private void DoRelatedWarrants(Rect rect)
 		{
 			var warrants = WarrantsManager.Instance.acceptedWarrants.Concat(WarrantsManager.Instance.createdWarrants).Concat(WarrantsManager.Instance.takenWarrants)
 				.Concat(WarrantsManager.Instance.availableWarrants.Where(x => x.thing?.Faction == Faction.OfPlayer)).OrderByDescending(x => x.createdTick).ToList();
+			if (selectedWarrant != null && !warrants.Contains(selectedWarrant))
+			{
+				selectedWarrant = null;
+			}
 			var posY = rect.y + 10;
-			var sectionWidth = 750;
-			var outRect = new Rect(rect.x, posY, sectionWidth, 590);
+			var sectionWidth = rect.width;
+			var outRect = new Rect(rect.x, posY, sectionWidth, rect.height - posY);
 			var viewRect = new Rect(outRect.x, posY, sectionWidth - 16, warrants.Count * 165);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
 			if (warrants.Count > 0)
-            {
+			{
 				for (var i = 0; i < warrants.Count; i++)
 				{
 					var warrantBox = new Rect(rect.x, posY, sectionWidth - 30, 150);
+					if (selectedWarrant == warrants[i])
+					{
+						Widgets.DrawHighlightSelected(warrantBox);
+					}
 					warrants[i].Draw(warrantBox, false, true);
+					if (Widgets.ButtonInvisible(warrantBox))
+					{
+						selectedWarrant = warrants[i];
+					}
 					posY = warrantBox.yMax + 15;
 				}
 			}
 			else
-            {
+			{
 				Text.Anchor = TextAnchor.MiddleCenter;
 				Text.Font = GameFont.Medium;
 				Widgets.Label(outRect, "SW.NoRelatedWarrantsAvailable".Translate());
@@ -122,74 +277,74 @@ namespace SimpleWarrants
 			Widgets.EndScrollView();
 		}
 
-        private void DoWarrantCreation(Rect rect)
+		private void DoWarrantCreation(Rect rect)
 		{
 			var posY = rect.y + 10;
-			var createWarrant = new Rect(790, posY, 160, 30);
+			var createWarrant = new Rect(rect.x, posY, rect.width, 30);
 
-            if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
-            {
-                var warrant = CreateWarrant(out string failReason);
-                if (warrant is Warrant_Pawn warrantPawn && warrantPawn.pawn.Faction is not null 
+			if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
+			{
+				var warrant = CreateWarrant(out string failReason);
+				if (warrant is Warrant_Pawn warrantPawn && warrantPawn.pawn.Faction is not null
 					&& warrantPawn.pawn.Faction != Faction.OfPlayer && warrantPawn.pawn.Faction.HostileTo(Faction.OfPlayer) is false)
-                {
+				{
 					Find.WindowStack.Add(new Dialog_MessageBox("SW.ConfirmationPrompt".Translate(warrantPawn.pawn.Named("PAWN"),
 						warrantPawn.pawn.Faction.Name), "Confirm".Translate(), delegate
-                        {
-                            TryAddWarrant(warrant, failReason);
-                        }, "Cancel".Translate()));
-                }
+						{
+							TryAddWarrant(warrant, failReason);
+						}, "Cancel".Translate()));
+				}
 				else
 				{
-                    TryAddWarrant(warrant, failReason);
-                }
-            }
+					TryAddWarrant(warrant, failReason);
+				}
+			}
 
-            Text.Font = GameFont.Medium;
+			Text.Font = GameFont.Medium;
 			var warrantSubject = new Rect(createWarrant.x, createWarrant.yMax + 20, createWarrant.width, createWarrant.height);
 			Widgets.Label(warrantSubject, "SW.WarrantSubject".Translate());
 
 			var dropdownRect = new Rect(createWarrant.x, warrantSubject.yMax, createWarrant.width, createWarrant.height);
 			if (Widgets.ButtonTextSubtle(dropdownRect, GetLabel(curType)))
-            {
+			{
 				var floatList = new List<FloatMenuOption>();
 				foreach (var value in Enum.GetValues(typeof(TargetType)).Cast<TargetType>())
-                {
+				{
 					floatList.Add(new FloatMenuOption(GetLabel(value), delegate
 					{
 						curType = value;
 					}));
-                }
+				}
 				Find.WindowStack.Add(new FloatMenu(floatList));
-            }
+			}
 
 			if (curType == TargetType.Human || curType == TargetType.Animal)
-            {
-                if (curType == TargetType.Human && curPawn is null)
-                {
-                    if (!Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn.RaceProps.Humanlike
-                        && !WarrantsManager.Instance.createdWarrants.Any(warrant => pawn == warrant.thing)).TryRandomElement(out curPawn))
-                    {
-                        var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike).RandomElement();
-                        Faction faction = null;
-                        if (randomKind.defaultFactionDef != null)
-                        {
-                            faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionDef);
-                        }
-                        faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
-                        curPawn = PawnGenerator.GeneratePawn(randomKind, faction);
-                    }
-                }
-                else if (curType == TargetType.Animal && curAnimal is null)
-                {
-                    curAnimal = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement());
-                }
+			{
+				if (curType == TargetType.Human && curPawn is null)
+				{
+					if (!Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn.RaceProps.Humanlike
+						&& !WarrantsManager.Instance.createdWarrants.Any(warrant => pawn == warrant.thing)).TryRandomElement(out curPawn))
+					{
+						var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike).RandomElement();
+						Faction faction = null;
+						if (randomKind.defaultFactionDef != null)
+						{
+							faction = Find.FactionManager.FirstFactionOfDef(randomKind.defaultFactionDef);
+						}
+						faction ??= Find.FactionManager.AllFactions.Where(x => x.def.humanlikeFaction && !x.defeated && !x.IsPlayer && !x.Hidden).RandomElement();
+						curPawn = PawnGenerator.GeneratePawn(randomKind, faction);
+					}
+				}
+				else if (curType == TargetType.Animal && curAnimal is null)
+				{
+					curAnimal = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement());
+				}
 
-                DrawPawnWarrant(curType == TargetType.Human ? curPawn : curAnimal, createWarrant, dropdownRect);
-            }
-            else
-            {
-				if (curArtifact is null) 
+				DrawPawnWarrant(curType == TargetType.Human ? curPawn : curAnimal, createWarrant, dropdownRect);
+			}
+			else
+			{
+				if (curArtifact is null)
 				{
 					var artifactDef = Utils.AllArtifactDefs.RandomElement();
 					curArtifact = ThingMaker.MakeThing(artifactDef);
@@ -197,7 +352,7 @@ namespace SimpleWarrants
 
 				var thingRect = new Rect(new Vector2(createWarrant.x + 40, dropdownRect.yMax + 10), new Vector2(100 * 0.722f, 100 * 0.722f));
 				GUI.DrawTexture(thingRect, curArtifact.Graphic.MatSouth.mainTexture);
-				Widgets.InfoCardButton(thingRect.xMax, thingRect.y + 10, curArtifact);
+				Widgets.InfoCardButton(thingRect.xMax, thingRect.y, curArtifact);
 
 				var nameRect = new Rect(createWarrant.x, thingRect.yMax, createWarrant.width, createWarrant.height);
 				Widgets.Label(nameRect, curArtifact.LabelCap);
@@ -214,56 +369,62 @@ namespace SimpleWarrants
 				Widgets.Label(rewardPayment, "SW.RewardPayment".Translate());
 				var rewardPaymentInput = new Rect(rewardPayment.xMax, rewardPayment.y, 60, 24);
 				Widgets.TextFieldNumeric(rewardPaymentInput, ref curReward, ref buffCurReward);
+
+				var messageRect = new Rect(rewardPayment.x, rewardPayment.yMax + 10, 120, 24);
+				Widgets.Label(messageRect, "SW.Message".Translate());
+				var messageAreaRect = new Rect(messageRect.xMax, messageRect.y, 130, 24);
+				curMessage = Widgets.TextArea(messageAreaRect, curMessage);
 			}
 			Text.Font = GameFont.Small;
 		}
 
-        private static void TryAddWarrant(Warrant warrant, string failReason)
-        {
-            if (!failReason.NullOrEmpty())
-            {
-                Find.WindowStack.Add(new Dialog_MessageBox(failReason));
-            }
-            else
-            {
-                warrant.OnCreate();
-                WarrantsManager.Instance.createdWarrants.Add(warrant);
-            }
-        }
+		private void TryAddWarrant(Warrant warrant, string failReason)
+		{
+			if (!failReason.NullOrEmpty())
+			{
+				Find.WindowStack.Add(new Dialog_MessageBox(failReason));
+			}
+			else
+			{
+				warrant.OnCreate();
+				WarrantsManager.Instance.createdWarrants.Add(warrant);
+			}
+			curMessage = "";
+		}
 
-        private void DrawPawnWarrant(Pawn pawn, Rect createWarrant, Rect dropdownRect)
-        {
-            var pawnRect = new Rect(new Vector2(createWarrant.x + 40, dropdownRect.yMax + 10), new Vector2(100 * 0.722f, 100));
-            Vector2 pos = new Vector2(pawnRect.width, pawnRect.height);
-            GUI.DrawTexture(pawnRect, PortraitsCache.Get(pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f));
-            Widgets.InfoCardButton(pawnRect.xMax, pawnRect.y + 10, pawn);
+		private void DrawPawnWarrant(Pawn pawn, Rect createWarrant, Rect dropdownRect)
+		{
+			var pawnRect = new Rect(new Vector2(createWarrant.x + 40, dropdownRect.yMax + 10), new Vector2(100 * 0.722f, 100));
+			Vector2 pos = new Vector2(pawnRect.width, pawnRect.height);
+			GUI.DrawTexture(pawnRect, PortraitsCache.Get(pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f));
+			Widgets.InfoCardButton(pawnRect.xMax, pawnRect.y, pawn);
 
-            var nameRect = new Rect(createWarrant.x, pawnRect.yMax, createWarrant.width, createWarrant.height);
+			var nameRect = new Rect(createWarrant.x, pawnRect.yMax, createWarrant.width, createWarrant.height);
 			if (curType == TargetType.Human)
-            {
+			{
 				Widgets.Label(nameRect, pawn.Name.ToString());
 			}
 			else
-            {
+			{
 				Widgets.Label(nameRect, pawn.def.LabelCap);
 			}
 
 			dropdownRect = new Rect(createWarrant.x, nameRect.yMax, createWarrant.width, createWarrant.height);
-            if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
-            {
+			if (Widgets.ButtonTextSubtle(dropdownRect, "SW.Select".Translate()))
+			{
 				if (curType == TargetType.Human)
-                {
+				{
 					Find.WindowStack.Add(new Dialog_SelectPawn(this));
 				}
 				else
-                {
+				{
 					Find.WindowStack.Add(new Dialog_SelectAnimal(this));
 				}
 			}
 
-			var reasonRect = new Rect(dropdownRect.x - 30, dropdownRect.yMax + 10, 60, createWarrant.height);
+			var reasonRect = new Rect(dropdownRect.x, dropdownRect.yMax + 10, 60, createWarrant.height);
 			if (curType == TargetType.Human)
-            {
+			{
 				if (curReason is null)
 				{
 					curReason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, pawn.thingIDNumber);
@@ -274,8 +435,8 @@ namespace SimpleWarrants
 			}
 
 
-            Text.Font = GameFont.Small;
-            var capturePayment = new Rect(reasonRect.x, reasonRect.yMax + 10, 120, 24);
+			Text.Font = GameFont.Small;
+			var capturePayment = new Rect(reasonRect.x, reasonRect.yMax + 10, 120, 24);
 
 			Widgets.Label(capturePayment, "SW.CapturePayment".Translate());
 			var capturePaymentInput = new Rect(capturePayment.xMax, capturePayment.y, 60, 24);
@@ -293,112 +454,120 @@ namespace SimpleWarrants
 				Widgets.TextFieldNumeric(deathPaymentInput, ref curDeathPayment, ref buffCurDeathPayment);
 			}
 			Widgets.Checkbox(deathPaymentInput.xMax + 5, deathPaymentInput.y, ref deathPaymentEnabled);
-        }
 
-        public void AssignPawn(Pawn pawn)
-        {
+			var messageRect = new Rect(deathPayment.x, deathPayment.yMax + 5, 120, 24);
+			Widgets.Label(messageRect, "SW.Message".Translate());
+			var messageAreaRect = new Rect(messageRect.x, messageRect.yMax, 210, 80);
+			curMessage = Widgets.TextArea(messageAreaRect, curMessage);
+		}
+
+		public void AssignPawn(Pawn pawn)
+		{
 			curPawn = pawn;
-        }
+		}
 
-        public void AssignArtifact(Thing artifact)
-        {
+		public void AssignArtifact(Thing artifact)
+		{
 			curArtifact = artifact;
 		}
 
-        public void AssignAnimal(Pawn animal)
+		public void AssignAnimal(Pawn animal)
 		{
 			curAnimal = animal;
 		}
 
-        private Warrant CreateWarrant(out string failReason)
-        {
+		private Warrant CreateWarrant(out string failReason)
+		{
 			failReason = "";
 
-            const int MAX_WARRANT_COUNT = 10;
+			const int MAX_WARRANT_COUNT = 10;
 
-            if (WarrantsManager.Instance.createdWarrants.Count >= MAX_WARRANT_COUNT)
-            {
-                failReason = "SW.TooManyPlayerWarrants".Translate(MAX_WARRANT_COUNT);
-                return null;
-            }
+			if (WarrantsManager.Instance.createdWarrants.Count >= MAX_WARRANT_COUNT)
+			{
+				failReason = "SW.TooManyPlayerWarrants".Translate(MAX_WARRANT_COUNT);
+				return null;
+			}
 
 			switch (curType)
-            {
+			{
 				case TargetType.Human:
-				case TargetType.Animal: 
+				case TargetType.Animal:
 					return CreatePawnWarrant(ref failReason);
 				case TargetType.Artifact: return CreateArtifactWarrant(ref failReason);
 			}
 			return null;
 		}
 
-        private Warrant CreateArtifactWarrant(ref string failReason)
-        {
-            var warrant = new Warrant_Artifact
-            {
-                loadID = WarrantsManager.Instance.GetWarrantID(),
-                issuer = Faction.OfPlayer,
-                createdTick = Find.TickManager.TicksGame
-            };
-            warrant.thing = curArtifact;
-            warrant.reward = curReward;
-            if (curReward <= 0)
-            {
-                failReason = "SW.YouMustFillAmountForReward".Translate();
-            }
+		private Warrant CreateArtifactWarrant(ref string failReason)
+		{
+			var warrant = new Warrant_Artifact
+			{
+				loadID = WarrantsManager.Instance.GetWarrantID(),
+				issuer = Faction.OfPlayer,
+				createdTick = Find.TickManager.TicksGame
+			};
+			warrant.thing = curArtifact;
+			warrant.reward = curReward;
+			warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages);
+			if (curReward <= 0)
+			{
+				failReason = "SW.YouMustFillAmountForReward".Translate();
+			}
 			else
-            {
+			{
 				curArtifact = null;
-            }
-            return warrant;
-        }
+				curMessage = null;
+			}
+			return warrant;
+		}
 
-        private Warrant CreatePawnWarrant(ref string failReason)
-        {
-            var warrant = new Warrant_Pawn
-            {
-                loadID = WarrantsManager.Instance.GetWarrantID(),
-                issuer = Faction.OfPlayer,
-                createdTick = Find.TickManager.TicksGame
-            };
+		private Warrant CreatePawnWarrant(ref string failReason)
+		{
+			var warrant = new Warrant_Pawn
+			{
+				loadID = WarrantsManager.Instance.GetWarrantID(),
+				issuer = Faction.OfPlayer,
+				createdTick = Find.TickManager.TicksGame
+			};
 
-            warrant.thing = curType == TargetType.Human ? curPawn : curAnimal;
+			warrant.thing = curType == TargetType.Human ? curPawn : curAnimal;
 
-            warrant.rewardForLiving = curCapturePayment;
-            warrant.rewardForDead = curDeathPayment;
-            warrant.reason = curReason;
+			warrant.rewardForLiving = curCapturePayment;
+			warrant.rewardForDead = curDeathPayment;
+			warrant.reason = curReason;
+			warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages);
 			curReason = null;
-            if (deathPaymentEnabled && curDeathPayment <= 0)
-            {
-                failReason = "SW.YouMustFillAmountForDeadReward".Translate();
-            }
-            else if (capturePaymentEnabled && curCapturePayment <= 0)
-            {
-                failReason = "SW.YouMustFillAmountForCaptureReward".Translate();
-            }
+			if (deathPaymentEnabled && curDeathPayment <= 0)
+			{
+				failReason = "SW.YouMustFillAmountForDeadReward".Translate();
+			}
+			else if (capturePaymentEnabled && curCapturePayment <= 0)
+			{
+				failReason = "SW.YouMustFillAmountForCaptureReward".Translate();
+			}
 			if (failReason.NullOrEmpty())
-            {
+			{
 				if (curType == TargetType.Human)
-                {
+				{
 					curPawn = null;
-                }
+				}
 				else
-                {
+				{
 					curAnimal = null;
-                }
-            }
-            return warrant;
-        }
+				}
+			}
+			return warrant;
+		}
 
-        public string GetLabel(TargetType targetType)
-        {
+		public string GetLabel(TargetType targetType)
+		{
 			switch (targetType)
-            {
+			{
 				case TargetType.Human: return "SW.Pawn".Translate();
 				case TargetType.Artifact: return "SW.Artifact".Translate();
 				case TargetType.Animal: return "SW.Animal".Translate();
-            }
+			}
 			return null;
-        }
-    }
+		}
+	}
 }

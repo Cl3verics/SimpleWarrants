@@ -1,4 +1,4 @@
-﻿using RimWorld;
+using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using UnityEngine;
@@ -24,7 +24,7 @@ namespace SimpleWarrants
             var thingRect = new Rect(new Vector2(rect.x + 100, rect.y + 10), new Vector2(rect.height * 0.7f, rect.height));
             GUI.DrawTexture(thingRect, thing.Graphic.MatSouth.mainTexture, ScaleMode.ScaleToFit);
 
-            Widgets.InfoCardButton(thingRect.xMax - 24, thingRect.yMax - 24, thing);
+            Widgets.InfoCardButton(thingRect.xMax - 24, thingRect.yMax - 40, thing);
             Text.Font = GameFont.Medium;
             var textSize = Text.CalcSize(thing.LabelCap);
             var nameInfoBox = new Rect(thingRect.xMax, thingRect.y, textSize.x, 30);
@@ -43,7 +43,7 @@ namespace SimpleWarrants
             var rewardInfoBox = new Rect(rewardIconBox.xMax + 5, postedByInfoBox.yMax, 400, nameInfoBox.height);
             Widgets.Label(rewardInfoBox, reward + " " + ThingDefOf.Silver.LabelCap);
 
-            var infoBox = new Rect(rect.width - 250, rewardInfoBox.yMax + 40, 250, 24);
+            var infoBox = new Rect(rect.width - 250, rewardInfoBox.yMax + 30, 250, 24);
             Text.Font = GameFont.Tiny;
             if (issuer != Faction.OfPlayer)
             {

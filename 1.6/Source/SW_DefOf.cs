@@ -1,4 +1,4 @@
-﻿using RimWorld;
+using RimWorld;
 using Verse;
 
 namespace SimpleWarrants
@@ -8,6 +8,7 @@ namespace SimpleWarrants
     {
         public static IncidentDef SW_Visitors;
         public static RulePackDef SW_WantedFor;
+        public static RulePackDef SW_Messages;
         public static QuestScriptDef SW_Warrant_Animal;
         public static QuestScriptDef SW_Warrant_Tame;
         public static QuestScriptDef SW_Warrant_Artifact;

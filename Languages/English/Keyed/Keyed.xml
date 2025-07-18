@@ -5,7 +5,8 @@
   <SW.RelatedWarrants>Related Warrants</SW.RelatedWarrants>
   <SW.Age>Age {0}</SW.Age>
   <SW.Decline>Decline</SW.Decline>
-  <SW.WantedFor>Wanted For {0}, posted by {1}</SW.WantedFor>
+  <SW.Wanted>WANTED</SW.Wanted>
+  <SW.WantedFor>for {0}</SW.WantedFor>
   <SW.PostedBy>Posted by {0}</SW.PostedBy>
   <SW.Hunt>[Hunt]</SW.Hunt>
   <SW.Tame>[Tame]</SW.Tame>
@@ -78,8 +79,6 @@
   <SW.FactionDroppedWarrant>{FACTION_name} has dropped your warrant on {1} because they are enemies now.</SW.FactionDroppedWarrant>
   <SW.TooManyPlayerWarrants>You have already posted the maximum number of simultaneous warrants ({0}).\nWait for them to be completed or remove them before making a new one.</SW.TooManyPlayerWarrants>
 
-  <!-- Settings -->
-
   <SW.Torture>Torture</SW.Torture>
   <SW.Poaching>Poaching</SW.Poaching>
   <SW.Assault>Assault</SW.Assault>
@@ -92,10 +91,20 @@
   <SW.ConfirmationPrompt>Are you sure you want to place a warrant on {PAWN_nameDef}?
 
 This will negatively impact relations with {1}!</SW.ConfirmationPrompt>
-    <SW.WarrantCompletedByPods>{0} has sent the reward via transport pods for the completed warrant.</SW.WarrantCompletedByPods>
-    <SW.ReturnWarrantViaTransportPods>Return warrant via transport pods ({0})</SW.ReturnWarrantViaTransportPods>
-	<SW.EnableWarrantsOnPoaching>Enable warrants on poaching</SW.EnableWarrantsOnPoaching>
-    <SW.EnableWarrantsOnFraud>Enable warrants on fraud</SW.EnableWarrantsOnFraud>
-    <SW.EnableWarrantsOnAssault>Enable warrants on assault</SW.EnableWarrantsOnAssault>
-    <SW.EnableWarrantsOnTorture>Enable warrants on torture</SW.EnableWarrantsOnTorture>
+  <SW.WarrantCompletedByPods>{0} has sent the reward via transport pods for the completed warrant.</SW.WarrantCompletedByPods>
+  <SW.ReturnWarrantViaTransportPods>Return warrant via transport pods ({0})</SW.ReturnWarrantViaTransportPods>
+  <SW.EnableWarrantsOnPoaching>Enable warrants on poaching</SW.EnableWarrantsOnPoaching>
+  <SW.EnableWarrantsOnFraud>Enable warrants on fraud</SW.EnableWarrantsOnFraud>
+  <SW.EnableWarrantsOnAssault>Enable warrants on assault</SW.EnableWarrantsOnAssault>
+  <SW.EnableWarrantsOnTorture>Enable warrants on torture</SW.EnableWarrantsOnTorture>
+  <SW.WarrantDetails>Warrant details</SW.WarrantDetails>
+  <SW.ThreatLevelPoints>{0} Points</SW.ThreatLevelPoints>
+  <SW.NameLabel>NAME: {0}</SW.NameLabel>
+  <SW.RaceLabel>RACE: {0}</SW.RaceLabel>
+  <SW.AgeLabel>AGE: {0}</SW.AgeLabel>
+  <SW.AllianceLabel>ALLIANCE: {0}</SW.AllianceLabel>
+  <SW.MessageFromFaction>Message From {0}</SW.MessageFromFaction>
+  <SW.Messages>Messages</SW.Messages>
+  <SW.EstimatedThreatLevel>Estimated Threat Level</SW.EstimatedThreatLevel>
+  <SW.Message>Message</SW.Message>
 </LanguageData>

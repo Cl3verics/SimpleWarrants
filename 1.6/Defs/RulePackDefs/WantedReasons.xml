@@ -30,4 +30,28 @@
     </rulePack>
   </RulePackDef>
 
+  <RulePackDef>
+    <defName>SW_Messages</defName>
+    <rulePack>
+
+      <rulesStrings>
+        <li>r_logentry->We've got a target in mind. Handle it, and you'll be compensated.</li>
+        <li>r_logentry->This one's caused enough trouble. Deal with them and earn your reward.</li>
+        <li>r_logentry->A reward awaits whoever brings this individual in.</li>
+        <li>r_logentry->We don't care how it's done. Just make sure it gets done.</li>
+        <li>r_logentry->Bring this one to justice, and you'll have our gratitude - and payment.</li>
+        <li>r_logentry->We're offering pay for results. No questions asked.</li>
+        <li>r_logentry->This individual has worn out their welcome. Time to collect.</li>
+        <li>r_logentry->Another name on the list. You know what to do.</li>
+        <li>r_logentry->Deal with this target swiftly, and the payout is yours.</li>
+        <li>r_logentry->Someone needs to be reminded actions have consequences. Make it happen.</li>
+        <li>r_logentry->We're not asking for questions, just results.</li>
+        <li>r_logentry->The price on this one should be motivation enough.</li>
+        <li>r_logentry->They crossed a line. You know what to do.</li>
+        <li>r_logentry->Someone's due a reckoning. We're paying for the delivery.</li>
+        <li>r_logentry->Handle this discreetly or loudly. Doesn't matter to us.</li>
+        <li>r_logentry->Job's yours if you want it. Target info uploaded.</li>
+      </rulesStrings>
+    </rulePack>
+  </RulePackDef>
 </Defs>

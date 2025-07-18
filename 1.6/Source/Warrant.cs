@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -24,6 +24,7 @@ namespace SimpleWarrants
         public Faction issuer;
         public string loadID;
         public Quest relatedQuest;
+        public string message;
 
         public WarrantStatus status;
         public float? successChanceCached;
@@ -56,7 +57,7 @@ namespace SimpleWarrants
                     savedSomewhere = IsSavedSomewhereElse(thing);
                 }
             }
-            
+
 
             Scribe_Values.Look(ref savedSomewhere, "savedSomewhere");
             Scribe_Values.Look(ref createdTick, "createdTick", -1);
@@ -66,6 +67,7 @@ namespace SimpleWarrants
             Scribe_Values.Look(ref tickToBeCompleted, "tickToBeCompleted");
             Scribe_Values.Look(ref loadID, "loadID");
             Scribe_References.Look(ref relatedQuest, "relatedQuest");
+            Scribe_Values.Look(ref message, "message");
             Scribe_Values.Look(ref paymentPostponed, "paymentPostponed");
             Scribe_Values.Look(ref postponedUntilTicks, "postponedUntilTicks");
 
