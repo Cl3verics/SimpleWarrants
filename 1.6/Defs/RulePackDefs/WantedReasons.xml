@@ -62,7 +62,6 @@
         <li>r_logentry->We’ve got eyes on a problem. Take care of it.</li>
         <li>r_logentry->I assume we can trust you to handle this.</li>
         <li>r_logentry->This is an authorized operation. Proceed as necessary.</li>
-        <li>r_logentry->I assume we can trust you to handle this.</li>
       </rulesStrings>
     </rulePack>
   </RulePackDef>
