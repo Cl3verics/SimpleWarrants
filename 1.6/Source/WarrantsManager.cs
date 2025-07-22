@@ -348,9 +348,6 @@ namespace SimpleWarrants
                     Log.Error("Failed to find a valid faction to issue warrant (hostile humanlike w/ fac base).");
                     return;
                 }
-                var settlements = Find.World.worldObjects.Settlements.Where(settlement => settlement.Faction == warrant.issuer);
-                Log.Message(warrant.issuer.Name + " - settlements: " + settlements.Select(x => x.Tile
-                .LayerDef + " - " + x.Tile.LayerDef.SurfaceTiles));
             }
             warrant.reason = reason;
             Find.LetterStack.ReceiveLetter("SW.WarrantOnYourColonistReason".Translate(victim.Named("PAWN"), reason),

@@ -208,7 +208,6 @@ public static class SimpleSettings
 
                 if(isCurrentTab)
                 {
-                    Log.Message("tes");
                     var headerRect = new Rect(new Vector2(pos.x, pos.y + 12), new Vector2(inRect.width - 20, headerHeight));
                     string headerText = header.header.TryTranslate(out var f) ? f : $"{settings.GetType().FullName}.{header.header}".TryTranslate(out var found) ? found : header.header;
                     Widgets.Label(headerRect, $"<color=cyan><b><size=22>{headerText}</size></b></color>");

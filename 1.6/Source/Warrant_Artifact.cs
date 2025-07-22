@@ -94,7 +94,6 @@ namespace SimpleWarrants
             var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
             silver.stackCount = reward;
             GiveThing(caravan, silver);
-            Log.Message(this + " - Giving reward: " + silver + " - " + silver.stackCount + " for " + thing);
         }
 
         public override bool IsWarrantActive()

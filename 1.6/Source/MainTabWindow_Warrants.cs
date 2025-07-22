@@ -103,7 +103,7 @@ namespace SimpleWarrants
 
 					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Wanted".Translate());
 					leftColRect.y += 35f;
-					
+
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.yellow;
 					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.WantedFor".Translate(pawnWarrant.reason));
@@ -121,7 +121,7 @@ namespace SimpleWarrants
 					Text.Font = GameFont.Small;
 					GUI.color = Color.white;
 					leftColRect.y += 35f;
-					
+
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.yellow;
 					if (selectedWarrant is Warrant_Artifact)
@@ -161,7 +161,7 @@ namespace SimpleWarrants
 					GUI.DrawTexture(portraitRect, PortraitsCache.Get(pawnWarrant.pawn, portraitSizeVec, Rot4.South, default(Vector3), 1.5f));
 				}
 				else
-				{	
+				{
 					if (selectedWarrant is Warrant_Artifact)
 					{
 						GUI.DrawTexture(portraitRect, selectedWarrant.thing.Graphic.MatSouth.mainTexture, ScaleMode.ScaleToFit);
@@ -177,16 +177,12 @@ namespace SimpleWarrants
 				{
 					var infoRectX = portraitRect.xMax + 15f;
 					var infoRect = new Rect(infoRectX, currentY, sectionRect.xMax - infoRectX, topSectionHeight);
-					string baseInfo = "SW.NameLabel".Translate(pawnWarrant.pawn.LabelCap) + "\n" +
-									  "SW.RaceLabel".Translate(pawnWarrant.pawn.genes?.XenotypeLabel ?? pawnWarrant.pawn.def.label) + "\n" +
-									  "SW.AgeLabel".Translate(pawnWarrant.pawn.ageTracker.AgeBiologicalYears);
-
-					string allianceInfo = "SW.AllianceLabel".Translate(pawnWarrant.pawn.Faction != null ? pawnWarrant.pawn.Faction.Name : "None".Translate().Resolve());
-					var baseInfoHeight = Text.CalcHeight(baseInfo, infoRect.width);
-					Widgets.Label(new Rect(infoRect.x, infoRect.y, infoRect.width, baseInfoHeight), baseInfo);
+					var infoY = infoRect.y;
+					DrawInfoRow(ref infoY, infoRect, "SW.NameLabel", pawnWarrant.pawn.LabelCap);
+					DrawInfoRow(ref infoY, infoRect, "SW.RaceLabel", pawnWarrant.pawn.genes?.XenotypeLabel ?? pawnWarrant.pawn.def.label);
+					DrawInfoRow(ref infoY, infoRect, "SW.AgeLabel", pawnWarrant.pawn.ageTracker.AgeBiologicalYears.ToString());
 					GUI.color = ColorLibrary.RedReadable;
-					var height = Text.CalcHeight(allianceInfo, infoRect.width);
-					Widgets.Label(new Rect(infoRect.x, infoRect.y + baseInfoHeight, infoRect.width, height), allianceInfo);
+					DrawInfoRow(ref infoY, infoRect, "SW.AllianceLabel", pawnWarrant.pawn.Faction != null ? pawnWarrant.pawn.Faction.Name : "None".Translate().Resolve());
 					GUI.color = Color.white;
 					currentY += topSectionHeight + 20f;
 
@@ -250,7 +246,7 @@ namespace SimpleWarrants
 					Text.Font = GameFont.Medium;
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.EstimatedThreatLevel".Translate());
 					currentY += 30f + 5f;
-					
+
 					GUI.color = Color.red;
 					Text.Font = GameFont.Medium;
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.ThreatLevelPoints".Translate(pawnWarrant.ThreatPoints));
@@ -264,6 +260,32 @@ namespace SimpleWarrants
 				Widgets.Label(rect, "SW.WarrantDetails".Translate());
 				Text.Anchor = TextAnchor.UpperLeft;
 			}
+		}
+
+		private void DrawInfoRow(ref float currentY, Rect containingRect, string labelKey, string value)
+		{
+			string format = labelKey.Translate();
+			string[] parts = format.Split(new[] { "{0}" }, StringSplitOptions.None);
+			string labelPart = parts[0];
+
+			int colonIndex = labelPart.LastIndexOf(':');
+			string boldText = (colonIndex > -1) ? labelPart.Substring(0, colonIndex) : labelPart;
+
+			var boldStyle = new GUIStyle(Text.CurFontStyle)
+			{
+				fontStyle = FontStyle.Bold
+			};
+
+			float boldWidth = boldStyle.CalcSize(new GUIContent(boldText)).x;
+
+			var boldRect = new Rect(containingRect.x, currentY, boldWidth, Text.LineHeight);
+			GUI.Label(boldRect, boldText, boldStyle);
+
+			var valueText = ": " + value;
+			var valueRect = new Rect(boldRect.xMax, currentY, containingRect.width - boldWidth, Text.LineHeight);
+			Widgets.Label(valueRect, valueText);
+
+			currentY += Text.LineHeight;
 		}
 
 		private void DoPublicWarrants(Rect rect)
