@@ -83,54 +83,80 @@ namespace SimpleWarrants
 
 		private void DoMenuSection(Rect rect)
 		{
+			GUI.color = Color.grey;
+			Widgets.DrawLineVertical(rect.xMax, rect.y, rect.height);
+			GUI.color = Color.white;
 			if (selectedWarrant != null)
 			{
-				if (selectedWarrant is Warrant_Pawn pawnWarrant && pawnWarrant.pawn != null)
-				{
-					var sectionRect = new Rect(rect.x, rect.y, rect.width, rect.height);
-					var currentY = sectionRect.y;
-					float portraitSize = 150;
-					float topSectionHeight = portraitSize;
-					var leftColRect = new Rect(sectionRect.x, currentY, portraitSize, topSectionHeight);
+				var sectionRect = new Rect(rect.x, rect.y, rect.width, rect.height);
+				var currentY = sectionRect.y;
+				float portraitSize = 150;
+				float topSectionHeight = portraitSize;
+				var leftColRect = new Rect(sectionRect.x, currentY, portraitSize, topSectionHeight);
 
+				var pawnWarrant = selectedWarrant as Warrant_Pawn;
+				if (pawnWarrant != null)
+				{
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.red;
 					Text.Anchor = TextAnchor.UpperCenter;
 
 					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Wanted".Translate());
-
+					leftColRect.y += 35f;
+					
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.yellow;
-					Widgets.Label(new Rect(leftColRect.x, leftColRect.y + 35f, leftColRect.width, 30f), "SW.WantedFor".Translate(pawnWarrant.reason));
+					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.WantedFor".Translate(pawnWarrant.reason));
 					Text.Anchor = TextAnchor.UpperLeft;
 					Text.Font = GameFont.Small;
-
 					GUI.color = Color.white;
-					float buttonWidth = (leftColRect.width - 10f) / 2f;
-					var acceptButtonRect = new Rect(leftColRect.x, leftColRect.y + 85f, buttonWidth, 30f);
-					if (Widgets.ButtonText(acceptButtonRect, "Accept".Translate()))
-					{
-						selectedWarrant.DoAcceptAction();
-						selectedWarrant = null;
-						return;
-					}
-					var declineButtonRect = new Rect(acceptButtonRect.xMax + 30f, acceptButtonRect.y, buttonWidth, 30f);
-					if (Widgets.ButtonText(declineButtonRect, "SW.Decline".Translate()))
-					{
-						WarrantsManager.Instance.availableWarrants.Remove(selectedWarrant);
-						selectedWarrant = null;
-						return;
-					}
-					var portraitRect = new Rect(leftColRect.xMax + 10f, currentY, portraitSize, portraitSize);
-					GUI.DrawTexture(portraitRect, PortraitsCache.Get(pawnWarrant.pawn, new Vector2(portraitSize, portraitSize), Rot4.South, default(Vector3), 1.5f));
+					leftColRect.y += 30f;
+				}
 
+
+				float buttonWidth = (leftColRect.width - 10f) / 2f;
+				var acceptButtonRect = new Rect(leftColRect.x, leftColRect.y, buttonWidth, 30f);
+				if (Widgets.ButtonText(acceptButtonRect, "Accept".Translate()))
+				{
+					selectedWarrant.DoAcceptAction();
+					selectedWarrant = null;
+					return;
+				}
+				var declineButtonRect = new Rect(acceptButtonRect.xMax + 30f, acceptButtonRect.y, buttonWidth, 30f);
+				if (Widgets.ButtonText(declineButtonRect, "SW.Decline".Translate()))
+				{
+					WarrantsManager.Instance.availableWarrants.Remove(selectedWarrant);
+					selectedWarrant = null;
+					return;
+				}
+				var portraitRect = new Rect(leftColRect.xMax + 10f, currentY, portraitSize, portraitSize);
+				var portraitSizeVec = new Vector2(portraitSize, portraitSize);
+				if (pawnWarrant != null)
+				{
+					GUI.DrawTexture(portraitRect, PortraitsCache.Get(pawnWarrant.pawn, portraitSizeVec, Rot4.South, default(Vector3), 1.5f));
+				}
+				else
+				{	
+					if (selectedWarrant is Warrant_Artifact)
+					{
+						GUI.DrawTexture(portraitRect, selectedWarrant.thing.Graphic.MatSouth.mainTexture, ScaleMode.ScaleToFit);
+					}
+					else if (selectedWarrant is Warrant_TameAnimal tameAnimal)
+					{
+						Widgets.ThingIcon(portraitRect, tameAnimal.AnimalRace.race, null, null);
+					}
+					currentY += 30f + 5f;
+				}
+
+				if (pawnWarrant != null)
+				{
 					var infoRectX = portraitRect.xMax + 15f;
 					var infoRect = new Rect(infoRectX, currentY, sectionRect.xMax - infoRectX, topSectionHeight);
 					string baseInfo = "SW.NameLabel".Translate(pawnWarrant.pawn.LabelCap) + "\n" +
 									  "SW.RaceLabel".Translate(pawnWarrant.pawn.genes?.XenotypeLabel ?? pawnWarrant.pawn.def.label) + "\n" +
 									  "SW.AgeLabel".Translate(pawnWarrant.pawn.ageTracker.AgeBiologicalYears);
 
-					string allianceInfo = "SW.AllianceLabel".Translate(pawnWarrant.pawn.Faction != null ? pawnWarrant.pawn.Faction.Name : "SW.None".Translate().Resolve());
+					string allianceInfo = "SW.AllianceLabel".Translate(pawnWarrant.pawn.Faction != null ? pawnWarrant.pawn.Faction.Name : "None".Translate().Resolve());
 					var baseInfoHeight = Text.CalcHeight(baseInfo, infoRect.width);
 					Widgets.Label(new Rect(infoRect.x, infoRect.y, infoRect.width, baseInfoHeight), baseInfo);
 					GUI.color = ColorLibrary.RedReadable;
@@ -148,12 +174,15 @@ namespace SimpleWarrants
 					float messageHeight = Text.CalcHeight(messageText, sectionRect.width);
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, messageHeight), messageText);
 					currentY += messageHeight + 15f;
+				}
 
-					Text.Font = GameFont.Medium;
-					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.Rewards".Translate());
-					currentY += 30f + 5f;
 
-					Text.Font = GameFont.Small;
+				Text.Font = GameFont.Medium;
+				Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.Rewards".Translate());
+				currentY += 30f + 5f;
+				Text.Font = GameFont.Small;
+				if (pawnWarrant != null)
+				{
 					if (pawnWarrant.rewardForDead > 0)
 					{
 						var rewardRect = new Rect(sectionRect.x, currentY, sectionRect.width, 25f);
@@ -168,24 +197,37 @@ namespace SimpleWarrants
 						Widgets.Label(new Rect(rewardRect.x + 25f, rewardRect.y, rewardRect.width - 25f, rewardRect.height), pawnWarrant.rewardForLiving + " " + ThingDefOf.Silver.label);
 						currentY += 25f;
 					}
-					currentY += 15f;
+				}
+				else if (selectedWarrant is Warrant_Artifact artifact)
+				{
+					var rewardRect = new Rect(sectionRect.x, currentY, sectionRect.width, 25f);
+					GUI.DrawTexture(new Rect(rewardRect.x, rewardRect.y + 2.5f, 20f, 20f), Warrant_Artifact.IconRetrieve);
+					Widgets.Label(new Rect(rewardRect.x + 25f, rewardRect.y, rewardRect.width - 25f, rewardRect.height), artifact.reward + " " + ThingDefOf.Silver.label);
+					currentY += 25f;
+				}
+				else if (selectedWarrant is Warrant_TameAnimal tame)
+				{
+					if (tame.Reward > 0)
+					{
+						var rewardRect = new Rect(sectionRect.x, currentY, sectionRect.width, 25f);
+						GUI.DrawTexture(new Rect(rewardRect.x, rewardRect.y + 2.5f, 20f, 20f), Warrant_Pawn.IconCapture);
+						Widgets.Label(new Rect(rewardRect.x + 25f, rewardRect.y, rewardRect.width - 25f, rewardRect.height), tame.Reward + " " + ThingDefOf.Silver.label);
+						currentY += 25f;
+					}
+				}
 
+				currentY += 15f;
+				if (pawnWarrant != null)
+				{
 					Text.Font = GameFont.Medium;
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.EstimatedThreatLevel".Translate());
 					currentY += 30f + 5f;
-
+					
 					GUI.color = Color.red;
 					Text.Font = GameFont.Medium;
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.ThreatLevelPoints".Translate(pawnWarrant.ThreatPoints));
 					GUI.color = Color.white;
-
 					Text.Font = GameFont.Small;
-				}
-				else
-				{
-					Text.Anchor = TextAnchor.MiddleCenter;
-					Widgets.Label(rect, "SW.WarrantDetails".Translate());
-					Text.Anchor = TextAnchor.UpperLeft;
 				}
 			}
 			else

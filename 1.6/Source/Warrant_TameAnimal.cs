@@ -6,6 +6,7 @@ using Verse;
 
 namespace SimpleWarrants
 {
+    [HotSwappable]
     public class Warrant_TameAnimal : Warrant
     {
         public override bool UsesThings => false;
@@ -48,7 +49,7 @@ namespace SimpleWarrants
             GUI.color = AnimalRace.race.uiIconColor;
             GUI.DrawTexture(pawnRect, AnimalRace.race.uiIcon, ScaleMode.ScaleToFit);
             GUI.color = Color.white;
-            Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 24, AnimalRace.race);
+            Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 40, AnimalRace.race);
 
             Text.Font = GameFont.Medium;
             var pawnName = $"<color=#bced93>{"SW.Tame".Translate()}</color> {AnimalRace.LabelCap}";
