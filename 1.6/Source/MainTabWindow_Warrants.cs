@@ -112,6 +112,31 @@ namespace SimpleWarrants
 					GUI.color = Color.white;
 					leftColRect.y += 30f;
 				}
+				else
+				{
+					Text.Font = GameFont.Medium;
+					GUI.color = Color.red;
+					Text.Anchor = TextAnchor.UpperCenter;
+					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Warrant".Translate());
+					Text.Font = GameFont.Small;
+					GUI.color = Color.white;
+					leftColRect.y += 35f;
+					
+					Text.Font = GameFont.Medium;
+					GUI.color = Color.yellow;
+					if (selectedWarrant is Warrant_Artifact)
+					{
+						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.ForRetrieval".Translate());
+					}
+					else if (selectedWarrant is Warrant_TameAnimal)
+					{
+						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.ForTaming".Translate());
+					}
+					Text.Anchor = TextAnchor.UpperLeft;
+					Text.Font = GameFont.Small;
+					GUI.color = Color.white;
+					leftColRect.y += 30f;
+				}
 
 
 				float buttonWidth = (leftColRect.width - 10f) / 2f;
@@ -175,7 +200,10 @@ namespace SimpleWarrants
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, messageHeight), messageText);
 					currentY += messageHeight + 15f;
 				}
-
+				else
+				{
+					currentY += 70;
+				}
 
 				Text.Font = GameFont.Medium;
 				Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.Rewards".Translate());
