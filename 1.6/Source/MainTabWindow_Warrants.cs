@@ -93,7 +93,7 @@ namespace SimpleWarrants
 				float portraitSize = 150;
 				float topSectionHeight = portraitSize;
 				var leftColRect = new Rect(sectionRect.x, currentY, portraitSize, topSectionHeight);
-
+				bool showAcceptDeclineButtons = curTab == WarrantsTab.PublicWarrants;
 				var pawnWarrant = selectedWarrant as Warrant_Pawn;
 				if (pawnWarrant != null)
 				{
@@ -138,22 +138,25 @@ namespace SimpleWarrants
 					leftColRect.y += 30f;
 				}
 
+				if (showAcceptDeclineButtons)
+				{
+					float buttonWidth = (leftColRect.width - 10f) / 2f;
+					var acceptButtonRect = new Rect(leftColRect.x, leftColRect.y, buttonWidth, 30f);
+					if (Widgets.ButtonText(acceptButtonRect, "Accept".Translate()))
+					{
+						selectedWarrant.DoAcceptAction();
+						selectedWarrant = null;
+						return;
+					}
+					var declineButtonRect = new Rect(acceptButtonRect.xMax + 30f, acceptButtonRect.y, buttonWidth, 30f);
+					if (Widgets.ButtonText(declineButtonRect, "SW.Decline".Translate()))
+					{
+						WarrantsManager.Instance.availableWarrants.Remove(selectedWarrant);
+						selectedWarrant = null;
+						return;
+					}
+				}
 
-				float buttonWidth = (leftColRect.width - 10f) / 2f;
-				var acceptButtonRect = new Rect(leftColRect.x, leftColRect.y, buttonWidth, 30f);
-				if (Widgets.ButtonText(acceptButtonRect, "Accept".Translate()))
-				{
-					selectedWarrant.DoAcceptAction();
-					selectedWarrant = null;
-					return;
-				}
-				var declineButtonRect = new Rect(acceptButtonRect.xMax + 30f, acceptButtonRect.y, buttonWidth, 30f);
-				if (Widgets.ButtonText(declineButtonRect, "SW.Decline".Translate()))
-				{
-					WarrantsManager.Instance.availableWarrants.Remove(selectedWarrant);
-					selectedWarrant = null;
-					return;
-				}
 				var portraitRect = new Rect(leftColRect.xMax + 10f, currentY, portraitSize, portraitSize);
 				var portraitSizeVec = new Vector2(portraitSize, portraitSize);
 				if (pawnWarrant != null)
