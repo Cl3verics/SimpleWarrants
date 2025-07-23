@@ -106,7 +106,12 @@ namespace SimpleWarrants
 
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.yellow;
-					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.WantedFor".Translate(pawnWarrant.reason));
+					var text = pawnWarrant.reason;
+					if (pawnWarrant.pawn.RaceProps.Humanlike is false)
+					{
+						text = "SW.Hunt".Translate();
+					}
+					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.WantedFor".Translate(text));
 					Text.Anchor = TextAnchor.UpperLeft;
 					Text.Font = GameFont.Small;
 					GUI.color = Color.white;
