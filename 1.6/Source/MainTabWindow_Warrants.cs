@@ -100,8 +100,14 @@ namespace SimpleWarrants
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.red;
 					Text.Anchor = TextAnchor.UpperCenter;
-
-					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Wanted".Translate());
+					if (pawnWarrant.pawn.RaceProps.Humanlike)
+					{
+						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Wanted".Translate());
+					}
+					else
+					{
+						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Warrant".Translate());
+					}
 					leftColRect.y += 35f;
 
 					Text.Font = GameFont.Medium;
@@ -109,7 +115,7 @@ namespace SimpleWarrants
 					var text = pawnWarrant.reason;
 					if (pawnWarrant.pawn.RaceProps.Humanlike is false)
 					{
-						text = "SW.Hunt".Translate();
+						text = "SW.HuntReason".Translate();
 					}
 					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.WantedFor".Translate(text));
 					Text.Anchor = TextAnchor.UpperLeft;
@@ -181,7 +187,7 @@ namespace SimpleWarrants
 					currentY += 30f + 5f;
 				}
 
-				if (pawnWarrant != null)
+				if (pawnWarrant != null && pawnWarrant.pawn.RaceProps.Humanlike)
 				{
 					var infoRectX = portraitRect.xMax + 15f;
 					var infoRect = new Rect(infoRectX, currentY, sectionRect.xMax - infoRectX, topSectionHeight);
@@ -207,6 +213,10 @@ namespace SimpleWarrants
 				else
 				{
 					currentY += 70;
+					if (pawnWarrant != null)
+					{
+						currentY += 35f;
+					}
 				}
 
 				Text.Font = GameFont.Medium;
@@ -249,7 +259,7 @@ namespace SimpleWarrants
 				}
 
 				currentY += 15f;
-				if (pawnWarrant != null)
+				if (pawnWarrant != null && pawnWarrant.pawn.RaceProps.Humanlike)
 				{
 					Text.Font = GameFont.Medium;
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.EstimatedThreatLevel".Translate());

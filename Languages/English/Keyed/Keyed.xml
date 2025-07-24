@@ -110,5 +110,5 @@ This will negatively impact relations with {1}!</SW.ConfirmationPrompt>
   <SW.ForRetrieval>for Retrieval</SW.ForRetrieval>
   <SW.ForTaming>for Taming</SW.ForTaming>
   <SW.Warrant>Warrant</SW.Warrant>
-  <SW.Hunt>Hunt</SW.Hunt>
+  <SW.HuntReason>Hunt</SW.HuntReason>
 </LanguageData>
