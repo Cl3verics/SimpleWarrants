@@ -108,7 +108,7 @@ namespace SimpleWarrants
 					{
 						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Warrant".Translate());
 					}
-					leftColRect.y += 35f;
+					leftColRect.y += 30f;
 
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.yellow;
@@ -117,7 +117,7 @@ namespace SimpleWarrants
 					{
 						text = "SW.HuntReason".Translate();
 					}
-					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.WantedFor".Translate(text));
+					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 32f), "SW.WantedFor".Translate(text));
 					Text.Anchor = TextAnchor.UpperLeft;
 					Text.Font = GameFont.Small;
 					GUI.color = Color.white;
@@ -131,17 +131,17 @@ namespace SimpleWarrants
 					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Warrant".Translate());
 					Text.Font = GameFont.Small;
 					GUI.color = Color.white;
-					leftColRect.y += 35f;
+					leftColRect.y += 30f;
 
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.yellow;
 					if (selectedWarrant is Warrant_Artifact)
 					{
-						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.ForRetrieval".Translate());
+						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 32f), "SW.ForRetrieval".Translate());
 					}
 					else if (selectedWarrant is Warrant_TameAnimal)
 					{
-						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 30f), "SW.ForTaming".Translate());
+						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 32f), "SW.ForTaming".Translate());
 					}
 					Text.Anchor = TextAnchor.UpperLeft;
 					Text.Font = GameFont.Small;
@@ -395,6 +395,7 @@ namespace SimpleWarrants
 			if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
 			{
 				var warrant = CreateWarrant(out string failReason);
+				
 				if (warrant is Warrant_Pawn warrantPawn && warrantPawn.pawn.Faction is not null
 					&& warrantPawn.pawn.Faction != Faction.OfPlayer && warrantPawn.pawn.Faction.HostileTo(Faction.OfPlayer) is false)
 				{
@@ -475,15 +476,10 @@ namespace SimpleWarrants
 				}
 
 				Text.Font = GameFont.Small;
-				var rewardPayment = new Rect(createWarrant.x - 30, dropdownRect.yMax + 10, 130, 24);
+				var rewardPayment = new Rect(createWarrant.x, dropdownRect.yMax + 10, 100, 24);
 				Widgets.Label(rewardPayment, "SW.RewardPayment".Translate());
-				var rewardPaymentInput = new Rect(rewardPayment.xMax, rewardPayment.y, 60, 24);
+				var rewardPaymentInput = new Rect(rewardPayment.xMax, rewardPayment.y, 100, 24);
 				Widgets.TextFieldNumeric(rewardPaymentInput, ref curReward, ref buffCurReward);
-
-				var messageRect = new Rect(rewardPayment.x, rewardPayment.yMax + 10, 120, 24);
-				Widgets.Label(messageRect, "SW.Message".Translate());
-				var messageAreaRect = new Rect(messageRect.xMax, messageRect.y, 130, 24);
-				curMessage = Widgets.TextArea(messageAreaRect, curMessage);
 			}
 			Text.Font = GameFont.Small;
 		}
@@ -541,7 +537,7 @@ namespace SimpleWarrants
 				}
 				Widgets.Label(reasonRect, "SW.Reason".Translate());
 				var reasonAreaRect = new Rect(reasonRect.xMax, reasonRect.y, 130, 24);
-				curReason = string.Concat(Widgets.TextArea(reasonAreaRect, curReason).Take(14));
+				curReason = Widgets.TextArea(reasonAreaRect, curReason);
 			}
 
 
@@ -645,7 +641,14 @@ namespace SimpleWarrants
 			warrant.rewardForLiving = curCapturePayment;
 			warrant.rewardForDead = curDeathPayment;
 			warrant.reason = curReason;
-			warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages);
+			if (curMessage.NullOrEmpty() is false)
+			{
+				warrant.message = curMessage;
+			}
+			else
+			{
+				warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages);
+			}
 			curReason = null;
 			if (deathPaymentEnabled && curDeathPayment <= 0)
 			{
