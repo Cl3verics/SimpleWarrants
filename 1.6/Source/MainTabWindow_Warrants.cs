@@ -117,11 +117,13 @@ namespace SimpleWarrants
 					{
 						text = "SW.HuntReason".Translate();
 					}
-					Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 32f), "SW.WantedFor".Translate(text));
+					var height = Text.CalcHeight(text, leftColRect.width + 20);
+					var labelRect = new Rect(leftColRect.x + 20, leftColRect.y, leftColRect.width + 20, height);
 					Text.Anchor = TextAnchor.UpperLeft;
+					Widgets.Label(labelRect, "SW.WantedFor".Translate(text));
 					Text.Font = GameFont.Small;
 					GUI.color = Color.white;
-					leftColRect.y += 30f;
+					leftColRect.y += height;
 				}
 				else
 				{
@@ -560,11 +562,13 @@ namespace SimpleWarrants
 				Widgets.TextFieldNumeric(deathPaymentInput, ref curDeathPayment, ref buffCurDeathPayment);
 			}
 			Widgets.Checkbox(deathPaymentInput.xMax + 5, deathPaymentInput.y, ref deathPaymentEnabled);
-
-			var messageRect = new Rect(deathPayment.x, deathPayment.yMax + 5, 120, 24);
-			Widgets.Label(messageRect, "SW.Message".Translate());
-			var messageAreaRect = new Rect(messageRect.x, messageRect.yMax, 210, 80);
-			curMessage = Widgets.TextArea(messageAreaRect, curMessage);
+			if (curType == TargetType.Human)
+			{
+				var messageRect = new Rect(deathPayment.x, deathPayment.yMax + 5, 120, 24);
+				Widgets.Label(messageRect, "SW.Message".Translate());
+				var messageAreaRect = new Rect(messageRect.x, messageRect.yMax, 210, 80);
+				curMessage = Widgets.TextArea(messageAreaRect, curMessage);
+			}
 		}
 
 		public void AssignPawn(Pawn pawn)
