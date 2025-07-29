@@ -34,7 +34,7 @@ namespace SimpleWarrants
 		private bool deathPaymentEnabled;
 		private Vector2 scrollPosition;
 		private Warrant selectedWarrant;
-		private float UI_WIDTH => 1600f;
+		private float UI_WIDTH => 1280f;
 		private float UI_HEIGHT => 700f;
 
 		public override Vector2 InitialSize => new Vector2(UI_WIDTH, UI_HEIGHT);
@@ -52,6 +52,10 @@ namespace SimpleWarrants
 			{
 				curTab = WarrantsTab.RelatedWarrants;
 			}, () => curTab == WarrantsTab.RelatedWarrants));
+			tabs.Add(new TabRecord("SW.CreateWarrant".Translate(), delegate
+			{
+				curTab = WarrantsTab.CreateWarrant;
+			}, () => curTab == WarrantsTab.CreateWarrant));
 		}
 
 		public override void DoWindowContents(Rect rect)
@@ -59,33 +63,34 @@ namespace SimpleWarrants
 			Rect mainRect = rect;
 			mainRect.yMin += 45f;
 			TabDrawer.DrawTabs(mainRect, tabs);
-
-			Rect leftPanelRect = new Rect(mainRect.x, mainRect.y, 800, mainRect.height);
-
 			switch (curTab)
 			{
 				case WarrantsTab.PublicWarrants:
-					DoPublicWarrants(leftPanelRect);
-					break;
 				case WarrantsTab.RelatedWarrants:
-					DoRelatedWarrants(leftPanelRect);
-					break;
+					{
+						Rect leftPanelRect = new Rect(mainRect.x, mainRect.y, 720, mainRect.height);
+						if (curTab == WarrantsTab.PublicWarrants)
+						{
+							DoPublicWarrants(leftPanelRect);
+						}
+						else
+						{
+							DoRelatedWarrants(leftPanelRect);
+						}
+						Rect menuSectionRect = new Rect(leftPanelRect.xMax + 10f, mainRect.y, 530, mainRect.height);
+						DoMenuSection(menuSectionRect);
+						break;
+					}
+				case WarrantsTab.CreateWarrant:
+					{
+						DoWarrantCreation(mainRect);
+						break;
+					}
 			}
-
-			Rect menuSectionRect = new Rect(leftPanelRect.xMax + 10f, mainRect.y, 530, mainRect.height);
-
-			DoMenuSection(menuSectionRect);
-
-			Rect rightPanelRect = new Rect(menuSectionRect.xMax + 10f, mainRect.y, 200, mainRect.height);
-
-			DoWarrantCreation(rightPanelRect);
 		}
 
 		private void DoMenuSection(Rect rect)
 		{
-			GUI.color = Color.grey;
-			Widgets.DrawLineVertical(rect.xMax, rect.y, rect.height);
-			GUI.color = Color.white;
 			if (selectedWarrant != null)
 			{
 				var sectionRect = new Rect(rect.x, rect.y, rect.width, rect.height);
@@ -117,8 +122,8 @@ namespace SimpleWarrants
 					{
 						text = "SW.HuntReason".Translate();
 					}
-					var height = Text.CalcHeight(text, leftColRect.width + 20);
-					var labelRect = new Rect(leftColRect.x + 20, leftColRect.y, leftColRect.width + 20, height);
+					var height = Text.CalcHeight(text, leftColRect.width + 30);
+					var labelRect = new Rect(leftColRect.x + 20, leftColRect.y, leftColRect.width + 30, height);
 					Text.Anchor = TextAnchor.UpperLeft;
 					Widgets.Label(labelRect, "SW.WantedFor".Translate(text));
 					Text.Font = GameFont.Small;
@@ -392,12 +397,12 @@ namespace SimpleWarrants
 		private void DoWarrantCreation(Rect rect)
 		{
 			var posY = rect.y + 10;
-			var createWarrant = new Rect(rect.x, posY, rect.width, 30);
+			var createWarrant = new Rect(rect.x, posY, 200, 30);
 
 			if (Widgets.ButtonText(createWarrant, "SW.CreateWarrant".Translate()))
 			{
 				var warrant = CreateWarrant(out string failReason);
-				
+
 				if (warrant is Warrant_Pawn warrantPawn && warrantPawn.pawn.Faction is not null
 					&& warrantPawn.pawn.Faction != Faction.OfPlayer && warrantPawn.pawn.Faction.HostileTo(Faction.OfPlayer) is false)
 				{
