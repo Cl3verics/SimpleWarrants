@@ -88,6 +88,7 @@
   <SW.RaidReasonKill>They are looking to kill {PAWN_nameDef} due to {1}.</SW.RaidReasonKill>
   <SW.Delay24Hours>Postpone for 24 hours</SW.Delay24Hours>
   <SW.FactionFilter>Faction Filter: {0}</SW.FactionFilter>
+  <SW.XenotypeFilter>Xenotype Filter: {0}</SW.XenotypeFilter>
   <SW.ConfirmationPrompt>Are you sure you want to place a warrant on {PAWN_nameDef}?
 
 This will negatively impact relations with {1}!</SW.ConfirmationPrompt>

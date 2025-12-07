@@ -7,30 +7,31 @@ using Verse.Sound;
 
 namespace SimpleWarrants
 {
-    [HotSwappable]
+	[HotSwappable]
 	public class Dialog_SelectPawn : Window
 	{
-        public override Vector2 InitialSize => new Vector2(620f, 500f);
+		public override Vector2 InitialSize => new Vector2(620f, 500f);
 
-        public List<Pawn> allPawns;
-        private readonly MainTabWindow_Warrants parent;
-        private Vector2 scrollPosition;
+		public List<Pawn> allPawns;
+		private readonly MainTabWindow_Warrants parent;
+		private Vector2 scrollPosition;
 
-        string searchKey;
+		string searchKey;
 		public Faction specificFaction;
+		public XenotypeDef specificXenotype;
 
-        public Dialog_SelectPawn(MainTabWindow_Warrants parent)
+		public Dialog_SelectPawn(MainTabWindow_Warrants parent)
 		{
 			doCloseButton = true;
 			doCloseX = true;
 			closeOnClickedOutside = false;
 			absorbInputAroundWindow = false;
-			allPawns = Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn.MapHeld is null && pawn?.story != null && pawn?.Name != null 
+			allPawns = Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn.MapHeld is null && pawn?.story != null && pawn?.Name != null
 			&& !WarrantsManager.Instance.createdWarrants.Any(warrant => pawn == warrant.thing)).ToList();
 			this.parent = parent;
 		}
 
-        public override void DoWindowContents(Rect inRect)
+		public override void DoWindowContents(Rect inRect)
 		{
 			Text.Font = GameFont.Small;
 
@@ -59,7 +60,37 @@ namespace SimpleWarrants
 				{
 					specificFaction = null;
 				}));
-                Find.WindowStack.Add(new FloatMenu(list));
+				Find.WindowStack.Add(new FloatMenu(list));
+			}
+
+			var xenotypeFilterLabel = "SW.XenotypeFilter".Translate(specificXenotype?.LabelCap ?? "None".Translate());
+			var xenotypeFilterWidth = Text.CalcSize(xenotypeFilterLabel).x + 10;
+			var xenotypeButtonRect = new Rect(factionButtonRect.xMax + 15, searchRect.y, xenotypeFilterWidth, 24f);
+			if (Widgets.ButtonText(xenotypeButtonRect, xenotypeFilterLabel))
+			{
+				var list = new List<FloatMenuOption>();
+				var xenotypes = allPawns
+					.Where(x => x.genes?.Xenotype != null)
+					.Select(x => x.genes.Xenotype)
+					.Distinct()
+					.OrderBy(x => x.LabelCap.ToString());
+
+				foreach (var xenotype in xenotypes)
+				{
+					list.Add(new FloatMenuOption(xenotype.LabelCap, delegate
+					{
+						specificXenotype = xenotype;
+					},
+					iconTex: xenotype.Icon,
+					iconColor: Color.white));
+				}
+
+				list.Add(new FloatMenuOption("None".Translate(), delegate
+				{
+					specificXenotype = null;
+				}));
+
+				Find.WindowStack.Add(new FloatMenu(list));
 			}
 			Rect outRect = new Rect(inRect);
 			outRect.y = searchRect.yMax + 5;
@@ -70,6 +101,10 @@ namespace SimpleWarrants
 			if (specificFaction != null)
 			{
 				pawns = pawns.Where(x => x.Faction == specificFaction).ToList();
+			}
+			if (specificXenotype != null)
+			{
+				pawns = pawns.Where(x => x.genes?.Xenotype == specificXenotype).ToList();
 			}
 			Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, pawns.Count() * 35f);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
@@ -83,10 +118,17 @@ namespace SimpleWarrants
 					Widgets.ThingIcon(iconRect, pawn);
 					iconRect.x += 24;
 					if (pawn.Faction != null)
-                    {
+					{
 						FactionUIUtility.DrawFactionIconWithTooltip(iconRect, pawn.Faction);
+						iconRect.x += 24;
 					}
-					Rect rect = new Rect(iconRect.xMax + 5, num, viewRect.width * 0.65f, 32f);
+					if (pawn.genes?.Xenotype != null)
+					{
+						GUI.DrawTexture(iconRect, pawn.genes.Xenotype.Icon);
+						TooltipHandler.TipRegion(iconRect, pawn.genes.Xenotype.LabelCap);
+						iconRect.x += 24;
+					}
+					Rect rect = new Rect(iconRect.xMax + 5, num, viewRect.width * 0.55f, 32f);
 					Text.Anchor = TextAnchor.MiddleLeft;
 					Widgets.Label(rect, pawn.Name.ToStringFull);
 					Text.Anchor = TextAnchor.UpperLeft;
@@ -95,14 +137,14 @@ namespace SimpleWarrants
 					if (Widgets.ButtonText(rect, "SW.Select".Translate()))
 					{
 						if (pawn.Faction != null && !pawn.Faction.HostileTo(Faction.OfPlayer))
-                        {
+						{
 							Find.WindowStack.Add(new Dialog_MessageBox("SW.WarrantOnNonHostileWarning".Translate(pawn.Faction.Named("FACTION")), "Accept".Translate(), delegate
 							{
 								parent.AssignPawn(pawn);
 							}, "Cancel".Translate()));
-                        }
+						}
 						else
-                        {
+						{
 							parent.AssignPawn(pawn);
 						}
 						SoundDefOf.Click.PlayOneShotOnCamera();
@@ -116,5 +158,5 @@ namespace SimpleWarrants
 				Widgets.EndScrollView();
 			}
 		}
-    }
+	}
 }

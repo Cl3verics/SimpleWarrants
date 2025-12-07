@@ -10,12 +10,12 @@ namespace SimpleWarrants
         [NoTranslate]
 		public SlateRef<string> inSignal;
 
-        protected override bool TestRunInt(Slate slate)
+        public override bool TestRunInt(Slate slate)
 		{
 			return true;
 		}
 
-        protected override void RunInt()
+        public override void RunInt()
 		{
 			Slate slate = QuestGen.slate;
 			QuestPart_WarrantFailed questPart = new QuestPart_WarrantFailed();

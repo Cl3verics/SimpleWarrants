@@ -28,7 +28,7 @@ namespace SimpleWarrants
 			return list;
 		}
 
-        protected override bool TryExecuteWorker(IncidentParms parms)
+        public override bool TryExecuteWorker(IncidentParms parms)
         {
             return false;
         }
