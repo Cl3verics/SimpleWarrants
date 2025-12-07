@@ -16,13 +16,11 @@ namespace SimpleWarrants
 
         public override float AcceptChance()
         {
-            // Not used because the player cannot create animation warrants.
             throw new NotImplementedException();
         }
 
         public override float SuccessChance()
         {
-            // Success chance is not used because the player cannot create animal warrants.
             throw new NotImplementedException();
         }
 
@@ -36,6 +34,9 @@ namespace SimpleWarrants
             slate.Set("warrant", this);
             slate.Set("reward", Reward);
             slate.Set("animal", AnimalRace);
+            this.thing = PawnGenerator.GeneratePawn(AnimalRace);
+            slate.Set("victim", thing);
+
             var questDef = SW_DefOf.SW_Warrant_Tame;
             var quest = QuestUtility.GenerateQuestAndMakeAvailable(questDef, slate);
             QuestUtility.SendLetterQuestAvailable(quest);

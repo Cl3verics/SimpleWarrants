@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -22,7 +22,7 @@ namespace SimpleWarrants
                     {
                         foreach (var raidLord in raidLords.InRandomOrder())
                         {
-                            var victim = raidLord.Key.pawn;
+                            var victim = raidLord.Key.Pawn;
                             if (victim.Map == pawn.Map)
                             {
                                 if (victim.Downed)

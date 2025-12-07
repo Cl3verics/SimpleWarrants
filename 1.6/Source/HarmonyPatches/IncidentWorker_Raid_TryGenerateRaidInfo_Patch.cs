@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -16,7 +16,7 @@ namespace SimpleWarrants
             {
                 if (huntForWarrant || Rand.Chance(0.3f))
                 {
-                    var warrants = WarrantsManager.Instance.availableWarrants.OfType<Warrant_Pawn>().Where(x => x.pawn.Faction == Faction.OfPlayer && !x.pawn.Dead && x.pawn.Map == map).ToList();
+                    var warrants = WarrantsManager.Instance.availableWarrants.OfType<Warrant_Pawn>().Where(x => x.Pawn.Faction == Faction.OfPlayer && !x.Pawn.Dead && x.Pawn.Map == map).ToList();
                     if (warrants.TryRandomElement(out var warrant))
                     {
                         RaidStrategyWorker_MakeLords_Patch.warrantToHunt = warrant;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -140,6 +140,10 @@ namespace SimpleWarrants
             if (Widgets.ButtonText(acceptRect, "SW.RemoveWarrant".Translate()))
             {
                 WarrantsManager.Instance.createdWarrants.Remove(this);
+                WarrantsManager.Instance.availableWarrants.Remove(this);
+                WarrantsManager.Instance.acceptedWarrants.Remove(this);
+                WarrantsManager.Instance.takenWarrants.Remove(this);
+                WarrantsManager.Instance.postponedWarrants.Remove(this);
             }
         }
 
@@ -194,6 +198,11 @@ namespace SimpleWarrants
             }
             if (issuer == Faction.OfPlayer && accepteer is null)
             {
+                DrawRemoveWarrantButton(rect);
+            }
+            else if (DebugSettings.godMode && (doCompensateWarrantButton || (issuer != Faction.OfPlayer && accepteer is null)))
+            {
+                rect.y += 65;
                 DrawRemoveWarrantButton(rect);
             }
         }

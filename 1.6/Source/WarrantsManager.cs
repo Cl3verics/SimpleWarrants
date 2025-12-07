@@ -152,8 +152,8 @@ namespace SimpleWarrants
                     }
 
                     warrant.thing = PawnGenerator.GeneratePawn(randomKind, faction);
-                    warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages, warrant.pawn.thingIDNumber);
-                    warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.pawn.thingIDNumber);
+                    warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages, warrant.Pawn.thingIDNumber);
+                    warrant.reason = Utils.GenerateTextFromRule(SW_DefOf.SW_WantedFor, warrant.Pawn.thingIDNumber);
                     AssignRewards(warrant);
                     return warrant;
                 #endregion
@@ -166,7 +166,7 @@ namespace SimpleWarrants
                         createdTick = Find.TickManager.TicksGame,
                         thing = PawnGenerator.GeneratePawn(Utils.AllWorthAnimalDefs.RandomElement())
                     };
-                    warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages, warrant.pawn.thingIDNumber);
+                    warrant.message = Utils.GenerateTextFromRule(SW_DefOf.SW_Messages, warrant.Pawn.thingIDNumber);
 
                     GetValidWarrantIssuers(Faction.OfPlayer, false).TryRandomElement(out warrant.issuer);
 
@@ -255,10 +255,10 @@ namespace SimpleWarrants
 
         private static void AssignRewards(Warrant_Pawn warrant)
         {
-            var awardForLiving = (int)(warrant.pawn.MarketValue * Rand.Range(0.5f, 2f));
+            var awardForLiving = (int)(warrant.Pawn.MarketValue * Rand.Range(0.5f, 2f));
             int rewardForDead = (int)(awardForLiving * Rand.Range(0.3f, 0.7f));
 
-            if (warrant.pawn.def.race.Animal)
+            if (warrant.Pawn.def.race.Animal)
             {
                 warrant.rewardForDead = rewardForDead;
             }
@@ -317,11 +317,11 @@ namespace SimpleWarrants
         public bool CanPutWarrantOn(Pawn pawn)
         {
             var allWarrants = availableWarrants.OfType<Warrant_Pawn>();
-            if (pawn.IsColonist && allWarrants.Any(x => x.pawn.IsColonist)) // cannot put warrants on more than one colonist
+            if (pawn.IsColonist && allWarrants.Any(x => x.Pawn.IsColonist)) // cannot put warrants on more than one colonist
             {
                 return false;
             }
-            return allWarrants.All(x => x.pawn != pawn) && (!pawn.IsColonist || SimpleWarrantsMod.Settings.enableWarrantsOnColonists);
+            return allWarrants.All(x => x.Pawn != pawn) && (!pawn.IsColonist || SimpleWarrantsMod.Settings.enableWarrantsOnColonists);
         }
 
         public void PutWarrantOn(Pawn victim, string reason, Faction issuer = null)
@@ -335,6 +335,10 @@ namespace SimpleWarrants
                 loadID = GetWarrantID(),
                 createdTick = Find.TickManager.TicksGame
             };
+
+            float basePoints = StorytellerUtility.DefaultThreatPointsNow(Find.World);
+            warrant.threatPoints = (int)(basePoints * Rand.Range(0.85f, 1.15f));
+
             warrant.thing = victim;
             if (issuer != null)
             {

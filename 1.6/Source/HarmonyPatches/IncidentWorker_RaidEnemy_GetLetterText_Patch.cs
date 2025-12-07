@@ -1,4 +1,4 @@
-﻿using HarmonyLib;
+using HarmonyLib;
 using RimWorld;
 using Verse;
 
@@ -15,15 +15,15 @@ namespace SimpleWarrants
                 var warrant = RaidStrategyWorker_MakeLords_Patch.warrantToHunt;
                 if (warrant.rewardForDead > 0 && warrant.rewardForLiving > 0)
                 {
-                    __result += "\n\n" + "SW.RaidReasonKillCapture".Translate(warrant.pawn.Named("PAWN"), warrant.reason.ToLower());
+                    __result += "\n\n" + "SW.RaidReasonKillCapture".Translate(warrant.Pawn.Named("PAWN"), warrant.reason.ToLower());
                 }
                 else if (warrant.rewardForDead > 0)
                 {
-                    __result += "\n\n" + "SW.RaidReasonKill".Translate(warrant.pawn.Named("PAWN"), warrant.reason.ToLower());
+                    __result += "\n\n" + "SW.RaidReasonKill".Translate(warrant.Pawn.Named("PAWN"), warrant.reason.ToLower());
                 }
                 else
                 {
-                    __result += "\n\n" + "SW.RaidReasonCapture".Translate(warrant.pawn.Named("PAWN"), warrant.reason.ToLower());
+                    __result += "\n\n" + "SW.RaidReasonCapture".Translate(warrant.Pawn.Named("PAWN"), warrant.reason.ToLower());
                 }
             }
         }

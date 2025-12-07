@@ -124,10 +124,10 @@ namespace SimpleWarrants
             }
             if (warrant is Warrant_Pawn pw)
             {
-                if (thing is Pawn p2 && p2 == pw.pawn)
+                if (thing is Pawn p2 && p2 == pw.Pawn)
                     return thing;
 
-                if (thing is Corpse c && c.InnerPawn == pw.pawn)
+                if (thing is Corpse c && c.InnerPawn == pw.Pawn)
                     return thing;
             }
 

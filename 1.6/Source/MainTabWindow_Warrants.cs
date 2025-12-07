@@ -105,7 +105,7 @@ namespace SimpleWarrants
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.red;
 					Text.Anchor = TextAnchor.UpperCenter;
-					if (pawnWarrant.pawn.RaceProps.Humanlike)
+					if (pawnWarrant.Pawn.RaceProps.Humanlike)
 					{
 						Widgets.Label(new Rect(leftColRect.x, leftColRect.y, leftColRect.width, 45f), "SW.Wanted".Translate());
 					}
@@ -118,7 +118,7 @@ namespace SimpleWarrants
 					Text.Font = GameFont.Medium;
 					GUI.color = Color.yellow;
 					var text = pawnWarrant.reason;
-					if (pawnWarrant.pawn.RaceProps.Humanlike is false)
+					if (pawnWarrant.Pawn.RaceProps.Humanlike is false)
 					{
 						text = "SW.HuntReason".Translate();
 					}
@@ -179,7 +179,7 @@ namespace SimpleWarrants
 				var portraitSizeVec = new Vector2(portraitSize, portraitSize);
 				if (pawnWarrant != null)
 				{
-					GUI.DrawTexture(portraitRect, PortraitsCache.Get(pawnWarrant.pawn, portraitSizeVec, Rot4.South, default(Vector3), 1.5f));
+					GUI.DrawTexture(portraitRect, PortraitsCache.Get(pawnWarrant.Pawn, portraitSizeVec, Rot4.South, default(Vector3), 1.5f));
 				}
 				else
 				{
@@ -194,16 +194,16 @@ namespace SimpleWarrants
 					currentY += 30f + 5f;
 				}
 
-				if (pawnWarrant != null && pawnWarrant.pawn.RaceProps.Humanlike)
+				if (pawnWarrant != null && pawnWarrant.Pawn.RaceProps.Humanlike)
 				{
 					var infoRectX = portraitRect.xMax + 15f;
 					var infoRect = new Rect(infoRectX, currentY, sectionRect.xMax - infoRectX, topSectionHeight);
 					var infoY = infoRect.y;
-					DrawInfoRow(ref infoY, infoRect, "SW.NameLabel", pawnWarrant.pawn.LabelCap);
-					DrawInfoRow(ref infoY, infoRect, "SW.RaceLabel", pawnWarrant.pawn.genes?.XenotypeLabel ?? pawnWarrant.pawn.def.label);
-					DrawInfoRow(ref infoY, infoRect, "SW.AgeLabel", pawnWarrant.pawn.ageTracker.AgeBiologicalYears.ToString());
+					DrawInfoRow(ref infoY, infoRect, "SW.NameLabel", pawnWarrant.Pawn.LabelCap);
+					DrawInfoRow(ref infoY, infoRect, "SW.RaceLabel", pawnWarrant.Pawn.genes?.XenotypeLabel ?? pawnWarrant.Pawn.def.label);
+					DrawInfoRow(ref infoY, infoRect, "SW.AgeLabel", pawnWarrant.Pawn.ageTracker.AgeBiologicalYears.ToString());
 					GUI.color = ColorLibrary.RedReadable;
-					DrawInfoRow(ref infoY, infoRect, "SW.AllianceLabel", pawnWarrant.pawn.Faction != null ? pawnWarrant.pawn.Faction.Name : "None".Translate().Resolve());
+					DrawInfoRow(ref infoY, infoRect, "SW.AllianceLabel", pawnWarrant.Pawn.Faction != null ? pawnWarrant.Pawn.Faction.Name : "None".Translate().Resolve());
 					GUI.color = Color.white;
 					currentY += topSectionHeight + 20f;
 
@@ -266,7 +266,7 @@ namespace SimpleWarrants
 				}
 
 				currentY += 15f;
-				if (pawnWarrant != null && pawnWarrant.pawn.RaceProps.Humanlike)
+				if (pawnWarrant != null && pawnWarrant.Pawn.RaceProps.Humanlike)
 				{
 					Text.Font = GameFont.Medium;
 					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.EstimatedThreatLevel".Translate());
@@ -403,11 +403,11 @@ namespace SimpleWarrants
 			{
 				var warrant = CreateWarrant(out string failReason);
 
-				if (warrant is Warrant_Pawn warrantPawn && warrantPawn.pawn.Faction is not null
-					&& warrantPawn.pawn.Faction != Faction.OfPlayer && warrantPawn.pawn.Faction.HostileTo(Faction.OfPlayer) is false)
+				if (warrant is Warrant_Pawn warrantPawn && warrantPawn.Pawn.Faction is not null
+					&& warrantPawn.Pawn.Faction != Faction.OfPlayer && warrantPawn.Pawn.Faction.HostileTo(Faction.OfPlayer) is false)
 				{
-					Find.WindowStack.Add(new Dialog_MessageBox("SW.ConfirmationPrompt".Translate(warrantPawn.pawn.Named("PAWN"),
-						warrantPawn.pawn.Faction.Name), "Confirm".Translate(), delegate
+					Find.WindowStack.Add(new Dialog_MessageBox("SW.ConfirmationPrompt".Translate(warrantPawn.Pawn.Named("PAWN"),
+						warrantPawn.Pawn.Faction.Name), "Confirm".Translate(), delegate
 						{
 							TryAddWarrant(warrant, failReason);
 						}, "Cancel".Translate()));

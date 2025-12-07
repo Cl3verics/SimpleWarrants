@@ -14,7 +14,7 @@ namespace SimpleWarrants
         public static readonly Texture2D IconCapture;
         public static readonly Texture2D IconDeath;
 
-        public Pawn pawn
+        public Pawn Pawn
         {
             get
             {
@@ -30,7 +30,11 @@ namespace SimpleWarrants
         {
             get
             {
-                return StorytellerUtility.DefaultThreatPointsNow(Find.World);
+                if (threatPoints <= 0)
+                {
+                    threatPoints = StorytellerUtility.DefaultThreatPointsNow(Find.World);
+                }
+                return threatPoints;
             }
         }
 
@@ -39,6 +43,8 @@ namespace SimpleWarrants
         public int rewardForDead;
 
         public int rewardForLiving;
+
+        public float threatPoints;
 
         static Warrant_Pawn()
         {
@@ -51,20 +57,20 @@ namespace SimpleWarrants
             base.Draw(rect, doAcceptAndDeclineButtons, doCompensateWarrantButton);
             var pawnRect = new Rect(new Vector2(rect.x + 100, rect.y + 10), new Vector2(rect.height * 0.7f, rect.height));
             Vector2 pos = new Vector2(pawnRect.width, pawnRect.height);
-            var portraitColor = pawn.RaceProps.Animal ? pawn.def.uiIconColor : Color.white;
-            var portrait = pawn.RaceProps.Animal ? (Texture)pawn.def.uiIcon : PortraitsCache.Get(pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f);
+            var portraitColor = Pawn.RaceProps.Animal ? Pawn.def.uiIconColor : Color.white;
+            var portrait = Pawn.RaceProps.Animal ? (Texture)Pawn.def.uiIcon : PortraitsCache.Get(Pawn, pos, Rot4.South, new Vector3(0f, 0f, 0f), 1.2f);
             GUI.color = portraitColor;
             GUI.DrawTexture(pawnRect, portrait, ScaleMode.ScaleToFit);
             GUI.color = Color.white;
-            Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 40, pawn);
+            Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 40, Pawn);
 
             Text.Font = GameFont.Medium;
-            var pawnName = pawn.RaceProps.Animal ? $"<color=#f0898e>{"SW.Hunt".Translate()}</color> {pawn.def.LabelCap}" : pawn.Name.ToString();
+            var pawnName = Pawn.RaceProps.Animal ? $"<color=#f0898e>{"SW.Hunt".Translate()}</color> {Pawn.def.LabelCap}" : Pawn.Name.ToString();
             var textSize = Text.CalcSize(pawnName);
             var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, textSize.x, 30);
             Widgets.Label(nameInfoBox, pawnName);
 
-            if (issuer.IsPlayer && MaxRewardValue() < (pawn.MarketValue * 0.75f))
+            if (issuer.IsPlayer && MaxRewardValue() < (Pawn.MarketValue * 0.75f))
             {
                 var insufficientRewardBox = new Rect(nameInfoBox.xMax + 5, nameInfoBox.y + 3, 24, 24);
                 GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
@@ -72,7 +78,7 @@ namespace SimpleWarrants
             }
 
             var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, rect.width - pawnRect.width, nameInfoBox.height);
-            if (!pawn.RaceProps.Animal)
+            if (!Pawn.RaceProps.Animal)
             {
                 Widgets.Label(wantedForInfoBox, "SW.WantedFor".Translate(reason.Colorize(Color.yellow), issuer.NameColored));
             }
@@ -97,7 +103,7 @@ namespace SimpleWarrants
             var rewardsForLivingIconBox = new Rect(rewardsForDeadInfoBox.xMax, wantedForInfoBox.yMax, 24, 24);
             var rewardsForLivingInfoBox = new Rect(rewardsForLivingIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
 
-            if (!pawn.RaceProps.Animal || issuer.IsPlayer)
+            if (!Pawn.RaceProps.Animal || issuer.IsPlayer)
             {
                 GUI.DrawTexture(rewardsForLivingIconBox, IconCapture);
                 Widgets.Label(rewardsForLivingInfoBox, rewardForLiving + " " + ThingDefOf.Silver.LabelCap);
@@ -130,12 +136,12 @@ namespace SimpleWarrants
             Slate slate = new Slate();
             slate.Set("points", ThreatPoints);
             slate.Set("asker", issuer.leader);
-            slate.Set("victim", pawn);
+            slate.Set("victim", Pawn);
             slate.Set("reason", reason);
             slate.Set("warrant", this);
             slate.Set("rewardForLiving", rewardForLiving);
             slate.Set("rewardForDead", rewardForDead);
-            var questDef = pawn.RaceProps.Animal ? SW_DefOf.SW_Warrant_Animal : SW_DefOf.SW_Warrant_Pawn;
+            var questDef = Pawn.RaceProps.Animal ? SW_DefOf.SW_Warrant_Animal : SW_DefOf.SW_Warrant_Pawn;
             var quest = QuestUtility.GenerateQuestAndMakeAvailable(questDef, slate);
             QuestUtility.SendLetterQuestAvailable(quest);
         }
@@ -146,17 +152,18 @@ namespace SimpleWarrants
             Scribe_Values.Look(ref reason, "reason");
             Scribe_Values.Look(ref rewardForLiving, "rewardForLiving");
             Scribe_Values.Look(ref rewardForDead, "rewardForDead");
+            Scribe_Values.Look(ref threatPoints, "threatPoints");
         }
 
         public override bool IsWarrantActive()
         {
-            bool isPawnDead = pawn?.Dead ?? false;
+            bool isPawnDead = Pawn?.Dead ?? false;
             if (rewardForDead == 0 && isPawnDead)
             {
                 return false;
             }
 
-            if (pawn?.Corpse is {} corpse)
+            if (Pawn?.Corpse is { } corpse)
             {
                 thing = corpse;
 
@@ -165,7 +172,7 @@ namespace SimpleWarrants
                     return false;
                 }
             }
-            else if (pawn == null || pawn.Destroyed)
+            else if (Pawn == null || Pawn.Destroyed)
             {
                 return false;
             }
@@ -230,16 +237,16 @@ namespace SimpleWarrants
 
         public override bool IsThreatForPlayer()
         {
-            return pawn.Faction == Faction.OfPlayer;
+            return Pawn.Faction == Faction.OfPlayer;
         }
 
         public override void OnCreate()
         {
             base.OnCreate();
 
-            if (pawn.Faction != null && !pawn.Faction.HostileTo(Faction.OfPlayer))
+            if (Pawn.Faction != null && !Pawn.Faction.HostileTo(Faction.OfPlayer))
             {
-                pawn.Faction.TryAffectGoodwillWith(Faction.OfPlayer, -80);
+                Pawn.Faction.TryAffectGoodwillWith(Faction.OfPlayer, -80);
             }
         }
 
