@@ -11,10 +11,10 @@ Global
 		v1.3|ARM64 = v1.3|ARM64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{77E520A6-5131-4BF3-BE24-0AFB11D6E042}.v1.3|Any CPU.ActiveCfg = v1.3|Any CPU
-		{77E520A6-5131-4BF3-BE24-0AFB11D6E042}.v1.3|Any CPU.Build.0 = v1.3|Any CPU
 		{77E520A6-5131-4BF3-BE24-0AFB11D6E042}.v1.3|ARM64.ActiveCfg = v1.3|ARM64
 		{77E520A6-5131-4BF3-BE24-0AFB11D6E042}.v1.3|ARM64.Build.0 = v1.3|ARM64
+		{77E520A6-5131-4BF3-BE24-0AFB11D6E042}.v1.3|Any CPU.ActiveCfg = Debug|Any CPU
+		{77E520A6-5131-4BF3-BE24-0AFB11D6E042}.v1.3|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

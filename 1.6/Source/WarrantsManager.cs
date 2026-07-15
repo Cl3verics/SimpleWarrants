@@ -121,7 +121,6 @@ namespace SimpleWarrants
             warrantTypeToWeight[TYPE_TAME] = SimpleWarrantsMod.Settings.enableTamingWarrants ? 0.2f : 0f;
 
             var type = warrantTypes.RandomElementByWeight(t => warrantTypeToWeight[t]);
-
             switch (type)
             {
                 case TYPE_PAWN:
@@ -193,7 +192,8 @@ namespace SimpleWarrants
 
                     var artifacts = Utils.AllArtifactDefs;
                     var randomArtifact = artifacts.RandomElement();
-                    artWarrant.thing = ThingMaker.MakeThing(randomArtifact);
+                    GenStuff.TryRandomStuffByCommonalityFor(randomArtifact, out var stuffDef);
+                    artWarrant.thing = ThingMaker.MakeThing(randomArtifact, stuffDef);
                     artWarrant.reward = (int)(artWarrant.thing.MarketValue * Rand.Range(0.5f, 2f));
                     DoWealthScaling(artWarrant);
                     return artWarrant;
