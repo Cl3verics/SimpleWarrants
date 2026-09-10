@@ -352,10 +352,6 @@ public static class SimpleSettings
 
     public static float DrawFieldHeader(ModSettings settings, MemberWrapper member, Rect area)
     {
-        float height = 26;
-
-        Rect labelrect = area;
-        labelrect.height = height;
         var value = member.Get<object>(settings);
         var old = Text.Anchor;
         Text.Anchor = TextAnchor.MiddleLeft;
@@ -366,6 +362,10 @@ public static class SimpleSettings
         if (member.Options.AllowReset)
             label = HighlightIfNotDefault(settings, member, label);
 
+        float height = Mathf.Max(26f, CalcHeightTagged(label, area.width));
+
+        Rect labelrect = area;
+        labelrect.height = height;
         Widgets.Label(labelrect, label);
         Text.Anchor = old;
 
@@ -463,19 +463,30 @@ public static class SimpleSettings
         return TEXTBOX_HEIGHT + height;
     }
 
+    private static float CalcHeightTagged(string label, float width)
+    {
+        return Text.CurFontStyle.CalcHeight(new GUIContent(label), width);
+    }
+
     private static float DrawToggle(ModSettings settings, MemberWrapper member, Rect area)
     {
+        string label = HighlightIfNotDefault(settings, member, $"<b>{member.DisplayName}</b>: ");
+        float labelWidth = Mathf.Min(area.width, Text.CalcSize(label).x + 24f + 10f) - 24f;
+        float height = Mathf.Max(28f, CalcHeightTagged(label, labelWidth));
+        if (height > 28f)
+            height += 4f;
+
         Rect toggleRect = area;
-        toggleRect.height = 28;
+        toggleRect.height = height;
 
         bool enabled = member.Get<bool>(settings);
         bool old = enabled;
-        Widgets.CheckboxLabeled(toggleRect, HighlightIfNotDefault(settings, member, $"<b>{member.DisplayName}</b>: "), ref enabled, placeCheckboxNearText: true);
+        Widgets.CheckboxLabeled(toggleRect, label, ref enabled, placeCheckboxNearText: true);
 
         if (old != enabled)
             member.Set(settings, enabled);
 
-        return toggleRect.height;
+        return height;
     }
 
     private static float DrawEnum(ModSettings settings, MemberWrapper member, Rect area)
