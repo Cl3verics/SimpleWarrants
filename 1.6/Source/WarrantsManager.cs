@@ -400,7 +400,7 @@ namespace SimpleWarrants
             };
 
             var basePoints = StorytellerUtility.DefaultThreatPointsNow(Find.World);
-            warrant.threatPoints = (int)(basePoints * Rand.Range(0.85f, 1.15f) * warrant.severityFactor);
+            warrant.threatPoints = (int)(basePoints * Rand.Range(0.85f, 1.15f) * warrant.GetSeverityFactor());
 
             warrant.thing = victim;
             if (issuer != null)

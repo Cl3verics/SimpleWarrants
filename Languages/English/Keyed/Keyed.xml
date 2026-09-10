@@ -64,6 +64,8 @@
   <SW.WarrantGenMTB.Desc>The average time, in days, between new warrants being posted.</SW.WarrantGenMTB.Desc>
   <SW.BountyRaidGenMTB>Average raid interval</SW.BountyRaidGenMTB>
   <SW.BountyRaidGenMTB.Desc>The average interval, in days, between bounty hunter raids.</SW.BountyRaidGenMTB.Desc>
+  <SW.EnableSeverityScaling>Enable severity scaling</SW.EnableSeverityScaling>
+  <SW.EnableSeverityScaling.Desc>If enabled, the strength of bounty hunter raids is scaled by the severity of the crime.\nFor example, a poaching warrant results in much weaker raids than a murder warrant.\nIf disabled, all raids arrive at full strength.</SW.EnableSeverityScaling.Desc>
   <SW.Rewards>Rewards</SW.Rewards>
   <SW.General>General</SW.General>
   <SW.Raids>Raids</SW.Raids>

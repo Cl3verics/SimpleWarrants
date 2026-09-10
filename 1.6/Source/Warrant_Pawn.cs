@@ -50,6 +50,10 @@ namespace SimpleWarrants
 
         public float GetSeverityFactor()
         {
+            if (SimpleWarrantsMod.Settings.enableSeverityScaling is false)
+            {
+                return 1f;
+            }
             return reasonDef?.severity ?? severityFactor;
         }
 

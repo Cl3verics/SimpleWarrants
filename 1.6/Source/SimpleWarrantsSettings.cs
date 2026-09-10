@@ -61,6 +61,9 @@ namespace SimpleWarrants
 
         [Header("SW.Raids")]
 
+        [Label("SW.EnableSeverityScaling")]
+        public bool enableSeverityScaling = true;
+
         [Label("SW.BountyHunterRaidScale")]
         [Range(0.25f, 2f)]
         [Percentage]
