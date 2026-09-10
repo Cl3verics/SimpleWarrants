@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Loitering</defName>
+    <label>loitering</label>
+    <severity>0.05</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Poaching</defName>
+    <label>poaching</label>
+    <severity>0.1</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Vandalism</defName>
+    <label>vandalism</label>
+    <severity>0.15</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Fraud</defName>
+    <label>fraud</label>
+    <severity>0.2</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_CyberCrimes</defName>
+    <label>cyber crimes</label>
+    <severity>0.2</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Theft</defName>
+    <label>theft</label>
+    <severity>0.25</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Larceny</defName>
+    <label>larceny</label>
+    <severity>0.25</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Embezzlement</defName>
+    <label>embezzlement</label>
+    <severity>0.25</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Blackmail</defName>
+    <label>blackmail</label>
+    <severity>0.3</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Extortion</defName>
+    <label>extortion</label>
+    <severity>0.3</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Desertion</defName>
+    <label>desertion</label>
+    <severity>0.4</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Arson</defName>
+    <label>arson</label>
+    <severity>0.4</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Assault</defName>
+    <label>assault</label>
+    <severity>0.5</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Sabotage</defName>
+    <label>sabotage</label>
+    <severity>0.6</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Kidnapping</defName>
+    <label>kidnapping</label>
+    <severity>0.7</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Torture</defName>
+    <label>torture</label>
+    <severity>0.75</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Conspiracy</defName>
+    <label>conspiracy</label>
+    <severity>0.75</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Murder</defName>
+    <label>murder</label>
+    <severity>0.9</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+  <SimpleWarrants.WarrantReasonDef>
+    <defName>SW_Treason</defName>
+    <label>treason</label>
+    <severity>1</severity>
+  </SimpleWarrants.WarrantReasonDef>
+
+</Defs>

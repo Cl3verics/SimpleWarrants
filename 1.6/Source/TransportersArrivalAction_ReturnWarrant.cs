@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Verse;
 using RimWorld;
 using RimWorld.Planet;
+using Verse;
 namespace SimpleWarrants
 {
     public class TransportersArrivalAction_ReturnWarrant : TransportersArrivalAction
@@ -32,7 +32,7 @@ namespace SimpleWarrants
 
         public override FloatMenuAcceptanceReport StillValid(IEnumerable<IThingHolder> pods, PlanetTile destinationTile)
         {
-            FloatMenuAcceptanceReport floatMenuAcceptanceReport = base.StillValid(pods, destinationTile);
+            var floatMenuAcceptanceReport = base.StillValid(pods, destinationTile);
             if (!floatMenuAcceptanceReport)
             {
                 return floatMenuAcceptanceReport;
@@ -81,49 +81,45 @@ namespace SimpleWarrants
             if (target == null || container == null)
             {
                 Log.Error($"Failed to find warrant target {warrant.thing.LabelCap} in transport pods for warrant {warrant.loadID}.");
-                return;
-            }
-
-            container.Remove(target);
-
-            warrant.status = WarrantStatus.Completed;
-            var questTarget = target is Corpse corpse ? corpse.InnerPawn : target;
-            QuestUtility.SendQuestTargetSignals(questTarget.questTags, "WarrantRequestFulfilled", settlement.Named("SUBJECT"));
-
-            if (warrant.relatedQuest is { State: <= QuestState.Ongoing })
-                warrant.relatedQuest.End(QuestEndOutcome.Success);
-
-            WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
-
-            // Drop silver reward
-            var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
-            silver.stackCount = warrant.MaxRewardValue();
-            var playerHomeMap = Find.AnyPlayerHomeMap;
-            if (playerHomeMap != null)
-            {
-                IntVec3 dropSpot = DropCellFinder.TradeDropSpot(playerHomeMap);
-                DropPodUtility.DropThingsNear(dropSpot, playerHomeMap, new List<Thing> { silver }, 110, false, false, true);
-                Messages.Message("SW.WarrantCompletedByPods".Translate(warrant.accepteer.Name), MessageTypeDefOf.PositiveEvent, false);
             }
             else
             {
-                Log.Error("Could not find any player home map to drop silver reward.");
+                container.Remove(target);
+
+                warrant.status = WarrantStatus.Completed;
+                var questTarget = target is Corpse corpse ? corpse.InnerPawn : target;
+                QuestUtility.SendQuestTargetSignals(questTarget.questTags, "WarrantRequestFulfilled", settlement.Named("SUBJECT"));
+
+                if (warrant.relatedQuest is { State: <= QuestState.Ongoing })
+                    warrant.relatedQuest.End(QuestEndOutcome.Success);
+
+                WarrantsManager.Instance.acceptedWarrants.Remove(warrant);
+
+                // Drop silver reward
+                var silver = ThingMaker.MakeThing(ThingDefOf.Silver);
+                silver.stackCount = warrant.MaxRewardValue();
+                var playerHomeMap = Find.AnyPlayerHomeMap;
+                if (playerHomeMap != null)
+                {
+                    var dropSpot = DropCellFinder.TradeDropSpot(playerHomeMap);
+                    DropPodUtility.DropThingsNear(dropSpot, playerHomeMap, new List<Thing> { silver });
+                    Messages.Message("SW.WarrantCompletedByPods".Translate(warrant.issuer.Name), MessageTypeDefOf.PositiveEvent, false);
+                }
+                else
+                {
+                    Log.Error("Could not find any player home map to drop silver reward.");
+                }
             }
         }
 
         public static FloatMenuAcceptanceReport CanReturnWarrant(IEnumerable<IThingHolder> pods, Settlement settlement, Warrant warrant)
         {
-            if (settlement == null || !settlement.Spawned || settlement.Faction == null || settlement.Faction == Faction.OfPlayer || settlement.HasMap)
+            if (settlement == null || settlement.Spawned is false || settlement.Faction == null || settlement.Faction == Faction.OfPlayer || settlement.HasMap || warrant == null || warrant.issuer != settlement.Faction || warrant.IsWarrantActive() is false)
             {
                 return false;
             }
 
-            if (warrant == null || warrant.issuer != settlement.Faction || !warrant.IsWarrantActive())
-            {
-                return false;
-            }
-
-            foreach (IThingHolder pod in pods)
+            foreach (var pod in pods)
             {
                 foreach (var thing in pod.GetDirectlyHeldThings())
                 {
@@ -138,24 +134,32 @@ namespace SimpleWarrants
 
         private static Thing TryGetWarrantTargetInContainer(Warrant warrant, Thing thing)
         {
-            if (warrant is Warrant_TameAnimal tame && thing is Pawn tamee && tamee.kindDef == tame.AnimalRace)
-            {
-                return thing;
-            }
-            if (warrant is Warrant_Pawn pw)
-            {
-                if (thing is Pawn p2 && p2 == pw.Pawn)
-                    return thing;
-
-                if (thing is Corpse c && c.InnerPawn == pw.Pawn)
-                    return thing;
-            }
-
-            if (thing == warrant.thing)
+            if (warrant is Warrant_TameAnimal tame && thing is Pawn tamee && tamee.kindDef == tame.AnimalRace || warrant is Warrant_Pawn pw && (thing is Pawn p2 && p2 == pw.Pawn || thing is Corpse c && c.InnerPawn == pw.Pawn) || thing == warrant.thing)
             {
                 return thing;
             }
             return null;
+        }
+
+        public static bool HasReturnableWarrant(IEnumerable<IThingHolder> pods, Settlement settlement)
+        {
+            if (settlement == null || settlement.Faction == null || settlement.Faction == Faction.OfPlayer)
+            {
+                return false;
+            }
+            var warrants = WarrantsManager.Instance.acceptedWarrants;
+            if (warrants == null)
+            {
+                return false;
+            }
+            foreach (var warrant in warrants)
+            {
+                if (warrant.issuer == settlement.Faction && CanReturnWarrant(pods, settlement, warrant))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static IEnumerable<FloatMenuOption> GetFloatMenuOptions(Action<PlanetTile, TransportersArrivalAction> launchAction, IEnumerable<IThingHolder> pods, Settlement settlement)
@@ -166,7 +170,7 @@ namespace SimpleWarrants
             }
 
             var warrants = WarrantsManager.Instance.acceptedWarrants?.Where(x => x.issuer == settlement.Faction && x.IsWarrantActive()).ToList();
-            if (warrants == null || !warrants.Any())
+            if (warrants == null || warrants.Any() is false)
             {
                 yield break;
             }
@@ -175,10 +179,7 @@ namespace SimpleWarrants
             {
                 if (CanReturnWarrant(pods, settlement, warrant))
                 {
-                    yield return new FloatMenuOption("SW.ReturnWarrantViaTransportPods".Translate(warrant.thing.LabelCap), delegate
-                    {
-                        launchAction(settlement.Tile, new TransportersArrivalAction_ReturnWarrant(settlement, warrant));
-                    });
+                    yield return new FloatMenuOption("SW.ReturnWarrantViaTransportPods".Translate(warrant.thing.LabelCap), () => launchAction(settlement.Tile, new TransportersArrivalAction_ReturnWarrant(settlement, warrant)));
                 }
             }
         }

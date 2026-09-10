@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using LudeonTK;
 using RimWorld;
@@ -29,21 +29,18 @@ namespace SimpleWarrants
 
         public static List<DebugMenuOption> PutWarrant(Pawn pawn)
         {
-            List<DebugMenuOption> list = new List<DebugMenuOption>();
+            var list = new List<DebugMenuOption>();
             foreach (var issuer in Find.FactionManager.AllFactions)
             {
-                list.Add(new DebugMenuOption(issuer.Name, DebugMenuOptionMode.Action, delegate
-                {
-                    WarrantsManager.Instance.PutWarrantOn(pawn, "DEBUG", issuer);
-                }));
+                list.Add(new DebugMenuOption(issuer.Name, DebugMenuOptionMode.Action, () => WarrantsManager.Instance.PutWarrantOn(pawn, DefDatabase<WarrantReasonDef>.AllDefs.RandomElement(), issuer)));
             }
             return list;
         }
 
         public static Faction AnyHostileToPlayerFaction()
         {
-            return Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && !faction.defeated && !faction.Hidden && !faction.IsPlayer
-                                        && faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile 
+            return Find.FactionManager.AllFactions.Where(faction => faction.def.humanlikeFaction && faction.defeated is false && faction.Hidden is false && faction.IsPlayer is false
+                                        && faction.RelationKindWith(Faction.OfPlayer) == FactionRelationKind.Hostile
                                         && Find.World.worldObjects.Settlements.Any(settlement => settlement.Faction == faction))
                                         .RandomElement();
         }
@@ -55,10 +52,10 @@ namespace SimpleWarrants
                 Rand.PushState();
                 Rand.Seed = seed;
             }
-            string rootKeyword = rule.RulesPlusIncludes.Where(x => x.keyword == "r_logentry").RandomElement().keyword;
-            GrammarRequest request = default(GrammarRequest);
+            var rootKeyword = rule.RulesPlusIncludes.Where(x => x.keyword == "r_logentry").RandomElement().keyword;
+            GrammarRequest request = default;
             request.Includes.Add(rule);
-            string str = GrammarResolver.Resolve(rootKeyword, request);
+            var str = GrammarResolver.Resolve(rootKeyword, request);
             if (seed != -1)
             {
                 Rand.PopState();
@@ -66,29 +63,15 @@ namespace SimpleWarrants
             return str;
         }
 
-        public static HashSet<string> GenerateAllTextFromRule(RulePackDef rule)
-        {
-            HashSet<string> results = new HashSet<string>();
-            for (var i = 0;i < 100; i++)
-            {
-                string rootKeyword = rule.FirstRuleKeyword;
-                GrammarRequest request = default(GrammarRequest);
-                request.Includes.Add(rule);
-                string str = GrammarResolver.Resolve(rootKeyword, request);
-                results.Add(str);
-            }
-            return results;
-        }
-
         public static List<Thing> AllPlayerSilver()
         {
             var result = new List<Thing>();
             foreach (var map in Find.Maps)
             {
-                if (!map.IsPlayerHome) continue;
+                if (map.IsPlayerHome is false) continue;
                 result.AddRange(map.listerThings.ThingsOfDef(ThingDefOf.Silver)
-                    .Where(s => !s.Position.Fogged(s.Map) &&
-                               (map.areaManager.Home[s.Position] || s.IsInAnyStorage())));
+                    .Where(s => s.Position.Fogged(s.Map) is false &&
+                                (map.areaManager.Home[s.Position] || s.IsInAnyStorage())));
             }
             return result;
         }
@@ -98,7 +81,7 @@ namespace SimpleWarrants
             var home = Find.AnyPlayerHomeMap;
             if (home == null) return false;
             return ModsConfig.OdysseyActive &&
-                   home.Tile.LayerDef == PlanetLayerDefOf.Orbit;
+                    home.Tile.LayerDef == PlanetLayerDefOf.Orbit;
         }
     }
 }

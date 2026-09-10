@@ -15,5 +15,9 @@ namespace SimpleWarrants
         public static QuestScriptDef SW_Warrant_Pawn;
         public static IncidentCategoryDef FactionArrival;
         public static ThingCategoryDef Artifacts;
+        public static WarrantReasonDef SW_Poaching;
+        public static WarrantReasonDef SW_Torture;
+        public static WarrantReasonDef SW_Assault;
+        public static WarrantReasonDef SW_Fraud;
     }
 }

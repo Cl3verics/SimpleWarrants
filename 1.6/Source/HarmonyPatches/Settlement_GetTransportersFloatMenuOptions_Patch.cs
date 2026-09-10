@@ -1,16 +1,23 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using RimWorld.Planet;
 using Verse;
 
 namespace SimpleWarrants
 {
-    [HarmonyPatch(typeof(Settlement), nameof(Settlement.GetTransportersFloatMenuOptions))]
+    [HarmonyPatch]
     public static class Settlement_GetTransportersFloatMenuOptions_Patch
     {
-        public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> __result, IEnumerable<IThingHolder> pods, Action<PlanetTile, TransportersArrivalAction> launchAction,  Settlement __instance)
+        [HarmonyTargetMethods]
+        public static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(Settlement), nameof(Settlement.GetTransportersFloatMenuOptions));
+            yield return AccessTools.Method(typeof(Settlement), nameof(Settlement.GetShuttleFloatMenuOptions));
+        }
+
+        public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> __result, IEnumerable<IThingHolder> pods, Action<PlanetTile, TransportersArrivalAction> launchAction, Settlement __instance)
         {
             foreach (var floatMenuOption in __result)
             {

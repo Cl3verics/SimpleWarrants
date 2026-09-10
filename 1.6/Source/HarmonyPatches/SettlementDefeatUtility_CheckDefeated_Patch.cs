@@ -1,40 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
 using Verse;
-using Verse.AI;
 
-namespace SimpleWarrants.HarmonyPatches
+namespace SimpleWarrants
 {
-    [HarmonyPatch(typeof(GenHostility), "AnyHostileActiveThreatTo",
-    new[] { typeof(Map), typeof(Faction), typeof(IAttackTarget), typeof(bool), typeof(bool) },
-    new[] { ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal, ArgumentType.Normal })]
-    internal static class AnyHostileActiveThreatTo_Patch
-    {
-        public static Dictionary<Map, Faction> lastFactionThreats = new();
-
-        [HarmonyPriority(Priority.Last)]
-        public static void Postfix(ref bool __result, Map map, Faction faction, ref IAttackTarget threat)
-        {
-            if (__result && !map.IsPlayerHome && threat is Pawn { Faction: { } } pawn && pawn.Faction.def.humanlikeFaction)
-            {
-                lastFactionThreats[map] = pawn.Faction;
-            }
-        }
-
-        public static Faction GetLastHostileFactionFromMap(Map map)
-        {
-            return lastFactionThreats.TryGetValue(map, out Faction faction)
-                ? faction
-                : map.ParentFaction != null && map.ParentFaction.def.humanlikeFaction && map.ParentFaction.HostileTo(Faction.OfPlayer)
-                ? map.ParentFaction
-                : null;
-        }
-    }
-
     //[HarmonyPatch(typeof(FormCaravanComp), "CompTick")]
     //public static class FormCaravanComp_CompTick_Patch
     //{
@@ -76,12 +50,11 @@ namespace SimpleWarrants.HarmonyPatches
     {
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> codeInstructions)
         {
-            System.Reflection.MethodInfo notify_PlayerRaidedSomeone = AccessTools.Method(typeof(IdeoUtility), nameof(IdeoUtility.Notify_PlayerRaidedSomeone));
-            List<CodeInstruction> codes = codeInstructions.ToList();
-            for (int i = 0; i < codes.Count; i++)
+            var notify_PlayerRaidedSomeone = AccessTools.Method(typeof(IdeoUtility), nameof(IdeoUtility.Notify_PlayerRaidedSomeone));
+            foreach (var item in codeInstructions.ToList())
             {
-                yield return codes[i];
-                if (codes[i].Calls(notify_PlayerRaidedSomeone))
+                yield return item;
+                if (item.Calls(notify_PlayerRaidedSomeone))
                 {
                     yield return new CodeInstruction(OpCodes.Ldloc_0);
                     yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(SettlementDefeatUtility_CheckDefeated_Patch), nameof(RegisterAssault)));
@@ -91,29 +64,17 @@ namespace SimpleWarrants.HarmonyPatches
 
         public static void RegisterAssault(Map map)
         {
-            Faction faction = AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(map);
-            if (faction == null)
-            {
-                return;
-            }
-
-            // Do not count aggression against enemies as assault.
-            if (faction.HostileTo(Faction.OfPlayer))
-            {
-                return;
-            }
-
-            // 50% chance.
-            if (!SimpleWarrantsMod.Settings.enableWarrantsOnAssault || !Rand.Chance(0.5f))
+            var faction = GenHostility_AnyHostileActiveThreatTo_Patch.GetLastHostileFactionFromMap(map);
+            if (faction == null || faction.HostileTo(Faction.OfPlayer) || SimpleWarrantsMod.Settings.enableWarrantsOnAssault is false || Rand.Chance(0.5f) is false)
             {
                 return;
             }
 
             // Get a random player pawn from the attackers and slap a bounty on them.
-            IEnumerable<Pawn> pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(WarrantsManager.Instance.CanPutWarrantOn);
+            var pawns = map.mapPawns.FreeHumanlikesOfFaction(Faction.OfPlayer).Where(WarrantsManager.Instance.CanPutWarrantOn);
             if (pawns.TryRandomElement(out Pawn selectedPawn))
             {
-                WarrantsManager.Instance.PutWarrantOn(selectedPawn, "SW.Assault".Translate(), faction);
+                WarrantsManager.Instance.PutWarrantOn(selectedPawn, SW_DefOf.SW_Assault, faction);
             }
         }
     }
