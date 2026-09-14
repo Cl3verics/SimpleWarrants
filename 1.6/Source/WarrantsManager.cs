@@ -135,7 +135,7 @@ namespace SimpleWarrants
 
                     // Generate a random pawn to give a warrant to.
                     // The pawn is made part of a random human-like faction.
-                    var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionDef != Faction.OfPlayer.def).RandomElement();
+                    var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike && x.defaultFactionDef != Faction.OfPlayer.def && Utils.IsBlacklistedFromWarrants(x) is false).RandomElement();
                     Faction faction = null;
 
                     if (randomKind.defaultFactionDef != null)
@@ -227,7 +227,7 @@ namespace SimpleWarrants
                                         select animal).ToList();
 
                     if (allAnimals.Count == 0)
-                        allAnimals = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.race.race.Animal && x.race.GetStatValueAbstract(StatDefOf.Wildness) < 1f).ToList();
+                        allAnimals = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.race.race.Animal && x.race.GetStatValueAbstract(StatDefOf.Wildness) < 1f && Utils.IsBlacklistedFromWarrants(x) is false).ToList();
 
                     if (allAnimals.TryRandomElementByWeight(a => a.race.GetStatValueAbstract(StatDefOf.MarketValue), out tameWarrant.AnimalRace) is false)
                     {
@@ -390,6 +390,10 @@ namespace SimpleWarrants
             if (issuer == Faction.OfPlayer)
             {
                 return;// seems that one of method is calling this with faction player argument, it should prevent the issue
+            }
+            if (Utils.IsBlacklistedFromWarrants(victim))
+            {
+                return;
             }
             var warrant = new Warrant_Pawn
             {

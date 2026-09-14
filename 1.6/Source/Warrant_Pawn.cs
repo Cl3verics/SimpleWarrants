@@ -140,8 +140,15 @@ namespace SimpleWarrants
 
         public override void DoAcceptAction()
         {
+            var siteTag = Pawn.RaceProps.Animal ? "SW_Site" : "SW_Camp";
+            if (Utils.TryResolveWarrantSiteFaction(siteTag, issuer, out var siteFaction) is false)
+            {
+                Messages.Message("SW.WarrantSiteUnresolved".Translate(issuer.Name), MessageTypeDefOf.RejectInput);
+                return;
+            }
             base.DoAcceptAction();
             var slate = new Slate();
+            slate.Set("enemyFaction", siteFaction);
             slate.Set("points", ThreatPoints);
             slate.Set("asker", issuer.leader);
             slate.Set("victim", Pawn);

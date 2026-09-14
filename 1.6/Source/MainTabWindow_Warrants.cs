@@ -441,6 +441,7 @@ namespace SimpleWarrants
 				if (curType == TargetType.Human && curPawn is null)
 				{
 					if (!Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn?.story != null && pawn.RaceProps.Humanlike
+						&& Utils.IsBlacklistedFromWarrants(pawn) is false
 						&& !WarrantsManager.Instance.createdWarrants.Any(warrant => pawn == warrant.thing)).TryRandomElement(out curPawn))
 					{
 						var randomKind = DefDatabase<PawnKindDef>.AllDefs.Where(x => x.RaceProps.Humanlike).RandomElement();

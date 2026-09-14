@@ -41,7 +41,6 @@
 					<sitePartsTags>
 						<li><tag>SW_Site</tag></li>
 					</sitePartsTags>
-					<mustBeHostileToFactionOf>$asker</mustBeHostileToFactionOf>
 				</li>
 
 				<li Class="QuestNode_GetDefaultSitePartsParams">

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LudeonTK;
 using RimWorld;
+using RimWorld.Planet;
 using Verse;
 using Verse.Grammar;
 
@@ -13,7 +14,17 @@ namespace SimpleWarrants
                     || (x.thingCategories?.Contains(SW_DefOf.Artifacts) ?? false)
                     || (x.tradeTags?.Contains("ExoticMisc") ?? false));
 
-        public static IEnumerable<PawnKindDef> AllWorthAnimalDefs => DefDatabase<PawnKindDef>.AllDefs.Where(x => x.race.race.Animal && x.race.GetStatValueAbstract(StatDefOf.MarketValue) >= 400);
+        public static IEnumerable<PawnKindDef> AllWorthAnimalDefs => DefDatabase<PawnKindDef>.AllDefs.Where(x => x.race.race.Animal && x.race.GetStatValueAbstract(StatDefOf.MarketValue) >= 400 && IsBlacklistedFromWarrants(x) is false);
+
+        public static bool IsBlacklistedFromWarrants(Pawn pawn)
+        {
+            return ModsConfig.AnomalyActive && (pawn.IsMutant || pawn.IsCreepJoiner || pawn.IsEntity || pawn.RaceProps.IsAnomalyEntity);
+        }
+
+        public static bool IsBlacklistedFromWarrants(PawnKindDef kind)
+        {
+            return kind is CreepJoinerFormKindDef || kind.race.race.IsAnomalyEntity;
+        }
 
         [DebugAction("General", "Populate warrants (x15)")]
         private static void PopulateWarrants()
@@ -82,6 +93,15 @@ namespace SimpleWarrants
             if (home == null) return false;
             return ModsConfig.OdysseyActive &&
                     home.Tile.LayerDef == PlanetLayerDefOf.Orbit;
+        }
+
+        public static bool TryResolveWarrantSiteFaction(string siteTag, Faction issuer, out Faction siteFaction)
+        {
+            if (SiteMakerHelper.TryFindSiteParams_MultipleSiteParts(Gen.YieldSingle(siteTag), out _, out siteFaction, null, disallowNonHostileFactions: true, faction => faction != issuer && faction.HostileTo(issuer)))
+            {
+                return true;
+            }
+            return SiteMakerHelper.TryFindSiteParams_MultipleSiteParts(Gen.YieldSingle(siteTag), out _, out siteFaction, null, disallowNonHostileFactions: true, faction => faction != issuer);
         }
     }
 }

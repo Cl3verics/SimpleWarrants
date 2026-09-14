@@ -26,9 +26,16 @@ namespace SimpleWarrants
 
         public override void DoAcceptAction()
         {
+            if (Utils.TryResolveWarrantSiteFaction("SW_Site", issuer, out var siteFaction) is false)
+            {
+                Messages.Message("SW.WarrantSiteUnresolved".Translate(issuer.Name), MessageTypeDefOf.RejectInput);
+                return;
+            }
+
             base.DoAcceptAction();
 
             Slate slate = new Slate();
+            slate.Set("enemyFaction", siteFaction);
             slate.Set("points", StorytellerUtility.DefaultThreatPointsNow(Find.World));
             slate.Set("asker", issuer.leader);
             slate.Set("warrant", this);

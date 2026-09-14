@@ -27,6 +27,7 @@ namespace SimpleWarrants
 			closeOnClickedOutside = false;
 			absorbInputAroundWindow = false;
 			allPawns = Find.WorldPawns.AllPawnsAlive.Where(pawn => pawn.MapHeld is null && pawn?.story != null && pawn?.Name != null
+			&& Utils.IsBlacklistedFromWarrants(pawn) is false
 			&& !WarrantsManager.Instance.createdWarrants.Any(warrant => pawn == warrant.thing)).ToList();
 			this.parent = parent;
 		}

@@ -86,6 +86,7 @@ Values in between give a soft preference toward closer factions.</SW.DistanceWei
   <SW.Animal>Animal</SW.Animal>
   <SW.FactionDroppedWarrant>{FACTION_name} has dropped your warrant on {1} because they are enemies now.</SW.FactionDroppedWarrant>
   <SW.TooManyPlayerWarrants>You have already posted the maximum number of simultaneous warrants ({0}).\nWait for them to be completed or remove them before making a new one.</SW.TooManyPlayerWarrants>
+  <SW.WarrantSiteUnresolved>{0} cannot find any faction able to host a camp for this warrant, so it cannot be accepted right now. The warrant remains available.</SW.WarrantSiteUnresolved>
 
   <SW.Torture>Torture</SW.Torture>
   <SW.Poaching>Poaching</SW.Poaching>
