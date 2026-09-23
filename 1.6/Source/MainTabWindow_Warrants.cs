@@ -208,7 +208,12 @@ namespace SimpleWarrants
 					currentY += topSectionHeight + 20f;
 
 					Text.Font = GameFont.Medium;
-					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), "SW.MessageFromFaction".Translate(selectedWarrant.issuer.NameColored));
+					string messageFromText = "SW.MessageFromFaction".Translate(selectedWarrant.issuer.NameColored);
+					Widgets.Label(new Rect(sectionRect.x, currentY, sectionRect.width, 30f), messageFromText);
+					var headerSize = Text.CalcSize(messageFromText);
+					GUI.color = selectedWarrant.issuer.Color;
+					GUI.DrawTexture(new Rect(sectionRect.x + headerSize.x + 5f, currentY + 5f, 20f, 20f), selectedWarrant.issuer.def.FactionIcon);
+					GUI.color = Color.white;
 					currentY += 30f + 5f;
 
 					Text.Font = GameFont.Small;

@@ -41,6 +41,8 @@ namespace SimpleWarrants
 
         public virtual bool UsesThings => true;
 
+        public virtual string TargetLabel => thing.LabelCap;
+
         public virtual void ExposeData()
         {
             if (thing is Pawn pawn && pawn.Corpse != null)
@@ -145,6 +147,16 @@ namespace SimpleWarrants
                 WarrantsManager.Instance.takenWarrants.Remove(this);
                 WarrantsManager.Instance.postponedWarrants.Remove(this);
             }
+        }
+
+        public void DrawPostedBy(Rect rect)
+        {
+            string text = "SW.PostedBy".Translate(issuer.NameColored);
+            Widgets.Label(rect, text);
+            var textSize = Text.CalcSize(text);
+            GUI.color = issuer.Color;
+            GUI.DrawTexture(new Rect(rect.x + textSize.x + 5f, rect.y + 5f, 20f, 20f), issuer.def.FactionIcon);
+            GUI.color = Color.white;
         }
 
         public abstract bool ShouldShowCompensateButton();

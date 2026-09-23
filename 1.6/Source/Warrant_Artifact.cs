@@ -36,7 +36,7 @@ namespace SimpleWarrants
                 TooltipHandler.TipRegion(insufficientRewardBox, "SW.InsufficientReward".Translate());
             }
             var postedByInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, 400, nameInfoBox.height);
-            Widgets.Label(postedByInfoBox, "SW.PostedBy".Translate(issuer.NameColored));
+            DrawPostedBy(postedByInfoBox);
 
             var rewardIconBox = new Rect(nameInfoBox.x, postedByInfoBox.yMax, 24, 24);
             GUI.DrawTexture(rewardIconBox, IconRetrieve);

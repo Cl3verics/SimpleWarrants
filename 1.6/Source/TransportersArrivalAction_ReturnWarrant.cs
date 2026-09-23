@@ -80,7 +80,7 @@ namespace SimpleWarrants
 
             if (target == null || container == null)
             {
-                Log.Error($"Failed to find warrant target {warrant.thing.LabelCap} in transport pods for warrant {warrant.loadID}.");
+                Log.Error($"Failed to find warrant target {warrant.TargetLabel} in transport pods for warrant {warrant.loadID}.");
             }
             else
             {
@@ -179,7 +179,7 @@ namespace SimpleWarrants
             {
                 if (CanReturnWarrant(pods, settlement, warrant))
                 {
-                    yield return new FloatMenuOption("SW.ReturnWarrantViaTransportPods".Translate(warrant.thing.LabelCap), () => launchAction(settlement.Tile, new TransportersArrivalAction_ReturnWarrant(settlement, warrant)));
+                    yield return new FloatMenuOption("SW.ReturnWarrantViaTransportPods".Translate(warrant.TargetLabel), () => launchAction(settlement.Tile, new TransportersArrivalAction_ReturnWarrant(settlement, warrant)));
                 }
             }
         }

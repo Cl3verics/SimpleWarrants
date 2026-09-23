@@ -95,7 +95,7 @@ namespace SimpleWarrants
             }
             else
             {
-                Widgets.Label(wantedForInfoBox, "SW.PostedBy".Translate(issuer.NameColored));
+                DrawPostedBy(wantedForInfoBox);
             }
 
             var rewardsForDeadIconBox = new Rect(wantedForInfoBox.x, wantedForInfoBox.yMax, 24, 24);

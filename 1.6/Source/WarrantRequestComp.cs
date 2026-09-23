@@ -34,7 +34,7 @@ namespace SimpleWarrants
 			if (!ActiveRequest)
 				return null;
 
-			var requestInfo = string.Join(", ", ActiveWarrants.Select(x => x is Warrant_TameAnimal tame ? (string)tame.AnimalRace.LabelCap : x.thing.LabelCap ?? x.thing.def.label));
+			var requestInfo = string.Join(", ", ActiveWarrants.Select(x => x.TargetLabel));
 			return "SW.CaravanRequestInfo".Translate(requestInfo);
 		}
 
@@ -58,7 +58,7 @@ namespace SimpleWarrants
 			};
 			if (ActiveWarrants.All(x => TryGetWarrantTargetInCaravan(x, caravan) == null))
 			{
-				command_Action.Disable("SW.CommandFulfillWarrantFailInsufficient".Translate(ActiveWarrants.Select(x => x is Warrant_TameAnimal t ? (string)t.AnimalRace.LabelCap : x.thing.LabelCap).First()));
+				command_Action.Disable("SW.CommandFulfillWarrantFailInsufficient".Translate(ActiveWarrants.Select(x => x.TargetLabel).First()));
 			}
 			return command_Action;
 		}

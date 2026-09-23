@@ -66,7 +66,7 @@ namespace SimpleWarrants
             Widgets.Label(nameInfoBox, pawnName);
 
             var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, rect.width - pawnRect.width, nameInfoBox.height);
-            Widgets.Label(wantedForInfoBox, "SW.PostedBy".Translate(issuer.NameColored));
+            DrawPostedBy(wantedForInfoBox);
 
             var rewardsForDeadIconBox = new Rect(wantedForInfoBox.x, wantedForInfoBox.yMax, 24, 24);
             GUI.DrawTexture(rewardsForDeadIconBox, Warrant_Pawn.IconCapture);
@@ -92,6 +92,8 @@ namespace SimpleWarrants
 
             Text.Font = GameFont.Small;
         }
+
+        public override string TargetLabel => AnimalRace.LabelCap;
 
         public override bool IsWarrantActive() => true;
 

@@ -544,7 +544,7 @@ namespace SimpleWarrants
                     createdWarrants.RemoveAt(num);
                     takenWarrants.Add(warrant);
                     warrant.tickToBeCompleted = Find.TickManager.TicksGame + (GenDate.TicksPerDay * (int)Rand.Range(3f, 15f));
-                    Messages.Message("SW.FactionTookYourWarrant".Translate(takerFaction.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.PositiveEvent);
+                    Messages.Message("SW.FactionTookYourWarrant".Translate(takerFaction.Named("FACTION"), warrant.TargetLabel), MessageTypeDefOf.PositiveEvent);
                 }
             }
         }
@@ -559,7 +559,7 @@ namespace SimpleWarrants
                 {
                     takenWarrants.RemoveAt(num);
                     createdWarrants.Add(warrant);
-                    Messages.Message("SW.FactionDroppedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.NegativeEvent);
+                    Messages.Message("SW.FactionDroppedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.TargetLabel), MessageTypeDefOf.NegativeEvent);
                     continue;
                 }
 
@@ -576,7 +576,7 @@ namespace SimpleWarrants
                 }
                 else
                 {
-                    Messages.Message("SW.FactionFailedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap), MessageTypeDefOf.NegativeEvent);
+                    Messages.Message("SW.FactionFailedWarrant".Translate(warrant.accepteer.Named("FACTION"), warrant.TargetLabel), MessageTypeDefOf.NegativeEvent);
                     var relationshipDamage = SimpleWarrantsMod.Settings.failedPlayerWarrantRelationshipDamage;
                     if (relationshipDamage > 0)
                         warrant.accepteer.TryAffectGoodwillWith(Faction.OfPlayer, -relationshipDamage);
@@ -620,7 +620,7 @@ namespace SimpleWarrants
             var silvers = Utils.AllPlayerSilver();
 
             var title = "SW.FactionCompletedWarrant".Translate(warrant.accepteer.Named("FACTION"));
-            var diaNode = new DiaNode("SW.FactionCompletedWarrantDesc".Translate(warrant.accepteer.Named("FACTION"), warrant.thing.LabelCap, reward));
+            var diaNode = new DiaNode("SW.FactionCompletedWarrantDesc".Translate(warrant.accepteer.Named("FACTION"), warrant.TargetLabel, reward));
             var payOption = new DiaOption("SW.Pay".Translate(reward));
             payOption.action = () =>
             {
