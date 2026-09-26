@@ -151,7 +151,7 @@ namespace SimpleWarrants
 
         public void DrawPostedBy(Rect rect)
         {
-            string text = "SW.PostedBy".Translate(issuer.NameColored);
+            TaggedString text = "SW.PostedBy".Translate(issuer.NameColored);
             Widgets.Label(rect, text);
             var textSize = Text.CalcSize(text);
             GUI.color = issuer.Color;
