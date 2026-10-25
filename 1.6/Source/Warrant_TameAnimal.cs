@@ -60,18 +60,19 @@ namespace SimpleWarrants
             Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 40, AnimalRace.race);
 
             Text.Font = GameFont.Medium;
+            var postedByInfoBox = new Rect(pawnRect.xMax, rect.y + 6, rect.width - pawnRect.width, Text.LineHeight);
+            DrawPostedBy(postedByInfoBox);
+
             var pawnName = $"<color=#bced93>{"SW.Tame".Translate()}</color> {AnimalRace.LabelCap}";
             var textSize = Text.CalcSize(pawnName);
-            var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, textSize.x, 30);
+            var nameInfoBox = new Rect(pawnRect.xMax, postedByInfoBox.yMax + 1, textSize.x, 30);
             Widgets.Label(nameInfoBox, pawnName);
 
-            var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, rect.width - pawnRect.width, nameInfoBox.height);
-            DrawPostedBy(wantedForInfoBox);
-
-            var rewardsForDeadIconBox = new Rect(wantedForInfoBox.x, wantedForInfoBox.yMax, 24, 24);
+            Text.Font = GameFont.Small;
+            var rewardsForDeadIconBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, 24, 24);
             GUI.DrawTexture(rewardsForDeadIconBox, Warrant_Pawn.IconCapture);
 
-            var rewardsForDeadInfoBox = new Rect(rewardsForDeadIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
+            var rewardsForDeadInfoBox = new Rect(rewardsForDeadIconBox.xMax + 5, nameInfoBox.yMax, (rect.width - pawnRect.width) / 3, nameInfoBox.height);
             if (Reward > 0)
             {
                 Widgets.Label(rewardsForDeadInfoBox, Reward + " " + ThingDefOf.Silver.LabelCap);
@@ -81,12 +82,8 @@ namespace SimpleWarrants
                 Widgets.Label(rewardsForDeadInfoBox, "SW.NoReward".Translate());
             }
 
-            var rewardsForLivingIconBox = new Rect(rewardsForDeadInfoBox.xMax, wantedForInfoBox.yMax, 24, 24);
-            var rewardsForLivingInfoBox = new Rect(rewardsForLivingIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
-
-            var infoBox = new Rect(rect.width - 250, rewardsForLivingInfoBox.yMax + 30, 250, 24);
+            var infoBox = new Rect(rect.width - 250, rect.yMax - 26, 250, 24);
             Text.Font = GameFont.Tiny;
-
             var expireDate = (relatedQuest != null ? acceptedTick : createdTick) + (GenDate.TicksPerDay * 15) - Find.TickManager.TicksGame;
             Widgets.Label(infoBox, "SW.WillExpireIn".Translate(expireDate.ToStringTicksToDays()));
 

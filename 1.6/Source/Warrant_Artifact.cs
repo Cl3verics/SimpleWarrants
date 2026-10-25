@@ -25,9 +25,13 @@ namespace SimpleWarrants
             Widgets.ThingIcon(thingRect, thing);
 
             Widgets.InfoCardButton(thingRect.xMax - 24, thingRect.yMax - 40, thing);
+
             Text.Font = GameFont.Medium;
+            var postedByInfoBox = new Rect(thingRect.xMax, rect.y + 6, rect.width - thingRect.width, Text.LineHeight);
+            DrawPostedBy(postedByInfoBox);
+
             var textSize = Text.CalcSize(thing.LabelCap);
-            var nameInfoBox = new Rect(thingRect.xMax, thingRect.y, textSize.x, 30);
+            var nameInfoBox = new Rect(thingRect.xMax, postedByInfoBox.yMax + 1, textSize.x, 30);
             Widgets.Label(nameInfoBox, thing.LabelCap);
             if (issuer.IsPlayer && MaxRewardValue() < (thing.MarketValue * 0.75f))
             {
@@ -35,15 +39,14 @@ namespace SimpleWarrants
                 GUI.DrawTexture(insufficientRewardBox, InsufficientRewardIcon);
                 TooltipHandler.TipRegion(insufficientRewardBox, "SW.InsufficientReward".Translate());
             }
-            var postedByInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, 400, nameInfoBox.height);
-            DrawPostedBy(postedByInfoBox);
 
-            var rewardIconBox = new Rect(nameInfoBox.x, postedByInfoBox.yMax, 24, 24);
+            Text.Font = GameFont.Small;
+            var rewardIconBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, 24, 24);
             GUI.DrawTexture(rewardIconBox, IconRetrieve);
-            var rewardInfoBox = new Rect(rewardIconBox.xMax + 5, postedByInfoBox.yMax, 400, nameInfoBox.height);
+            var rewardInfoBox = new Rect(rewardIconBox.xMax + 5, nameInfoBox.yMax, 400, nameInfoBox.height);
             Widgets.Label(rewardInfoBox, reward + " " + ThingDefOf.Silver.LabelCap);
 
-            var infoBox = new Rect(rect.width - 250, rewardInfoBox.yMax + 30, 250, 24);
+            var infoBox = new Rect(rect.width - 250, rect.yMax - 26, 250, 24);
             Text.Font = GameFont.Tiny;
             if (issuer != Faction.OfPlayer)
             {

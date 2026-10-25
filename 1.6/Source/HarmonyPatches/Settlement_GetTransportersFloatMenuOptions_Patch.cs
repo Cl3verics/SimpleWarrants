@@ -14,7 +14,6 @@ namespace SimpleWarrants
         public static IEnumerable<MethodBase> TargetMethods()
         {
             yield return AccessTools.Method(typeof(Settlement), nameof(Settlement.GetTransportersFloatMenuOptions));
-            yield return AccessTools.Method(typeof(Settlement), nameof(Settlement.GetShuttleFloatMenuOptions));
         }
 
         public static IEnumerable<FloatMenuOption> Postfix(IEnumerable<FloatMenuOption> __result, IEnumerable<IThingHolder> pods, Action<PlanetTile, TransportersArrivalAction> launchAction, Settlement __instance)

@@ -7,7 +7,7 @@
   <SW.Decline>Decline</SW.Decline>
   <SW.Wanted>WANTED</SW.Wanted>
   <SW.WantedFor>for {0}</SW.WantedFor>
-  <SW.PostedBy>Posted by {0}</SW.PostedBy>
+  <SW.PostedBy>Placed by {0}</SW.PostedBy>
   <SW.Hunt>[Hunt]</SW.Hunt>
   <SW.Tame>[Tame]</SW.Tame>
   <SW.CaravanRequestInfo>Warrants issued: {0}</SW.CaravanRequestInfo>

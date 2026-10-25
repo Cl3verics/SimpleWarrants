@@ -76,9 +76,12 @@ namespace SimpleWarrants
             Widgets.InfoCardButton(pawnRect.xMax - 24, pawnRect.yMax - 40, Pawn);
 
             Text.Font = GameFont.Medium;
+            var postedByInfoBox = new Rect(pawnRect.xMax, rect.y + 6, rect.width - pawnRect.width, Text.LineHeight);
+            DrawPostedBy(postedByInfoBox);
+
             var pawnName = Pawn.RaceProps.Animal ? $"<color=#f0898e>{"SW.Hunt".Translate()}</color> {Pawn.def.LabelCap}" : Pawn.Name.ToString();
             var textSize = Text.CalcSize(pawnName);
-            var nameInfoBox = new Rect(pawnRect.xMax, pawnRect.y, textSize.x, 30);
+            var nameInfoBox = new Rect(pawnRect.xMax, postedByInfoBox.yMax + 1, textSize.x, 30);
             Widgets.Label(nameInfoBox, pawnName);
 
             if (issuer.IsPlayer && MaxRewardValue() < (Pawn.MarketValue * 0.75f))
@@ -88,20 +91,19 @@ namespace SimpleWarrants
                 TooltipHandler.TipRegion(insufficientRewardBox, "SW.InsufficientReward".Translate());
             }
 
-            var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, rect.width - pawnRect.width, nameInfoBox.height);
+            var nextY = nameInfoBox.yMax;
             if (Pawn.RaceProps.Animal is false)
             {
-                Widgets.Label(wantedForInfoBox, "SW.WantedFor".Translate(reason.Colorize(Color.yellow), issuer.NameColored));
-            }
-            else
-            {
-                DrawPostedBy(wantedForInfoBox);
+                var wantedForInfoBox = new Rect(nameInfoBox.x, nameInfoBox.yMax, rect.width - pawnRect.width, nameInfoBox.height);
+                Widgets.Label(wantedForInfoBox, "SW.WantedFor".Translate(reason.Colorize(Color.yellow)));
+                nextY = wantedForInfoBox.yMax;
             }
 
-            var rewardsForDeadIconBox = new Rect(wantedForInfoBox.x, wantedForInfoBox.yMax, 24, 24);
+            Text.Font = GameFont.Small;
+            var rewardsForDeadIconBox = new Rect(nameInfoBox.x, nextY, 24, 24);
             GUI.DrawTexture(rewardsForDeadIconBox, IconDeath);
 
-            var rewardsForDeadInfoBox = new Rect(rewardsForDeadIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
+            var rewardsForDeadInfoBox = new Rect(rewardsForDeadIconBox.xMax + 5, nextY, (rect.width - pawnRect.width) / 3, nameInfoBox.height);
             if (rewardForDead > 0)
             {
                 Widgets.Label(rewardsForDeadInfoBox, rewardForDead + " " + ThingDefOf.Silver.LabelCap);
@@ -111,8 +113,8 @@ namespace SimpleWarrants
                 Widgets.Label(rewardsForDeadInfoBox, "SW.NoReward".Translate());
             }
 
-            var rewardsForLivingIconBox = new Rect(rewardsForDeadInfoBox.xMax, wantedForInfoBox.yMax, 24, 24);
-            var rewardsForLivingInfoBox = new Rect(rewardsForLivingIconBox.xMax + 5, wantedForInfoBox.yMax, wantedForInfoBox.width / 3, wantedForInfoBox.height);
+            var rewardsForLivingIconBox = new Rect(rewardsForDeadInfoBox.xMax, nextY, 24, 24);
+            var rewardsForLivingInfoBox = new Rect(rewardsForLivingIconBox.xMax + 5, nextY, (rect.width - pawnRect.width) / 3, nameInfoBox.height);
 
             if (Pawn.RaceProps.Animal is false || issuer.IsPlayer)
             {
@@ -120,7 +122,7 @@ namespace SimpleWarrants
                 Widgets.Label(rewardsForLivingInfoBox, rewardForLiving + " " + ThingDefOf.Silver.LabelCap);
             }
 
-            var infoBox = new Rect(rect.width - 250, rewardsForLivingInfoBox.yMax + 30, 250, 24);
+            var infoBox = new Rect(rect.width - 250, rect.yMax - 26, 250, 24);
             Text.Font = GameFont.Tiny;
             if (issuer != Faction.OfPlayer)
             {

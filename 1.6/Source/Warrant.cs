@@ -154,9 +154,11 @@ namespace SimpleWarrants
             TaggedString text = "SW.PostedBy".Translate(issuer.NameColored);
             Widgets.Label(rect, text);
             var textSize = Text.CalcSize(text);
+            var iconRect = new Rect(rect.x + textSize.x + 5f, rect.y + (rect.height - 20f) / 2f, 20f, 20f);
             GUI.color = issuer.Color;
-            GUI.DrawTexture(new Rect(rect.x + textSize.x + 5f, rect.y + 5f, 20f, 20f), issuer.def.FactionIcon);
+            GUI.DrawTexture(iconRect, issuer.def.FactionIcon);
             GUI.color = Color.white;
+            TooltipHandler.TipRegion(iconRect, issuer.Name);
         }
 
         public abstract bool ShouldShowCompensateButton();
